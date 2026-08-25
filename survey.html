@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>O'zbektelekom AK — Test</title>
+<title>O'zbektelekom AK — Anonim so'rovnoma</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root{
@@ -26,11 +26,8 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
 .lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; }
 .lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
-.home-icon-btn{ width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); text-decoration:none; transition:border-color .2s ease, color .2s ease; margin-left:2px; }
-.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
 .theme-toggle{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
 .theme-toggle svg{ width:17px; height:17px; }
-.back-link{ display:flex; align-items:center; gap:6px; color:var(--text-dim); font-size:13px; text-decoration:none; margin-right:6px; }
 
 .main{ max-width:680px; margin:0 auto; padding:120px 24px 80px; }
 .page-head{ margin-bottom:10px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
@@ -42,9 +39,8 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .back-btn:hover{ border-color:var(--azure); }
 .page-head .eyebrow{ font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--azure); }
 .page-head h1{ font-family:'Unbounded', sans-serif; font-size:clamp(22px,4vw,30px); margin-top:8px; }
-
-.progress-bar{ height:5px; background:var(--input-bg); border-radius:99px; margin:20px 0 30px; overflow:hidden; }
-.progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--azure), var(--teal)); transition:width .3s ease; }
+.anon-note{ display:flex; align-items:center; gap:8px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:11px; padding:11px 14px; font-size:12.5px; color:var(--text-dim); margin:16px 0 24px; }
+.anon-note svg{ flex:none; color:var(--teal); width:16px; height:16px; }
 
 .q-card{
   background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:24px; margin-bottom:16px;
@@ -80,24 +76,16 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   border-radius:20px; padding:40px 30px;
 }
 .result-card.show{ display:block; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both; }
-.result-card .score{ font-family:'Unbounded', sans-serif; font-size:44px; font-weight:800; margin:14px 0 6px; }
-.result-card .score.pass{ color:var(--teal); }
-.result-card .score.fail{ color:var(--coral); }
-.result-card .verdict{ font-size:15px; font-weight:600; margin-bottom:6px; }
-.result-card .sub{ color:var(--text-dim); font-size:13px; margin-bottom:6px; }
-.points-line{ color:var(--text-dim); font-size:13px; margin-bottom:22px; font-weight:600; }
-.wrong-block{ text-align:left; background:var(--input-bg); border:1px solid var(--input-border); border-radius:14px; padding:16px 18px; margin-bottom:22px; }
-.wrong-header{ font-size:12.5px; font-weight:700; color:var(--coral); text-transform:uppercase; letter-spacing:.4px; margin-bottom:10px; }
-.wrong-list{ list-style:none; display:flex; flex-direction:column; gap:8px; }
-.wrong-list li{ font-size:13.5px; padding-left:16px; position:relative; line-height:1.4; }
-.wrong-list li::before{ content:"✕"; position:absolute; left:0; color:var(--coral); font-size:11px; top:3px; }
+.result-card .icon{ width:56px; height:56px; margin:0 auto 16px; color:var(--teal); }
+.result-card .verdict{ font-size:16px; font-weight:700; margin-bottom:8px; font-family:'Unbounded', sans-serif; }
+.result-card .sub{ color:var(--text-dim); font-size:13.5px; margin-bottom:24px; }
 .result-card a{
   display:inline-block; padding:12px 24px; border-radius:11px; text-decoration:none;
   background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px;
   transition:transform .15s ease;
 }
 .result-card a:hover{ transform:translateY(-2px); }
-#quizForm.hidden{ display:none; }
+#surveyForm.hidden{ display:none; }
 .inactive-card{ display:none; text-align:center; background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:40px 30px; }
 .inactive-card.show{ display:block; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both; }
 .inactive-card .icon{ width:52px; height:52px; margin:0 auto 16px; color:var(--text-dim); }
@@ -106,7 +94,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   .topbar{ padding:14px 18px; }
   .main{ padding-top:100px; }
   .q-card{ padding:18px; }
-  .result-card{ padding:30px 20px; }
+  .result-card, .inactive-card{ padding:30px 20px; }
 }
 </style>
 </head>
@@ -128,37 +116,36 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 <div class="main">
   <div class="page-head">
     <div>
-      <div class="eyebrow" data-i18n="eyebrow">Bilimingizni sinang</div>
-      <h1 data-i18n="pageTitle">Korrupsiyaga qarshi test</h1>
+      <div class="eyebrow" data-i18n="eyebrow">Fikringiz muhim</div>
+      <h1 data-i18n="pageTitle">Anonim so'rovnoma</h1>
     </div>
     <a class="back-btn" href="main.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
       <span data-i18n="backBtn">Ortga</span>
     </a>
   </div>
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
-  <form id="quizForm"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></form>
+  <div class="anon-note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+    <span data-i18n="anonNote">Javoblaringiz to'liq anonim — kim ekanligingiz hech qanday tarzda saqlanmaydi.</span>
+  </div>
 
-  <div class="submit-wrap">
-    <button class="submit-btn" id="submitBtn" onclick="submitTest()" disabled data-i18n="submitBtn">Testni yakunlash</button>
+  <form id="surveyForm"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></form>
+
+  <div class="submit-wrap" id="submitWrap">
+    <button class="submit-btn" id="submitBtn" onclick="submitSurvey()" disabled data-i18n="submitBtn">Yuborish</button>
   </div>
 
   <div class="result-card" id="resultCard">
-    <div class="verdict" id="resultVerdict"></div>
-    <div class="score" id="resultScore"></div>
-    <div class="sub" id="resultSub"></div>
-    <div class="points-line" id="resultPoints"></div>
-    <div class="wrong-block" id="wrongBlock" style="display:none;">
-      <div class="wrong-header" id="wrongHeader"></div>
-      <ul class="wrong-list" id="wrongList"></ul>
-    </div>
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
+    <div class="verdict" data-i18n="thanksTitle">Rahmat!</div>
+    <div class="sub" data-i18n="thanksSub">Javoblaringiz muvaffaqiyatli va anonim tarzda qabul qilindi.</div>
     <a href="main.html" data-i18n="backHome">Asosiy sahifaga qaytish</a>
   </div>
 
   <div class="inactive-card" id="inactiveCard">
     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-    <div class="msg" data-i18n="inactiveMsg">Test yakunlangan</div>
+    <div class="msg" data-i18n="inactiveMsg">So'rovnoma yakunlangan</div>
     <a href="main.html" data-i18n="backHome">Asosiy sahifaga qaytish</a>
   </div>
 </div>
@@ -176,14 +163,7 @@ async function apiCall(payload){
     try{
       const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
       const text = await res.text();
-      try{
-        const parsed = JSON.parse(text);
-        if(parsed && parsed.success === false && parsed.code === 'SESSION_EXPIRED'){
-          try{ sessionStorage.removeItem('km_user'); }catch(e){}
-          window.location.href = 'login.html';
-        }
-        return parsed;
-      }
+      try{ return JSON.parse(text); }
       catch(parseErr){
         lastErr = new Error("Serverdan noto'g'ri javob keldi");
         if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
@@ -199,16 +179,16 @@ async function apiCall(payload){
 
 let currentLang = localStorage.getItem('km_lang') || 'uz';
 const dict = {
-  uz:{ brandName:"\"O'zbektelekom\" AK", backBtn:"Ortga", eyebrow:"Bilimingizni sinang", pageTitle:"Korrupsiyaga qarshi kurashish mavzulari bo'yicha test",
-    submitBtn:"Testni yakunlash", backHome:"Asosiy sahifaga qaytish", noQuestions:"Savollar topilmadi",
-    passVerdict:"Tabriklaymiz, test muvaffaqiyatli topshirildi! 🎉", failVerdict:"Afsuski, o'tish balliga yetmadingiz",
-    passSub:"Natijangiz saqlandi", failSub:"Hujjatlarni qayta ko'rib chiqib, testni qayta urinib ko'ring", savingErr:"Natijani saqlashda xatolik",
-    pointsLabel:"ball", wrongHeader:"Xato javob berilgan savollar:", inactiveMsg:"Test yakunlangan" },
-  ru:{ brandName:"АО «Узтелеком»", backBtn:"Назад", eyebrow:"Проверьте свои знания", pageTitle:"Тест по темам противодействия коррупции",
-    submitBtn:"Завершить тест", backHome:"Вернуться на главную", noQuestions:"Вопросы не найдены",
-    passVerdict:"Поздравляем, тест успешно пройден! 🎉", failVerdict:"К сожалению, вы не набрали проходной балл",
-    passSub:"Результат сохранён", failSub:"Пересмотрите документы и попробуйте снова", savingErr:"Ошибка при сохранении результата",
-    pointsLabel:"баллов", wrongHeader:"Вопросы с неверным ответом:", inactiveMsg:"Тест завершён" }
+  uz:{ brandName:"\"O'zbektelekom\" AK", backBtn:"Ortga", eyebrow:"Fikringiz muhim", pageTitle:"Anonim so'rovnoma",
+    anonNote:"Javoblaringiz to'liq anonim — kim ekanligingiz hech qanday tarzda saqlanmaydi.",
+    submitBtn:"Yuborish", backHome:"Asosiy sahifaga qaytish", noQuestions:"Savollar topilmadi",
+    thanksTitle:"Rahmat!", thanksSub:"Javoblaringiz muvaffaqiyatli va anonim tarzda qabul qilindi.",
+    inactiveMsg:"So'rovnoma yakunlangan", savingErr:"Yuborishda xatolik" },
+  ru:{ brandName:"АО «Узтелеком»", backBtn:"Назад", eyebrow:"Ваше мнение важно", pageTitle:"Анонимный опрос",
+    anonNote:"Ваши ответы полностью анонимны — информация о том, кто вы, нигде не сохраняется.",
+    submitBtn:"Отправить", backHome:"Вернуться на главную", noQuestions:"Вопросы не найдены",
+    thanksTitle:"Спасибо!", thanksSub:"Ваши ответы успешно и анонимно приняты.",
+    inactiveMsg:"Опрос завершён", savingErr:"Ошибка при отправке" }
 };
 
 // Sheets'dan kelgan matnni HTML sifatida joylashtirishdan oldin xavfsizlashtiradi (XSS himoyasi)
@@ -220,7 +200,7 @@ let allQuestions = [];
 const answers = {}; // { questionId: selectedLetter }
 
 function renderQuestions(){
-  const form = document.getElementById('quizForm');
+  const form = document.getElementById('surveyForm');
   if(allQuestions.length === 0){
     form.innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].noQuestions}</p>`;
     return;
@@ -247,11 +227,11 @@ function renderQuestions(){
 
 async function loadQuestions(){
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getTestQuestions' });
+    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyQuestions' });
     if(data.success && data.active === false){
-      document.getElementById('quizForm').style.display = 'none';
-      document.getElementById('submitBtn').style.display = 'none';
-      document.querySelector('.progress-bar').style.display = 'none';
+      document.getElementById('surveyForm').style.display = 'none';
+      document.getElementById('submitWrap').style.display = 'none';
+      document.querySelector('.anon-note').style.display = 'none';
       document.getElementById('inactiveCard').classList.add('show');
       return;
     }
@@ -265,9 +245,7 @@ function selectOpt(qid, letter, inputEl){
   answers[qid] = letter;
   document.querySelectorAll(`.opt[data-q="${qid}"]`).forEach(el=>el.classList.remove('selected'));
   inputEl.closest('.opt').classList.add('selected');
-  const total = allQuestions.length;
-  document.getElementById('progressFill').style.width = (Object.keys(answers).length/total*100) + '%';
-  document.getElementById('submitBtn').disabled = Object.keys(answers).length < total;
+  document.getElementById('submitBtn').disabled = Object.keys(answers).length < allQuestions.length;
 }
 
 function applyLang(){
@@ -288,64 +266,25 @@ function applyTheme(){ document.body.setAttribute('data-theme', theme); document
 function toggleTheme(){ theme = theme==='dark'?'light':'dark'; localStorage.setItem('km_theme', theme); applyTheme(); }
 applyTheme();
 
-function getToken(){
-  try{ return JSON.parse(sessionStorage.getItem('km_user'))?.token; }catch(e){ return null; }
-}
+async function submitSurvey(){
+  document.getElementById('surveyForm').classList.add('hidden');
+  document.getElementById('submitWrap').style.display = 'none';
+  document.querySelector('.anon-note').style.display = 'none';
 
-async function submitTest(){
-  document.getElementById('quizForm').classList.add('hidden');
-  document.getElementById('submitBtn').style.display = 'none';
-  document.querySelector('.progress-bar').style.display = 'none';
-
-  const token = getToken();
+  // MUHIM: bu yerda hech qanday token/login yuborilmaydi — javoblar serverga
+  // to'liq anonim tarzda, foydalanuvchini aniqlovchi hech qanday ma'lumotsiz yetkaziladi.
   const answerList = Object.keys(answers).map(id => ({ id, letter: answers[id] }));
-
   const rc = document.getElementById('resultCard');
 
-  if(!token){
-    rc.classList.add('show');
-    document.getElementById('resultVerdict').textContent = 'Sessiya topilmadi — login sahifasidan qayta kiring.';
-    return;
-  }
-
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'submitTest', token, answers: answerList });
-    if(!data.success){ throw new Error(data.message || 'error'); }
-
+    const data = await apiCall({ secret: APP_SECRET, action:'submitSurveyAnswers', answers: answerList });
+    if(!data.success){ throw new Error(data.code || 'error'); }
     rc.classList.add('show');
-    document.getElementById('resultVerdict').textContent = data.passed ? dict[currentLang].passVerdict : dict[currentLang].failVerdict;
-    const scoreEl = document.getElementById('resultScore');
-    scoreEl.textContent = data.percent + '%';
-    scoreEl.className = 'score ' + (data.passed ? 'pass' : 'fail');
-    document.getElementById('resultSub').textContent = data.passed ? dict[currentLang].passSub : dict[currentLang].failSub;
-    document.getElementById('resultPoints').textContent = `${data.points}/${data.maxPoints} ${dict[currentLang].pointsLabel}`;
-
-    if(data.wrongIds && data.wrongIds.length > 0){
-      const wrongBlock = document.getElementById('wrongBlock');
-      document.getElementById('wrongHeader').textContent = dict[currentLang].wrongHeader;
-      document.getElementById('wrongList').innerHTML = data.wrongIds.map(id => {
-        const q = allQuestions.find(x => String(x.id) === String(id));
-        const qText = q ? (q[currentLang] || q.uz).savol : '';
-        return qText ? `<li>${escapeHtml(qText)}</li>` : '';
-      }).join('');
-      wrongBlock.style.display = 'block';
-    }
   } catch(ex){
     rc.classList.add('show');
-    document.getElementById('resultVerdict').textContent = dict[currentLang].savingErr + ': ' + ex.message;
+    document.getElementById('resultVerdict') && (document.querySelector('.result-card .verdict').textContent = dict[currentLang].savingErr);
   }
 }
-
-// XAVFSIZLIK: brauzer "Ortga" tugmasi orqali keshdagi (bfcache) sahifani qaytarganda
-// (masalan, Chiqish qilingandan keyin) sessiyani qayta tekshiradi — agar sessiya
-// endi mavjud bo'lmasa (chiqilgan bo'lsa), darhol login sahifasiga qaytaradi.
-window.addEventListener('pageshow', function(event){
-  if (event.persisted) {
-    let u;
-    try{ u = JSON.parse(sessionStorage.getItem('km_user')); }catch(e){}
-    if (!u || !u.token) { window.location.href = 'login.html'; }
-  }
-});
 </script>
 </body>
 </html>

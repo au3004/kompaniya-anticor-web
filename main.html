@@ -186,6 +186,14 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:.2px; }
 .field input{ width:100%; padding:12px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:14px; outline:none; }
 .field input:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,163,224,0.18); }
+.file-btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:12px 14px; border:1.5px dashed var(--input-border); border-radius:10px; background:var(--input-bg); color:var(--text-dim); font-size:13.5px; font-weight:600; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
+.file-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.crop-frame{ width:190px; height:190px; border-radius:50%; overflow:hidden; position:relative; margin:0 auto 16px; background:#0009; border:1px solid var(--card-border); touch-action:none; cursor:grab; }
+.crop-frame.dragging{ cursor:grabbing; }
+.crop-frame img{ position:absolute; top:0; left:0; user-select:none; -webkit-user-drag:none; pointer-events:none; }
+.zoom-row{ display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.zoom-row svg{ flex:none; color:var(--text-dim); width:15px; height:15px; }
+.zoom-row input[type=range]{ flex:1; accent-color:var(--azure); }
 .modal-submit{ width:100%; margin-top:6px; padding:12px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:14px; }
 .modal-msg{ margin-top:12px; font-size:13px; display:none; padding:10px 12px; border-radius:9px; }
 .modal-msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); border:1px solid rgba(255,176,32,0.3); }
@@ -194,9 +202,23 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 @media (max-width:480px){
   .status-row{ flex-direction:column; }
   .chip-btn .name{ display:none; }
-  .topbar{ padding:14px 16px; }
+  .topbar{ padding:12px 10px; }
   .brand span{ font-size:12.5px; }
-  .controls{ gap:8px; }
+  .brand-logo{ height:16px; }
+  .controls{ gap:5px; }
+  .lang-toggle{ padding:2px; }
+  .lang-toggle button{ padding:5px 8px; font-size:11px; }
+  .home-icon-btn, .theme-toggle{ width:28px; height:28px; }
+  .theme-toggle svg{ width:14px; height:14px; }
+  .home-icon-btn svg{ width:13px; height:13px; }
+  .chip-btn{ padding:4px; gap:0; }
+  .chip-btn .avatar{ width:26px; height:26px; }
+  .chip-btn .chevron{ display:none; }
+}
+@media (max-width:360px){
+  .controls{ gap:3px; }
+  .lang-toggle button{ padding:4px 6px; font-size:10px; }
+  .home-icon-btn, .theme-toggle{ width:26px; height:26px; }
 }
 </style>
 </head>
@@ -240,6 +262,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   <div class="hero-actions">
     <a href="docs.html" class="primary" data-i18n="docsBtn">Hujjatlar bilan tanishish</a>
     <a href="test.html" class="secondary" data-i18n="testBtn">Testni topshirish</a>
+    <a href="survey.html" class="secondary" data-i18n="surveyBtn">Anonim so'rovnoma</a>
   </div>
 </div>
 
@@ -319,14 +342,29 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
         <span data-i18n="backLabel">Orqaga</span>
       </button>
-      <div style="display:flex; justify-content:center; margin-bottom:16px;">
+
+      <div id="photoPreviewWrap" style="display:flex; justify-content:center; margin-bottom:16px;">
         <img id="photoPreview" src="" alt="" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:1px solid var(--card-border);">
       </div>
+
+      <div id="cropWrap" style="display:none;">
+        <div class="crop-frame" id="cropFrame">
+          <img id="cropImg" src="" alt="">
+        </div>
+        <div class="zoom-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><path d="M10 7v6M7 10h6"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="range" id="zoomRange" min="100" max="300" value="100" oninput="onZoomChange()">
+        </div>
+      </div>
+
       <form onsubmit="return submitPhoto(event)">
         <div class="field">
-          <label data-i18n="photoUrlLabel">Rasm tanlang</label>
-          <input type="file" id="photoFileInput" accept="image/*" required onchange="onPhotoFileChange(event)">
-          <div class="field-hint" data-i18n="photoHint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;">Qurilmangizdan rasm tanlang (JPG, PNG).</div>
+          <label class="file-btn" for="photoFileInput">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span data-i18n="photoUrlLabel">Rasm tanlang</span>
+          </label>
+          <input type="file" id="photoFileInput" accept="image/*" style="display:none;" onchange="onPhotoFileChange(event)">
+          <div class="field-hint" data-i18n="photoHint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;">Qurilmangizdan rasm tanlang, so'ng ushlab surib va slayder bilan kerakli qismini tanlang.</div>
         </div>
         <button class="modal-submit" type="submit" id="photoSubmitBtn" data-i18n="saveBtn" disabled>Saqlash</button>
         <div class="modal-msg" id="photoMsg"></div>
@@ -419,7 +457,7 @@ const dict = {
     heroTitle:"Korrupsiyaga qarshi kurashish",
     heroDesc:"Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.",
     statusTitle:"Holatingizni tekshiring", statusSub:"Telefon raqamingizni kiriting",
-    docsBtn:"Hujjatlar bilan tanishish", testBtn:"Testni topshirish",
+    docsBtn:"Hujjatlar bilan tanishish", testBtn:"Testni topshirish", surveyBtn:"Anonim so'rovnoma",
     checkBtn:"Tekshirish", statusErrText:"Bu raqam topilmadi", notYourNumber:"Ushbu raqam sizga tegishli emas",
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
     docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Testdan o'tgan",
@@ -442,7 +480,7 @@ const dict = {
     heroTitle:"Противодействие коррупции",
     heroDesc:"Образовательная программа для сотрудников — ознакомьтесь с нормативными документами и проверьте свои знания.",
     statusTitle:"Проверьте свой статус", statusSub:"Введите номер телефона",
-    docsBtn:"Ознакомиться с документами", testBtn:"Пройти тест",
+    docsBtn:"Ознакомиться с документами", testBtn:"Пройти тест", surveyBtn:"Анонимный опрос",
     checkBtn:"Проверить", statusErrText:"Номер не найден", notYourNumber:"Этот номер вам не принадлежит",
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
     docLabel:"Ознакомлен с внутренними документами", testLabel:"Тест пройден",
@@ -621,8 +659,11 @@ function showSettingsView(viewId){
   if(viewId === 'photoView'){
     const current = (currentUser && currentUser.rasm) || '';
     pendingPhotoDataUrl = null;
+    resetCropState();
     document.getElementById('photoFileInput').value = '';
     document.getElementById('photoSubmitBtn').disabled = true;
+    document.getElementById('cropWrap').style.display = 'none';
+    document.getElementById('photoPreviewWrap').style.display = 'flex';
     document.getElementById('photoPreview').src = current || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(currentUser.familiya+' '+currentUser.ism) + '&backgroundColor=00A3E0';
   }
 }
@@ -663,53 +704,121 @@ async function submitSupport(e){
   return false;
 }
 
-/* ---------- Rasmni o'zgartirish ---------- */
+/* ---------- Rasmni o'zgartirish (drag + zoom crop) ---------- */
 let pendingPhotoDataUrl = null;
+const CROP_FRAME_SIZE = 190;
+const cropState = { img:null, naturalW:0, naturalH:0, scale:1, minScale:1, offsetX:0, offsetY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0 };
 
-function resizeImageToDataUrl(file, maxDim, quality){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('read-failed'));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('decode-failed'));
-      img.onload = () => {
-        let w = img.width, h = img.height;
-        if(w > h && w > maxDim){ h = Math.round(h * maxDim / w); w = maxDim; }
-        else if(h > maxDim){ w = Math.round(w * maxDim / h); h = maxDim; }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
+function resetCropState(){
+  cropState.img = null; cropState.dragging = false;
+  document.getElementById('zoomRange').value = 100;
 }
+
+function clampOffsets(){
+  const dispW = cropState.naturalW * cropState.scale;
+  const dispH = cropState.naturalH * cropState.scale;
+  cropState.offsetX = Math.min(0, Math.max(CROP_FRAME_SIZE - dispW, cropState.offsetX));
+  cropState.offsetY = Math.min(0, Math.max(CROP_FRAME_SIZE - dispH, cropState.offsetY));
+}
+
+function renderCrop(){
+  const el = document.getElementById('cropImg');
+  el.style.width = (cropState.naturalW * cropState.scale) + 'px';
+  el.style.height = (cropState.naturalH * cropState.scale) + 'px';
+  el.style.transform = `translate(${cropState.offsetX}px, ${cropState.offsetY}px)`;
+}
+
+function onZoomChange(){
+  const val = parseInt(document.getElementById('zoomRange').value, 10);
+  const oldScale = cropState.scale;
+  cropState.scale = cropState.minScale * (val / 100);
+  // Markazga nisbatan zumlash (surish hissi tabiiy bo'lishi uchun)
+  const cx = CROP_FRAME_SIZE / 2, cy = CROP_FRAME_SIZE / 2;
+  cropState.offsetX = cx - (cx - cropState.offsetX) * (cropState.scale / oldScale);
+  cropState.offsetY = cy - (cy - cropState.offsetY) * (cropState.scale / oldScale);
+  clampOffsets();
+  renderCrop();
+}
+
+function cropPointerDown(e){
+  if(!cropState.img) return;
+  cropState.dragging = true;
+  document.getElementById('cropFrame').classList.add('dragging');
+  cropState.startX = e.clientX; cropState.startY = e.clientY;
+  cropState.startOffX = cropState.offsetX; cropState.startOffY = cropState.offsetY;
+  e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId);
+}
+function cropPointerMove(e){
+  if(!cropState.dragging) return;
+  cropState.offsetX = cropState.startOffX + (e.clientX - cropState.startX);
+  cropState.offsetY = cropState.startOffY + (e.clientY - cropState.startY);
+  clampOffsets();
+  renderCrop();
+}
+function cropPointerUp(){
+  cropState.dragging = false;
+  document.getElementById('cropFrame').classList.remove('dragging');
+}
+(function initCropDrag(){
+  const frame = document.getElementById('cropFrame');
+  frame.addEventListener('pointerdown', cropPointerDown);
+  frame.addEventListener('pointermove', cropPointerMove);
+  frame.addEventListener('pointerup', cropPointerUp);
+  frame.addEventListener('pointerleave', cropPointerUp);
+})();
 
 async function onPhotoFileChange(e){
   const file = e.target.files[0];
   const msg = document.getElementById('photoMsg'); msg.className = 'modal-msg';
   const btn = document.getElementById('photoSubmitBtn');
-  if(!file){ btn.disabled = true; return; }
+  pendingPhotoDataUrl = null;
+  btn.disabled = true;
+  if(!file) return;
+
   try{
-    const dataUrl = await resizeImageToDataUrl(file, 300, 0.7);
-    pendingPhotoDataUrl = dataUrl;
-    document.getElementById('photoPreview').src = dataUrl;
+    const objUrl = URL.createObjectURL(file);
+    const img = await new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => reject(new Error('decode-failed'));
+      im.src = objUrl;
+    });
+    cropState.img = img;
+    cropState.naturalW = img.naturalWidth;
+    cropState.naturalH = img.naturalHeight;
+    cropState.minScale = Math.max(CROP_FRAME_SIZE / img.naturalWidth, CROP_FRAME_SIZE / img.naturalHeight);
+    cropState.scale = cropState.minScale;
+    cropState.offsetX = (CROP_FRAME_SIZE - img.naturalWidth * cropState.scale) / 2;
+    cropState.offsetY = (CROP_FRAME_SIZE - img.naturalHeight * cropState.scale) / 2;
+    document.getElementById('cropImg').src = objUrl;
+    document.getElementById('zoomRange').value = 100;
+    renderCrop();
+    document.getElementById('photoPreviewWrap').style.display = 'none';
+    document.getElementById('cropWrap').style.display = 'block';
     btn.disabled = false;
   } catch(ex){
-    pendingPhotoDataUrl = null;
     btn.disabled = true;
     msg.textContent = dict[currentLang].photoReadErr; msg.classList.add('err');
   }
+}
+
+function computeCroppedDataUrl(outputSize, quality){
+  const sx = -cropState.offsetX / cropState.scale;
+  const sy = -cropState.offsetY / cropState.scale;
+  const sSize = CROP_FRAME_SIZE / cropState.scale;
+  const canvas = document.createElement('canvas');
+  canvas.width = outputSize; canvas.height = outputSize;
+  canvas.getContext('2d').drawImage(cropState.img, sx, sy, sSize, sSize, 0, 0, outputSize, outputSize);
+  return canvas.toDataURL('image/jpeg', quality);
 }
 
 async function submitPhoto(e){
   e.preventDefault();
   const msg = document.getElementById('photoMsg');
   msg.className = 'modal-msg';
-  if(!pendingPhotoDataUrl){ msg.textContent = dict[currentLang].photoEmptyErr; msg.classList.add('err'); return false; }
+  if(!cropState.img){ msg.textContent = dict[currentLang].photoEmptyErr; msg.classList.add('err'); return false; }
+
+  pendingPhotoDataUrl = computeCroppedDataUrl(280, 0.75);
 
   const btn = document.getElementById('photoSubmitBtn');
   btn.disabled = true;

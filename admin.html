@@ -114,6 +114,23 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .icon-btn{ width:30px; height:30px; border-radius:9px; border:1px solid var(--card-border); background:var(--card); color:var(--text-dim); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
 .icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
 .icon-btn.danger:hover{ border-color:var(--coral); color:var(--coral); }
+.toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:14px 18px; margin-bottom:22px; }
+.toggle-row .ttitle{ font-size:13.5px; font-weight:700; }
+.toggle-row .tsub{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+.switch{ position:relative; width:44px; height:24px; flex:none; }
+.switch input{ opacity:0; width:0; height:0; position:absolute; }
+.switch .slider{ position:absolute; inset:0; background:var(--input-border); border-radius:999px; cursor:pointer; transition:background .2s ease; }
+.switch .slider::before{ content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .2s ease; }
+.switch input:checked + .slider{ background:linear-gradient(135deg, var(--azure), var(--teal)); }
+.switch input:checked + .slider::before{ transform:translateX(20px); }
+.result-q{ background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:18px 20px; margin-bottom:14px; }
+.result-q .rq-text{ font-size:14px; font-weight:600; margin-bottom:14px; }
+.result-opt-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:12.5px; }
+.result-opt-row .ro-label{ width:110px; flex:none; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.result-opt-row .ro-bar-wrap{ flex:1; height:8px; background:var(--input-bg); border-radius:99px; overflow:hidden; }
+.result-opt-row .ro-bar{ height:100%; background:linear-gradient(90deg, var(--azure), var(--teal)); border-radius:99px; }
+.result-opt-row .ro-count{ width:34px; flex:none; text-align:right; font-weight:700; }
+.result-q .rq-total{ font-size:11px; color:var(--text-dim); margin-top:4px; }
 .msg{ margin-top:12px; font-size:13px; display:none; padding:9px 14px; border-radius:9px; }
 .msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); }
 .msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); }
@@ -191,6 +208,11 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
         <h3 data-i18n="hubDocs">Hujjat qo'shish</h3>
         <p data-i18n="hubDocsDesc">Normativ hujjatlarni qo'shish, tahrirlash, o'chirish</p>
+      </button>
+      <button class="hub-card" id="surveyCard" onclick="openSurveyEntry()" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></div>
+        <h3 data-i18n="hubSurvey">Anonim so'rovnoma</h3>
+        <p data-i18n="hubSurveyDesc">So'rovnoma savollari, natijalari va faollik holati</p>
       </button>
       <button class="hub-card" id="notifSendCard" onclick="openSection('notifSendView'); renderNotifUserList(); loadNotifHistory();" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
@@ -278,6 +300,14 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       </button>
     </div>
 
+    <div class="toggle-row">
+      <div>
+        <div class="ttitle" data-i18n="testActiveLabel">Test holati</div>
+        <div class="tsub" id="testActiveSub">—</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="testActiveToggle" onchange="onTestActiveToggle()"><span class="slider"></span></label>
+    </div>
+
     <div class="form-card" style="max-width:640px;">
       <h3 id="testFormTitle" style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:16px;" data-i18n="testFormAdd">Yangi savol qo'shish</h3>
       <form onsubmit="return submitTestForm(event)">
@@ -354,6 +384,101 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <tbody id="docsTbody"><tr><td colspan="3" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
     </div>
+  </div>
+
+  <!-- Anonim so'rovnoma: ichki hub (faqat gl-admin) -->
+  <div id="surveyHubView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubSurvey">Anonim so'rovnoma</div>
+        <h1 data-i18n="hubSurvey">Anonim so'rovnoma</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="ttitle" data-i18n="surveyActiveLabel">So'rovnoma holati</div>
+        <div class="tsub" id="surveyActiveSub">—</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="surveyActiveToggle" onchange="onSurveyActiveToggle()"><span class="slider"></span></label>
+    </div>
+
+    <div class="hub-grid">
+      <button class="hub-card" onclick="openSection('surveyQuestionsView'); loadSurveyQuestions();">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <h3 data-i18n="hubSurveyQuestions">So'rovnoma savollari</h3>
+        <p data-i18n="hubSurveyQuestionsDesc">Savol qo'shish, tahrirlash, o'chirish</p>
+      </button>
+      <button class="hub-card" onclick="openSection('surveyResultsView'); loadSurveyResults();">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-4-4L3 15.5"/></svg></div>
+        <h3 data-i18n="hubSurveyResults">So'rovnoma natijalari</h3>
+        <p data-i18n="hubSurveyResultsDesc">Anonim umumiy statistika</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- Anonim so'rovnoma savollari (CRUD, faqat gl-admin) -->
+  <div id="surveyQuestionsView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubSurveyQuestions">So'rovnoma savollari</div>
+        <h1 data-i18n="hubSurveyQuestions">So'rovnoma savollari</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('surveyHubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="form-card" style="max-width:640px;">
+      <h3 id="surveyFormTitle" style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:16px;" data-i18n="surveyFormAdd">Yangi savol qo'shish</h3>
+      <form onsubmit="return submitSurveyForm(event)">
+        <div class="field-group-title" data-i18n="langUzTitle">O'zbekcha</div>
+        <div class="field"><label data-i18n="qSavol">Savol</label><textarea id="sSavol" rows="2" required></textarea></div>
+        <div class="field"><label data-i18n="qVariantA">Variant A</label><input type="text" id="sA" required></div>
+        <div class="field"><label data-i18n="qVariantB">Variant B</label><input type="text" id="sB" required></div>
+        <div class="field"><label data-i18n="qVariantC">Variant C</label><input type="text" id="sC"></div>
+        <div class="field"><label data-i18n="qVariantD">Variant D</label><input type="text" id="sD"></div>
+
+        <div class="field-group-title" data-i18n="langRuTitle" style="margin-top:8px;">Русский</div>
+        <div class="field"><label data-i18n="qSavolRu">Вопрос</label><textarea id="sSavolRu" rows="2"></textarea></div>
+        <div class="field"><label data-i18n="qVariantARu">Ответ А</label><input type="text" id="sARu"></div>
+        <div class="field"><label data-i18n="qVariantBRu">Ответ Б</label><input type="text" id="sBRu"></div>
+        <div class="field"><label data-i18n="qVariantCRu">Ответ В</label><input type="text" id="sCRu"></div>
+        <div class="field"><label data-i18n="qVariantDRu">Ответ Г</label><input type="text" id="sDRu"></div>
+
+        <button class="submit-btn" type="submit" id="surveySubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <button type="button" class="back-btn" id="surveyCancelBtn" onclick="cancelSurveyEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
+        <div class="msg" id="surveyFormMsg"></div>
+      </form>
+    </div>
+
+    <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin:24px 0 14px;" data-i18n="surveyListTitle">Mavjud savollar</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:48px;" data-i18n="thId">ID</th><th data-i18n="qSavol">Savol</th><th style="width:90px;" data-i18n="thAmal">Amal</th></tr></thead>
+        <tbody id="surveyTbody"><tr><td colspan="3" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Anonim so'rovnoma natijalari (gl-admin va admin) -->
+  <div id="surveyResultsView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubSurveyResults">So'rovnoma natijalari</div>
+        <h1 data-i18n="hubSurveyResults">So'rovnoma natijalari</h1>
+      </div>
+      <button class="back-btn" onclick="backFromSurveyResults()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div id="surveyResultsBox"><p class="loading-row" data-i18n="loading">Yuklanmoqda...</p></div>
   </div>
 
   <!-- Xabarnoma yuborish -->
@@ -465,7 +590,14 @@ const dict = {
     docFormAdd:"Yangi hujjat qo'shish", docFormEdit:"Hujjatni tahrirlash", docListTitle:"Mavjud hujjatlar",
     docNameUz:"Hujjat nomi (O'zbek)", docNameRu:"Hujjat nomi (Rus)", docUrl:"Havola (URL)",
     confirmDeleteTest:"Ushbu savolni o'chirmoqchimisiz?", confirmDeleteDoc:"Ushbu hujjatni o'chirmoqchimisiz?",
-    deletedOk:"O'chirildi ✓", editBtn:"Tahrirlash", deleteBtn:"O'chirish" },
+    deletedOk:"O'chirildi ✓", editBtn:"Tahrirlash", deleteBtn:"O'chirish",
+    hubSurvey:"Anonim so'rovnoma", hubSurveyDesc:"So'rovnoma savollari, natijalari va faollik holati",
+    hubSurveyQuestions:"So'rovnoma savollari", hubSurveyQuestionsDesc:"Savol qo'shish, tahrirlash, o'chirish",
+    hubSurveyResults:"So'rovnoma natijalari", hubSurveyResultsDesc:"Anonim umumiy statistika",
+    surveyFormAdd:"Yangi savol qo'shish", surveyFormEdit:"Savolni tahrirlash", surveyListTitle:"Mavjud savollar",
+    confirmDeleteSurvey:"Ushbu savolni o'chirmoqchimisiz?",
+    testActiveLabel:"Test holati", surveyActiveLabel:"So'rovnoma holati", activeOn:"Faol — xodimlar ko'ra oladi", activeOff:"Faol emas — 'yakunlangan' ko'rinadi",
+    resultsEmpty:"Hozircha javoblar yo'q", totalResponsesLbl:"ta javob" },
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
     hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
     hubEmployees:"Сотрудники", hubEmployeesDesc:"Общая информация по сотрудникам",
@@ -492,7 +624,14 @@ const dict = {
     docFormAdd:"Добавить новый документ", docFormEdit:"Редактировать документ", docListTitle:"Существующие документы",
     docNameUz:"Название документа (узб.)", docNameRu:"Название документа (рус.)", docUrl:"Ссылка (URL)",
     confirmDeleteTest:"Удалить этот вопрос?", confirmDeleteDoc:"Удалить этот документ?",
-    deletedOk:"Удалено ✓", editBtn:"Редактировать", deleteBtn:"Удалить" }
+    deletedOk:"Удалено ✓", editBtn:"Редактировать", deleteBtn:"Удалить",
+    hubSurvey:"Анонимный опрос", hubSurveyDesc:"Вопросы опроса, результаты и статус активности",
+    hubSurveyQuestions:"Вопросы опроса", hubSurveyQuestionsDesc:"Добавление, редактирование, удаление вопросов",
+    hubSurveyResults:"Результаты опроса", hubSurveyResultsDesc:"Анонимная общая статистика",
+    surveyFormAdd:"Добавить новый вопрос", surveyFormEdit:"Редактировать вопрос", surveyListTitle:"Существующие вопросы",
+    confirmDeleteSurvey:"Удалить этот вопрос?",
+    testActiveLabel:"Статус теста", surveyActiveLabel:"Статус опроса", activeOn:"Активен — сотрудники видят", activeOff:"Не активен — показывается 'завершён'",
+    resultsEmpty:"Пока нет ответов", totalResponsesLbl:"ответ(ов)" }
 };
 function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
@@ -522,6 +661,8 @@ let testsData = null;
 let editingTestId = null;
 let docsData = null;
 let editingDocId = null;
+let surveyData = null;
+let editingSurveyId = null;
 
 function openSection(id){
   document.querySelectorAll('#mainContent > div').forEach(d => d.style.display = 'none');
@@ -626,9 +767,30 @@ async function loadTests(){
   document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
   try{
     const data = await apiCall({ secret: APP_SECRET, action:'getTestQuestions', token: currentUserForKpi.token });
-    if(data.success){ testsData = data.questions; renderTestsTable(); }
+    if(data.success){
+      testsData = data.questions; renderTestsTable();
+      document.getElementById('testActiveToggle').checked = data.active;
+      document.getElementById('testActiveSub').textContent = data.active ? dict[currentLang].activeOn : dict[currentLang].activeOff;
+    }
   } catch(ex){
     document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
+  }
+}
+
+async function onTestActiveToggle(){
+  const cb = document.getElementById('testActiveToggle');
+  const desired = cb.checked;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'setTestActive', token: currentUserForKpi.token, active: desired });
+    if(data.success){
+      document.getElementById('testActiveSub').textContent = desired ? dict[currentLang].activeOn : dict[currentLang].activeOff;
+    } else {
+      cb.checked = !desired;
+      alert(dict[currentLang].savedErr);
+    }
+  } catch(ex){
+    cb.checked = !desired;
+    alert('Xatolik: ' + ex.message);
   }
 }
 
@@ -790,6 +952,166 @@ async function deleteDocRow(id){
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
+/* ---------- Anonim so'rovnoma ---------- */
+function openSurveyEntry(){
+  if(currentUserForKpi.rol === 'gl-admin'){
+    openSection('surveyHubView');
+    loadSurveyStatusOnly();
+  } else {
+    openSection('surveyResultsView');
+    loadSurveyResults();
+  }
+}
+
+function backFromSurveyResults(){
+  if(currentUserForKpi.rol === 'gl-admin') openSection('surveyHubView');
+  else openSection('hubView');
+}
+
+async function loadSurveyStatusOnly(){
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyQuestions', token: currentUserForKpi.token });
+    if(data.success){
+      surveyData = data.questions;
+      document.getElementById('surveyActiveToggle').checked = data.active;
+      document.getElementById('surveyActiveSub').textContent = data.active ? dict[currentLang].activeOn : dict[currentLang].activeOff;
+    }
+  } catch(ex){}
+}
+
+async function onSurveyActiveToggle(){
+  const cb = document.getElementById('surveyActiveToggle');
+  const desired = cb.checked;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'setSurveyActive', token: currentUserForKpi.token, active: desired });
+    if(data.success){
+      document.getElementById('surveyActiveSub').textContent = desired ? dict[currentLang].activeOn : dict[currentLang].activeOff;
+    } else {
+      cb.checked = !desired;
+      alert(dict[currentLang].savedErr);
+    }
+  } catch(ex){
+    cb.checked = !desired;
+    alert('Xatolik: ' + ex.message);
+  }
+}
+
+async function loadSurveyQuestions(){
+  document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyQuestions', token: currentUserForKpi.token });
+    if(data.success){
+      surveyData = data.questions; renderSurveyTable();
+      document.getElementById('surveyActiveToggle').checked = data.active;
+      document.getElementById('surveyActiveSub').textContent = data.active ? dict[currentLang].activeOn : dict[currentLang].activeOff;
+    }
+  } catch(ex){
+    document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
+  }
+}
+
+function renderSurveyTable(){
+  if(!surveyData || surveyData.length === 0){
+    document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    return;
+  }
+  document.getElementById('surveyTbody').innerHTML = surveyData.map(q => `
+    <tr>
+      <td>${escapeHtml(q.id)}</td>
+      <td style="white-space:normal;">${escapeHtml(q.uz.savol)}</td>
+      <td><div class="row-actions">
+        <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditSurvey('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteSurveyRow('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function startEditSurvey(id){
+  const q = surveyData.find(t => String(t.id) === String(id));
+  if(!q) return;
+  editingSurveyId = id;
+  document.getElementById('sSavol').value = q.uz.savol || '';
+  document.getElementById('sA').value = q.uz.a || '';
+  document.getElementById('sB').value = q.uz.b || '';
+  document.getElementById('sC').value = q.uz.c || '';
+  document.getElementById('sD').value = q.uz.d || '';
+  document.getElementById('sSavolRu').value = q.ru.savol || '';
+  document.getElementById('sARu').value = q.ru.a || '';
+  document.getElementById('sBRu').value = q.ru.b || '';
+  document.getElementById('sCRu').value = q.ru.c || '';
+  document.getElementById('sDRu').value = q.ru.d || '';
+  document.getElementById('surveyFormTitle').textContent = dict[currentLang].surveyFormEdit;
+  document.getElementById('surveyCancelBtn').style.display = 'inline-flex';
+  document.getElementById('surveyQuestionsView').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function cancelSurveyEdit(){
+  editingSurveyId = null;
+  document.getElementById('surveyFormTitle').textContent = dict[currentLang].surveyFormAdd;
+  document.getElementById('surveyCancelBtn').style.display = 'none';
+  document.querySelector('#surveyQuestionsView form').reset();
+}
+
+async function submitSurveyForm(e){
+  e.preventDefault();
+  const msg = document.getElementById('surveyFormMsg'); msg.className = 'msg';
+  const payload = {
+    secret: APP_SECRET, token: currentUserForKpi.token,
+    action: editingSurveyId ? 'editSurveyQuestion' : 'addSurveyQuestion',
+    savol: document.getElementById('sSavol').value, a: document.getElementById('sA').value, b: document.getElementById('sB').value,
+    c: document.getElementById('sC').value, d: document.getElementById('sD').value,
+    savolRu: document.getElementById('sSavolRu').value, aRu: document.getElementById('sARu').value, bRu: document.getElementById('sBRu').value,
+    cRu: document.getElementById('sCRu').value, dRu: document.getElementById('sDRu').value
+  };
+  if(editingSurveyId) payload.id = editingSurveyId;
+  const btn = document.getElementById('surveySubmitBtn'); btn.disabled = true;
+  try{
+    const data = await apiCall(payload);
+    btn.disabled = false;
+    if(data.success){
+      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
+      cancelSurveyEdit();
+      loadSurveyQuestions();
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
+    }
+  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+async function deleteSurveyRow(id){
+  if(!confirm(dict[currentLang].confirmDeleteSurvey)) return;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'deleteSurveyQuestion', token: currentUserForKpi.token, id });
+    if(data.success) loadSurveyQuestions();
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function loadSurveyResults(){
+  const box = document.getElementById('surveyResultsBox');
+  box.innerHTML = `<p class="loading-row">${dict[currentLang].loading}</p>`;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyResults', token: currentUserForKpi.token });
+    if(!data.success){ box.innerHTML = `<p class="loading-row">Xatolik</p>`; return; }
+    if(!data.report || data.report.length === 0){ box.innerHTML = `<p class="loading-row">${dict[currentLang].noResults}</p>`; return; }
+    box.innerHTML = data.report.map(q => {
+      const maxCount = Math.max(1, ...q.options.map(o => o.count));
+      return `<div class="result-q">
+        <div class="rq-text">${escapeHtml(q.savol)}</div>
+        ${q.options.filter(o => o.text).map(o => `
+          <div class="result-opt-row">
+            <div class="ro-label" title="${escapeHtml(o.text)}">${escapeHtml(o.text)}</div>
+            <div class="ro-bar-wrap"><div class="ro-bar" style="width:${Math.round(o.count/maxCount*100)}%"></div></div>
+            <div class="ro-count">${o.count}</div>
+          </div>`).join('')}
+        <div class="rq-total">${q.total} ${dict[currentLang].totalResponsesLbl}</div>
+      </div>`;
+    }).join('');
+  } catch(ex){
+    box.innerHTML = `<p class="loading-row">Xatolik: ${ex.message}</p>`;
+  }
+}
+
 /* ---------- Xabarnoma yuborish ---------- */
 let notifSelectedLogins = new Set();
 let notifHistoryLoaded = false;
@@ -888,10 +1210,11 @@ function init(){
 
   const canAnticor = rol === 'gl-admin';
   const canEmployees = rol === 'gl-admin' || rol === 'admin';
-  const canManage = rol === 'gl-admin' || rol === 'admin'; // Test savollari, Hujjat qo'shish
+  const canManage = rol === 'gl-admin'; // Test savollari, Hujjat qo'shish — faqat gl-admin
+  const canSurvey = rol === 'gl-admin' || rol === 'admin'; // Anonim so'rovnoma (ichki huquqlar rolga qarab farqlanadi)
   const canNotifSend = rol === 'gl-admin' || rol === 'admin';
 
-  if(!canAnticor && !canEmployees && !canManage && !canNotifSend){
+  if(!canAnticor && !canEmployees && !canManage && !canSurvey && !canNotifSend){
     document.querySelector('.hub-grid').style.display = 'none';
     document.getElementById('noAccessMsg').style.display = 'block';
     return;
@@ -901,6 +1224,7 @@ function init(){
   document.getElementById('employeesCard').style.display = canEmployees ? 'block' : 'none';
   document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
+  document.getElementById('surveyCard').style.display = canSurvey ? 'block' : 'none';
   document.getElementById('notifSendCard').style.display = canNotifSend ? 'block' : 'none';
 
   if(canAnticor) loadStats(user);
