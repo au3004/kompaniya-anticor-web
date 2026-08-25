@@ -60,6 +60,11 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .opt:hover{ border-color:var(--azure); transform:translateX(2px); }
 .opt.selected{ border-color:var(--teal); background:rgba(0,217,192,0.12); }
 .opt input{ accent-color:var(--teal); width:16px; height:16px; }
+.star-row{ display:flex; gap:6px; justify-content:center; padding:6px 0 2px; }
+.star-btn{ background:none; border:none; cursor:pointer; padding:4px; color:var(--input-border); transition:transform .12s ease, color .15s ease; }
+.star-btn svg{ width:32px; height:32px; }
+.star-btn:hover{ transform:scale(1.12); color:var(--amber); }
+.star-btn.on{ color:var(--amber); }
 
 .submit-wrap{ text-align:center; margin-top:24px; }
 .submit-btn{
@@ -207,6 +212,20 @@ function renderQuestions(){
   }
   form.innerHTML = allQuestions.map((item, qi) => {
     const q = item[currentLang] || item.uz;
+    if(item.turi === 'yulduz'){
+      const stars = item.stars || 5;
+      const selected = parseInt(answers[item.id], 10) || 0;
+      return `<div class="q-card" style="animation-delay:${qi*70}ms">
+        <div class="q-num">${(currentLang==='uz'?'Savol':'Вопрос')} ${qi+1}/${allQuestions.length}</div>
+        <div class="q-text">${escapeHtml(q.savol)}</div>
+        <div class="star-row" data-q="${item.id}">
+          ${Array.from({length:stars}).map((_,i) => {
+            const val = i+1;
+            return `<button type="button" class="star-btn ${val<=selected?'on':''}" onclick="selectStar('${item.id}',${val})" aria-label="${val}">${starSvg(val<=selected)}</button>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
     const opts = [
       { letter:'A', text:q.a }, { letter:'B', text:q.b },
       { letter:'C', text:q.c }, { letter:'D', text:q.d }
@@ -240,6 +259,20 @@ async function loadQuestions(){
   renderQuestions();
 }
 loadQuestions();
+
+function starSvg(filled){
+  return `<svg viewBox="0 0 24 24" fill="${filled?'currentColor':'none'}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"/></svg>`;
+}
+
+function selectStar(qid, val){
+  answers[qid] = String(val);
+  document.querySelectorAll(`.star-row[data-q="${qid}"] .star-btn`).forEach((btn, i) => {
+    const on = (i+1) <= val;
+    btn.classList.toggle('on', on);
+    btn.innerHTML = starSvg(on);
+  });
+  document.getElementById('submitBtn').disabled = Object.keys(answers).length < allQuestions.length;
+}
 
 function selectOpt(qid, letter, inputEl){
   answers[qid] = letter;

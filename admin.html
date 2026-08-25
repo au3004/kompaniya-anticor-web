@@ -131,6 +131,11 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .result-opt-row .ro-bar{ height:100%; background:linear-gradient(90deg, var(--azure), var(--teal)); border-radius:99px; }
 .result-opt-row .ro-count{ width:34px; flex:none; text-align:right; font-weight:700; }
 .result-q .rq-total{ font-size:11px; color:var(--text-dim); margin-top:4px; }
+.rq-avg-row{ display:flex; align-items:center; gap:12px; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--card-border); }
+.rq-avg-num{ font-family:'Unbounded',sans-serif; font-size:26px; font-weight:800; color:var(--amber); }
+.rq-avg-stars{ display:flex; gap:2px; color:var(--amber); }
+.ro-bar.star-bar{ background:linear-gradient(90deg, var(--amber), #FFD97A); }
+.ro-pct{ color:var(--text-dim); font-weight:500; }
 .msg{ margin-top:12px; font-size:13px; display:none; padding:9px 14px; border-radius:9px; }
 .msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); }
 .msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); }
@@ -437,19 +442,39 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
     <div class="form-card" style="max-width:640px;">
       <h3 id="surveyFormTitle" style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:16px;" data-i18n="surveyFormAdd">Yangi savol qo'shish</h3>
       <form onsubmit="return submitSurveyForm(event)">
+        <div class="field">
+          <label data-i18n="qTuri">Savol turi</label>
+          <select id="sTuri" onchange="onSurveyTypeChange()">
+            <option value="tanlov" data-i18n="qTuriTanlov">Tanlov (A, B, C, D)</option>
+            <option value="yulduz" data-i18n="qTuriYulduz">Yulduzcha bilan baholash</option>
+          </select>
+        </div>
+        <div class="field" id="sStarsField" style="display:none;">
+          <label data-i18n="qStars">Yulduzlar soni</label>
+          <select id="sStars">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+
         <div class="field-group-title" data-i18n="langUzTitle">O'zbekcha</div>
         <div class="field"><label data-i18n="qSavol">Savol</label><textarea id="sSavol" rows="2" required></textarea></div>
-        <div class="field"><label data-i18n="qVariantA">Variant A</label><input type="text" id="sA" required></div>
-        <div class="field"><label data-i18n="qVariantB">Variant B</label><input type="text" id="sB" required></div>
-        <div class="field"><label data-i18n="qVariantC">Variant C</label><input type="text" id="sC"></div>
-        <div class="field"><label data-i18n="qVariantD">Variant D</label><input type="text" id="sD"></div>
+        <div id="sOptionsUz">
+          <div class="field"><label data-i18n="qVariantA">Variant A</label><input type="text" id="sA"></div>
+          <div class="field"><label data-i18n="qVariantB">Variant B</label><input type="text" id="sB"></div>
+          <div class="field"><label data-i18n="qVariantC">Variant C</label><input type="text" id="sC"></div>
+          <div class="field"><label data-i18n="qVariantD">Variant D</label><input type="text" id="sD"></div>
+        </div>
 
         <div class="field-group-title" data-i18n="langRuTitle" style="margin-top:8px;">Русский</div>
         <div class="field"><label data-i18n="qSavolRu">Вопрос</label><textarea id="sSavolRu" rows="2"></textarea></div>
-        <div class="field"><label data-i18n="qVariantARu">Ответ А</label><input type="text" id="sARu"></div>
-        <div class="field"><label data-i18n="qVariantBRu">Ответ Б</label><input type="text" id="sBRu"></div>
-        <div class="field"><label data-i18n="qVariantCRu">Ответ В</label><input type="text" id="sCRu"></div>
-        <div class="field"><label data-i18n="qVariantDRu">Ответ Г</label><input type="text" id="sDRu"></div>
+        <div id="sOptionsRu">
+          <div class="field"><label data-i18n="qVariantARu">Ответ А</label><input type="text" id="sARu"></div>
+          <div class="field"><label data-i18n="qVariantBRu">Ответ Б</label><input type="text" id="sBRu"></div>
+          <div class="field"><label data-i18n="qVariantCRu">Ответ В</label><input type="text" id="sCRu"></div>
+          <div class="field"><label data-i18n="qVariantDRu">Ответ Г</label><input type="text" id="sDRu"></div>
+        </div>
 
         <button class="submit-btn" type="submit" id="surveySubmitBtn" data-i18n="saveBtn">Saqlash</button>
         <button type="button" class="back-btn" id="surveyCancelBtn" onclick="cancelSurveyEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
@@ -460,8 +485,8 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
     <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin:24px 0 14px;" data-i18n="surveyListTitle">Mavjud savollar</h3>
     <div class="table-wrap">
       <table>
-        <thead><tr><th style="width:48px;" data-i18n="thId">ID</th><th data-i18n="qSavol">Savol</th><th style="width:90px;" data-i18n="thAmal">Amal</th></tr></thead>
-        <tbody id="surveyTbody"><tr><td colspan="3" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        <thead><tr><th style="width:48px;" data-i18n="thId">ID</th><th style="width:36px;"></th><th data-i18n="qSavol">Savol</th><th style="width:90px;" data-i18n="thAmal">Amal</th></tr></thead>
+        <tbody id="surveyTbody"><tr><td colspan="4" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -597,7 +622,8 @@ const dict = {
     surveyFormAdd:"Yangi savol qo'shish", surveyFormEdit:"Savolni tahrirlash", surveyListTitle:"Mavjud savollar",
     confirmDeleteSurvey:"Ushbu savolni o'chirmoqchimisiz?",
     testActiveLabel:"Test holati", surveyActiveLabel:"So'rovnoma holati", activeOn:"Faol — xodimlar ko'ra oladi", activeOff:"Faol emas — 'yakunlangan' ko'rinadi",
-    resultsEmpty:"Hozircha javoblar yo'q", totalResponsesLbl:"ta javob" },
+    resultsEmpty:"Hozircha javoblar yo'q", totalResponsesLbl:"ta javob",
+    qTuri:"Savol turi", qTuriTanlov:"Tanlov (A, B, C, D)", qTuriYulduz:"Yulduzcha bilan baholash", qStars:"Yulduzlar soni" },
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
     hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
     hubEmployees:"Сотрудники", hubEmployeesDesc:"Общая информация по сотрудникам",
@@ -631,7 +657,8 @@ const dict = {
     surveyFormAdd:"Добавить новый вопрос", surveyFormEdit:"Редактировать вопрос", surveyListTitle:"Существующие вопросы",
     confirmDeleteSurvey:"Удалить этот вопрос?",
     testActiveLabel:"Статус теста", surveyActiveLabel:"Статус опроса", activeOn:"Активен — сотрудники видят", activeOff:"Не активен — показывается 'завершён'",
-    resultsEmpty:"Пока нет ответов", totalResponsesLbl:"ответ(ов)" }
+    resultsEmpty:"Пока нет ответов", totalResponsesLbl:"ответ(ов)",
+    qTuri:"Тип вопроса", qTuriTanlov:"Выбор (A, B, C, D)", qTuriYulduz:"Оценка звёздами", qStars:"Количество звёзд" }
 };
 function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
@@ -1010,14 +1037,24 @@ async function loadSurveyQuestions(){
   }
 }
 
+function onSurveyTypeChange(){
+  const isStars = document.getElementById('sTuri').value === 'yulduz';
+  document.getElementById('sStarsField').style.display = isStars ? 'block' : 'none';
+  document.getElementById('sOptionsUz').style.display = isStars ? 'none' : 'block';
+  document.getElementById('sOptionsRu').style.display = isStars ? 'none' : 'block';
+  document.getElementById('sA').required = !isStars;
+  document.getElementById('sB').required = !isStars;
+}
+
 function renderSurveyTable(){
   if(!surveyData || surveyData.length === 0){
-    document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="4" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
   document.getElementById('surveyTbody').innerHTML = surveyData.map(q => `
     <tr>
       <td>${escapeHtml(q.id)}</td>
+      <td title="${q.turi === 'yulduz' ? dict[currentLang].qTuriYulduz : dict[currentLang].qTuriTanlov}">${q.turi === 'yulduz' ? '⭐' : '☰'}</td>
       <td style="white-space:normal;">${escapeHtml(q.uz.savol)}</td>
       <td><div class="row-actions">
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditSurvey('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
@@ -1030,6 +1067,9 @@ function startEditSurvey(id){
   const q = surveyData.find(t => String(t.id) === String(id));
   if(!q) return;
   editingSurveyId = id;
+  document.getElementById('sTuri').value = q.turi || 'tanlov';
+  document.getElementById('sStars').value = String(q.stars || 5);
+  onSurveyTypeChange();
   document.getElementById('sSavol').value = q.uz.savol || '';
   document.getElementById('sA').value = q.uz.a || '';
   document.getElementById('sB').value = q.uz.b || '';
@@ -1050,6 +1090,7 @@ function cancelSurveyEdit(){
   document.getElementById('surveyFormTitle').textContent = dict[currentLang].surveyFormAdd;
   document.getElementById('surveyCancelBtn').style.display = 'none';
   document.querySelector('#surveyQuestionsView form').reset();
+  onSurveyTypeChange();
 }
 
 async function submitSurveyForm(e){
@@ -1058,6 +1099,7 @@ async function submitSurveyForm(e){
   const payload = {
     secret: APP_SECRET, token: currentUserForKpi.token,
     action: editingSurveyId ? 'editSurveyQuestion' : 'addSurveyQuestion',
+    turi: document.getElementById('sTuri').value, stars: document.getElementById('sStars').value,
     savol: document.getElementById('sSavol').value, a: document.getElementById('sA').value, b: document.getElementById('sB').value,
     c: document.getElementById('sC').value, d: document.getElementById('sD').value,
     savolRu: document.getElementById('sSavolRu').value, aRu: document.getElementById('sARu').value, bRu: document.getElementById('sBRu').value,
@@ -1087,6 +1129,10 @@ async function deleteSurveyRow(id){
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
+function starsSvg(filled){
+  return `<svg viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"/></svg>`;
+}
+
 async function loadSurveyResults(){
   const box = document.getElementById('surveyResultsBox');
   box.innerHTML = `<p class="loading-row">${dict[currentLang].loading}</p>`;
@@ -1095,6 +1141,24 @@ async function loadSurveyResults(){
     if(!data.success){ box.innerHTML = `<p class="loading-row">Xatolik</p>`; return; }
     if(!data.report || data.report.length === 0){ box.innerHTML = `<p class="loading-row">${dict[currentLang].noResults}</p>`; return; }
     box.innerHTML = data.report.map(q => {
+      if(q.turi === 'yulduz'){
+        const maxCount = Math.max(1, ...q.ratingCounts.map(r => r.count));
+        const fullStars = Math.round(q.average);
+        return `<div class="result-q">
+          <div class="rq-text">${escapeHtml(q.savol)}</div>
+          <div class="rq-avg-row">
+            <div class="rq-avg-num">${q.average || 0}</div>
+            <div class="rq-avg-stars">${Array.from({length:q.stars}).map((_,i)=>starsSvg(i<fullStars)).join('')}</div>
+          </div>
+          ${q.ratingCounts.map(r => `
+            <div class="result-opt-row">
+              <div class="ro-label">${r.value} ⭐</div>
+              <div class="ro-bar-wrap"><div class="ro-bar star-bar" style="width:${Math.round(r.count/maxCount*100)}%"></div></div>
+              <div class="ro-count">${r.count}</div>
+            </div>`).join('')}
+          <div class="rq-total">${q.total} ${dict[currentLang].totalResponsesLbl}</div>
+        </div>`;
+      }
       const maxCount = Math.max(1, ...q.options.map(o => o.count));
       return `<div class="result-q">
         <div class="rq-text">${escapeHtml(q.savol)}</div>
@@ -1102,7 +1166,7 @@ async function loadSurveyResults(){
           <div class="result-opt-row">
             <div class="ro-label" title="${escapeHtml(o.text)}">${escapeHtml(o.text)}</div>
             <div class="ro-bar-wrap"><div class="ro-bar" style="width:${Math.round(o.count/maxCount*100)}%"></div></div>
-            <div class="ro-count">${o.count}</div>
+            <div class="ro-count">${o.count} <span class="ro-pct">(${q.total ? Math.round(o.count/q.total*100) : 0}%)</span></div>
           </div>`).join('')}
         <div class="rq-total">${q.total} ${dict[currentLang].totalResponsesLbl}</div>
       </div>`;
