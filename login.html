@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'zbektelekom AK — Kirish</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --navy-950:#071B33;
+  --navy-900:#0B2545;
+  --navy-800:#12356b;
+  --azure:#00A3E0;
+  --teal:#00D9C0;
+  --amber:#FFB020;
+  --white:#FFFFFF;
+
+  --bg:#0B2545;
+  --bg-deep:#071B33;
+  --card:rgba(255,255,255,0.06);
+  --card-border:rgba(255,255,255,0.14);
+  --text:#F3F7FB;
+  --text-dim:#A9BBD1;
+  --input-bg:rgba(255,255,255,0.07);
+  --input-border:rgba(255,255,255,0.18);
+  --accent:var(--azure);
+  --accent-2:var(--teal);
+}
+
+[data-theme="light"]{
+  --bg:#EAF3FA;
+  --bg-deep:#DCEAF5;
+  --card:rgba(255,255,255,0.75);
+  --card-border:rgba(11,37,69,0.10);
+  --text:#0B2545;
+  --text-dim:#4E6A88;
+  --input-bg:rgba(11,37,69,0.04);
+  --input-border:rgba(11,37,69,0.15);
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+
+body{
+  font-family:'Inter', sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  transition:background .5s ease, color .5s ease;
+  position:relative;
+}
+
+canvas#net{
+  position:fixed; inset:0; width:100%; height:100%; z-index:0;
+  background:radial-gradient(ellipse at 70% 20%, var(--bg-deep), var(--bg) 70%);
+}
+
+/* ===== Top bar ===== */
+.topbar{
+  position:fixed; top:0; left:0; right:0; z-index:20;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:18px 32px; backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--card-border);
+  background:var(--bg);
+}
+
+.brand{
+  display:flex; align-items:center; gap:10px;
+  font-family:'Unbounded', sans-serif;
+  font-weight:700; font-size:15px;
+  letter-spacing:.3px;
+  color:var(--text);
+}
+.brand-logo{ height:22px; width:auto; display:block; }
+
+.controls{ display:flex; align-items:center; gap:10px; }
+
+.lang-toggle{
+  display:flex; background:var(--card); border:1px solid var(--card-border);
+  border-radius:999px; padding:3px; backdrop-filter:blur(10px);
+}
+.lang-toggle button{
+  border:none; background:transparent; cursor:pointer;
+  font-family:'Inter'; font-weight:600; font-size:12px;
+  color:var(--text-dim); padding:6px 12px; border-radius:999px;
+  transition:all .25s ease;
+}
+.lang-toggle button.active{
+  background:linear-gradient(135deg, var(--azure), var(--teal));
+  color:#00263F;
+}
+
+.theme-toggle{
+  width:38px; height:38px; border-radius:50%;
+  background:var(--card); border:1px solid var(--card-border);
+  backdrop-filter:blur(10px);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--text); transition:transform .3s ease;
+}
+.theme-toggle:hover{ transform:rotate(20deg); }
+.theme-toggle svg{ width:18px; height:18px; }
+
+/* ===== Login card ===== */
+.wrap{
+  position:relative; z-index:10;
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  padding:100px 20px 40px;
+}
+
+.card{
+  width:100%; max-width:400px;
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:20px;
+  padding:38px 34px 32px;
+  backdrop-filter:blur(18px);
+  box-shadow:0 30px 60px -20px rgba(0,0,0,0.5);
+  animation:rise .7s cubic-bezier(.2,.9,.25,1) both;
+}
+@keyframes rise{
+  from{ opacity:0; transform:translateY(24px) scale(.98); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+.card h1{
+  font-family:'Unbounded', sans-serif;
+  font-size:22px; font-weight:700;
+  margin-bottom:6px;
+  letter-spacing:.2px;
+}
+.card p.sub{
+  color:var(--text-dim); font-size:13.5px; margin-bottom:28px;
+}
+
+.field{ margin-bottom:16px; position:relative; }
+.field label{
+  display:block; font-size:12px; font-weight:600;
+  color:var(--text-dim); margin-bottom:7px; letter-spacing:.2px;
+  text-transform:uppercase;
+}
+.field input{
+  width:100%; padding:13px 14px;
+  background:var(--input-bg); border:1px solid var(--input-border);
+  border-radius:11px; color:var(--text); font-size:14.5px; font-family:'Inter';
+  outline:none; transition:border-color .2s ease, box-shadow .2s ease;
+}
+.field input::placeholder{ color:var(--text-dim); opacity:.6; }
+.field input:focus{
+  border-color:var(--azure);
+  box-shadow:0 0 0 3px rgba(0,163,224,0.18);
+}
+
+.submit-btn{
+  width:100%; padding:13px; margin-top:6px;
+  border:none; border-radius:11px; cursor:pointer;
+  background:linear-gradient(135deg, var(--azure), var(--teal));
+  color:#00263F; font-family:'Inter'; font-weight:700; font-size:14.5px;
+  letter-spacing:.2px;
+  transition:transform .15s ease, box-shadow .2s ease;
+  box-shadow:0 10px 25px -8px rgba(0,163,224,0.55);
+}
+.submit-btn:active{ transform:translateY(1px) scale(.99); }
+.submit-btn:hover{ box-shadow:0 14px 30px -8px rgba(0,163,224,0.7); }
+.submit-btn:disabled{ opacity:.6; cursor:default; }
+
+.error-msg{
+  display:none; align-items:center; gap:8px;
+  background:rgba(255,176,32,0.12);
+  border:1px solid rgba(255,176,32,0.35);
+  color:var(--amber);
+  font-size:13px; font-weight:500;
+  padding:10px 12px; border-radius:10px; margin-bottom:16px;
+}
+.error-msg.show{ display:flex; animation:shake .4s ease; }
+@keyframes shake{
+  0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);}
+  75%{transform:translateX(5px);}
+}
+
+.foot{
+  margin-top:26px; text-align:center;
+  font-size:11.5px; color:var(--text-dim);
+}
+
+@media (max-width:480px){
+  .topbar{ padding:16px 18px; }
+  .brand-logo{ height:19px; }
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<canvas id="net"></canvas>
+
+<div class="topbar">
+  <div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div>
+  <div class="controls">
+    <div class="lang-toggle">
+      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
+      <button id="lang-ru" onclick="setLang('ru')">RU</button>
+    </div>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema"></button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <h1 data-i18n="loginTitle">Tizimga kirish</h1>
+    <p class="sub" data-i18n="loginSub">Ish akkountingiz orqali davom eting</p>
+
+    <div class="error-msg" id="errorBox">⚠ <span id="errorText" data-i18n="errText">Login yoki parol noto'g'ri kiritilgan</span></div>
+
+    <form id="loginForm" onsubmit="return handleLogin(event)">
+      <div class="field">
+        <label data-i18n="loginLabel">Login</label>
+        <input type="text" id="loginInput" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label data-i18n="passLabel">Parol</label>
+        <input type="password" id="passInput" autocomplete="current-password" required placeholder="••••••••">
+      </div>
+      <button class="submit-btn" type="submit" id="submitBtn" data-i18n="submitBtn">Kirish</button>
+    </form>
+
+    <div class="foot" data-i18n="footText">© «O'zbektelekom» AK — Ichki portal</div>
+  </div>
+</div>
+
+<script>
+/* ---------- i18n ---------- */
+const dict = {
+  uz:{
+    brandName:"\"O'zbektelekom\" AK",
+    loginTitle:"Tizimga kirish",
+    loginSub:"Ish akkountingiz orqali davom eting",
+    loginLabel:"Login",
+    passLabel:"Parol",
+    submitBtn:"Kirish",
+    errText:"Login yoki parol noto'g'ri kiritilgan",
+    lockedErr:"Ko'p marta noto'g'ri urinildi. 15 daqiqadan so'ng qayta urinib ko'ring.",
+    footText:"© «O'zbektelekom» AK — Ichki portal",
+    submitting:"Tekshirilmoqda..."
+  },
+  ru:{
+    brandName:"АО «Узтелеком»",
+    loginTitle:"Вход в систему",
+    loginSub:"Продолжите с рабочей учётной записью",
+    loginLabel:"Логин",
+    passLabel:"Пароль",
+    submitBtn:"Войти",
+    errText:"Неверный логин или пароль",
+    lockedErr:"Слишком много неверных попыток. Повторите через 15 минут.",
+    footText:"© АО «Узтелеком» — Внутренний портал",
+    submitting:"Проверка..."
+  }
+};
+let currentLang = localStorage.getItem('km_lang') || 'uz';
+
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(dict[currentLang][key]) el.textContent = dict[currentLang][key];
+  });
+  document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
+  document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
+  document.documentElement.lang = currentLang;
+}
+function setLang(l){
+  currentLang = l;
+  localStorage.setItem('km_lang', l); // eslatma: artefaktda ishlamaydi, saytda ishlaydi
+  applyLang();
+}
+applyLang();
+
+/* ---------- Theme ---------- */
+const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
+const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
+
+let theme = localStorage.getItem('km_theme') || 'dark';
+function applyTheme(){
+  document.body.setAttribute('data-theme', theme);
+  document.getElementById('themeBtn').innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+  document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; });
+}
+function toggleTheme(){
+  theme = theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('km_theme', theme);
+  applyTheme();
+}
+applyTheme();
+
+/* ---------- Login logic — Google Apps Script (Sheets) bilan ulangan ---------- */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
+const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+
+// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
+// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+async function apiCall(payload){
+  const body = JSON.stringify(payload);
+  let lastErr;
+  for(let attempt=0; attempt<3; attempt++){
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const text = await res.text();
+      try{ return JSON.parse(text); }
+      catch(parseErr){
+        lastErr = new Error("Serverdan noto'g'ri javob keldi");
+        if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+        throw lastErr;
+      }
+    }catch(networkErr){
+      lastErr = networkErr;
+      if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+      throw lastErr;
+    }
+  }
+}
+
+async function handleLogin(e){
+  e.preventDefault();
+  const login = document.getElementById('loginInput').value.trim();
+  const parol = document.getElementById('passInput').value.trim();
+  const btn = document.getElementById('submitBtn');
+  const err = document.getElementById('errorBox');
+
+  err.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = dict[currentLang].submitting;
+
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action: 'login', login, parol });
+
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].submitBtn;
+
+    if(data.success){
+      // Endi barcha sahifalar bitta domenda (GitHub Pages) ishlagani uchun
+      // ma'lumot faqat sessionStorage orqali uzatiladi — URL'da emas
+      // (token kabi maxfiy ma'lumotni URL'ga chiqarmaslik xavfsizroq).
+      sessionStorage.setItem('km_user', JSON.stringify({...data, login}));
+      document.querySelector('.card').style.transition='opacity .3s ease, transform .3s ease';
+      document.querySelector('.card').style.opacity='0';
+      document.querySelector('.card').style.transform='translateY(-10px) scale(.98)';
+      setTimeout(()=>{ window.location.href = 'main.html'; }, 300);
+    } else if(data.code === 'LOCKED'){
+      document.getElementById('errorText').textContent = dict[currentLang].lockedErr;
+      err.classList.add('show');
+    } else {
+      err.classList.add('show');
+    }
+  } catch(ex){
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].submitBtn;
+    document.getElementById('errorText').textContent = 'Serverga ulanishda xatolik: ' + ex.message;
+    err.classList.add('show');
+  }
+
+  return false;
+}
+
+/* ---------- Network background animation ---------- */
+const canvas = document.getElementById('net');
+const ctx = canvas.getContext('2d');
+let W, H, nodes;
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function initNodes(){
+  const count = Math.min(70, Math.floor((W*H)/22000));
+  nodes = Array.from({length:count}, ()=>({
+    x: Math.random()*W,
+    y: Math.random()*H,
+    vx: (Math.random()-0.5)*0.35,
+    vy: (Math.random()-0.5)*0.35,
+    r: Math.random()*1.6+0.6
+  }));
+}
+initNodes();
+window.addEventListener('resize', initNodes);
+
+function isLight(){ return document.body.getAttribute('data-theme') === 'light'; }
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const lineColor = isLight() ? 'rgba(11,37,69,' : 'rgba(0,217,192,';
+  const dotColor  = isLight() ? 'rgba(0,163,224,0.55)' : 'rgba(0,217,192,0.75)';
+
+  for(let i=0;i<nodes.length;i++){
+    const n = nodes[i];
+    n.x += n.vx; n.y += n.vy;
+    if(n.x<0||n.x>W) n.vx*=-1;
+    if(n.y<0||n.y>H) n.vy*=-1;
+
+    for(let j=i+1;j<nodes.length;j++){
+      const m = nodes[j];
+      const dx=n.x-m.x, dy=n.y-m.y;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      if(dist < 130){
+        ctx.strokeStyle = lineColor + (0.12*(1-dist/130)) + ')';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(n.x,n.y); ctx.lineTo(m.x,m.y);
+        ctx.stroke();
+      }
+    }
+  }
+  for(const n of nodes){
+    ctx.fillStyle = dotColor;
+    ctx.beginPath();
+    ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+    ctx.fill();
+  }
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

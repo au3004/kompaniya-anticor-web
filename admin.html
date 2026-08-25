@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'zbektelekom AK — Statistika</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
+  --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
+  --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
+}
+[data-theme="light"]{
+  --bg:#EAF3FA; --bg-deep:#DCEAF5; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
+  --text:#0B2545; --text-dim:#4E6A88; --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .5s ease, color .5s ease; }
+canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
+  background:radial-gradient(ellipse at 70% 10%, var(--bg-deep), var(--bg) 70%); }
+.topbar{ position:fixed; top:0; left:0; right:0; z-index:30; display:flex; justify-content:space-between; align-items:center; padding:18px 32px; backdrop-filter:blur(14px); border-bottom:1px solid var(--card-border); background:var(--bg); }
+.brand-link{ text-decoration:none; cursor:pointer; color:inherit; }
+.brand{ display:flex; align-items:center; gap:10px; font-family:'Unbounded', sans-serif; font-weight:700; font-size:14px; color:var(--text); }
+.brand-logo{ height:22px; width:auto; display:block; }
+.home-icon-btn{ width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); text-decoration:none; transition:border-color .2s ease, color .2s ease; }
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.controls{ display:flex; align-items:center; gap:12px; }
+.lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
+.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; }
+.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
+.theme-toggle{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
+.theme-toggle svg{ width:17px; height:17px; }
+
+.main{ max-width:1300px; margin:0 auto; padding:110px 24px 80px; position:relative; z-index:5; }
+.page-head{ margin-bottom:26px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.page-head .eyebrow{ font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--azure); }
+.page-head h1{ font-family:'Unbounded', sans-serif; font-size:clamp(20px,4vw,28px); margin-top:8px; }
+
+.back-btn{
+  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--card-border);
+  color:var(--text); font-size:13px; font-weight:600; padding:9px 16px; border-radius:11px; cursor:pointer;
+  text-decoration:none; transition:border-color .2s ease; white-space:nowrap; flex-shrink:0;
+}
+.back-btn:hover{ border-color:var(--azure); }
+
+/* Hub cards */
+.hub-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px; margin-top:10px; }
+.hub-card{
+  background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:28px;
+  cursor:pointer; transition:transform .2s ease, border-color .2s ease; text-align:left;
+}
+.hub-card:hover{ transform:translateY(-3px); border-color:var(--azure); }
+.hub-card .icon{ width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, var(--azure), var(--teal)); display:flex; align-items:center; justify-content:center; color:#00263F; margin-bottom:16px; }
+.hub-card h3{ font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:6px; }
+.hub-card p{ font-size:13px; color:var(--text-dim); }
+.hub-card.soon{ opacity:.55; cursor:default; }
+.hub-card.soon:hover{ transform:none; border-color:var(--card-border); }
+.soon-tag{ display:inline-block; font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--amber); background:rgba(255,176,32,0.12); padding:3px 9px; border-radius:999px; margin-top:10px; }
+
+.cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:14px; margin-bottom:20px; }
+.stat-card{ background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:20px; }
+.stat-card .num{ font-family:'Unbounded', sans-serif; font-size:28px; font-weight:800; }
+.stat-card .lbl{ font-size:12.5px; color:var(--text-dim); margin-top:4px; }
+.stat-card.teal .num{ color:var(--teal); }
+.stat-card.coral .num{ color:var(--coral); }
+.stat-card.amber .num{ color:var(--amber); }
+
+.search-row{ margin-bottom:16px; }
+.search-row input{
+  width:100%; max-width:340px; padding:11px 14px; background:var(--input-bg); border:1px solid var(--input-border);
+  border-radius:11px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none;
+}
+.search-row input:focus{ border-color:var(--azure); }
+
+/* Skroll qilinadigan ro'yxat oynasi (pager tugmalari o'rniga) */
+.table-wrap{
+  background:var(--card); border:1px solid var(--card-border); border-radius:16px;
+  max-height:640px; overflow-y:auto; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin; scrollbar-color:var(--azure) transparent;
+}
+.table-wrap::-webkit-scrollbar{ height:8px; width:8px; }
+.table-wrap::-webkit-scrollbar-track{ background:transparent; }
+.table-wrap::-webkit-scrollbar-thumb{ background:var(--azure); border-radius:99px; }
+table{ width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; min-width:640px; }
+thead th{ position:sticky; top:0; z-index:2; }
+th{ text-align:left; padding:13px 14px; background:var(--bg-deep); color:var(--text-dim); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.3px; overflow:hidden; text-overflow:ellipsis; }
+td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* "ID" ustuni faqat ID'si bor jadvallarda (Korrupsiya statistikasi, Xodimlar) tor bo'lsin —
+   KPI jadvalida birinchi ustun F.I.Sh, shuning uchun bu qoida u yerga tegmasligi kerak */
+#anticorView th:nth-child(1), #anticorView td:nth-child(1),
+#employeesView th:nth-child(1), #employeesView td:nth-child(1){ width:48px; }
+#testsView th:nth-child(1), #testsView td:nth-child(1),
+#docsView th:nth-child(1), #docsView td:nth-child(1){ width:48px; }
+.badge{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; }
+.badge.ok{ background:rgba(0,217,192,0.15); color:var(--teal); }
+.badge.no{ background:rgba(255,107,107,0.15); color:var(--coral); }
+.badge.wait{ background:rgba(255,176,32,0.15); color:var(--amber); }
+.loading-row{ padding:30px; text-align:center; color:var(--text-dim); }
+.denied{ text-align:center; padding:100px 20px; color:var(--text-dim); }
+
+.form-card{ background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:26px; max-width:520px; }
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; }
+.field input, .field select, .field textarea{ width:100%; padding:11px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; }
+.field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--azure); }
+.field textarea{ resize:vertical; }
+.field-hint{ font-size:11.5px; color:var(--text-dim); margin-top:5px; }
+.field-group-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--azure); margin-bottom:10px; padding-top:6px; border-top:1px solid var(--card-border); }
+.field-group-title:first-child{ border-top:none; padding-top:0; }
+.submit-btn{ padding:12px 24px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px; }
+.row-actions{ display:flex; gap:6px; }
+.icon-btn{ width:30px; height:30px; border-radius:9px; border:1px solid var(--card-border); background:var(--card); color:var(--text-dim); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
+.icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.icon-btn.danger:hover{ border-color:var(--coral); color:var(--coral); }
+.msg{ margin-top:12px; font-size:13px; display:none; padding:9px 14px; border-radius:9px; }
+.msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); }
+.msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); }
+
+.notif-user-opt{ display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:8px; font-size:13px; cursor:pointer; }
+.notif-user-opt:hover{ background:var(--card); }
+.notif-hist-item{ background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:16px; cursor:pointer; }
+.notif-hist-item .h-meta{ display:flex; justify-content:space-between; font-size:11.5px; color:var(--text-dim); margin-bottom:6px; }
+.notif-hist-item .h-text{ font-size:13.5px; margin-bottom:8px; white-space:pre-wrap; }
+.notif-hist-item .h-stat{ font-size:12px; color:var(--teal); font-weight:600; }
+.notif-readers{ display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--card-border); font-size:12px; color:var(--text-dim); }
+.notif-readers.show{ display:block; }
+.notif-readers div{ padding:3px 0; }
+
+@media (max-width:700px){
+  td, th{ white-space:nowrap; }
+  .table-wrap{ max-height:70vh; }
+}
+@media (max-width:520px){
+  .topbar{ padding:14px 16px; }
+  .brand span{ font-size:12.5px; }
+  .main{ padding:96px 14px 60px; }
+  .controls{ gap:8px; }
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<canvas id="net"></canvas>
+
+<div class="topbar">
+  <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+    <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
+  </div>
+  <div class="controls">
+    <div class="lang-toggle">
+      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
+      <button id="lang-ru" onclick="setLang('ru')">RU</button>
+    </div>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"></button>
+  </div>
+</div>
+
+<div class="main" id="mainContent">
+
+  <!-- HUB: bo'lim tanlash -->
+  <div id="hubView">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="eyebrow">Admin</div>
+        <h1 data-i18n="pageTitle">Statistika</h1>
+      </div>
+      <a class="back-btn" href="main.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </a>
+    </div>
+    <div class="hub-grid">
+      <button class="hub-card" id="anticorCard" onclick="openSection('anticorView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3 data-i18n="hubAnticor">Korrupsiyaga qarshi kurashish</h3>
+        <p data-i18n="hubAnticorDesc">Hujjat va test statistikasi</p>
+      </button>
+      <button class="hub-card" id="employeesCard" onclick="openSection('employeesView'); if(usersData){ filteredUsers=usersData; renderUsersTable(); }" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3 data-i18n="hubEmployees">Xodimlar</h3>
+        <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
+      </button>
+      <button class="hub-card" id="testsCard" onclick="openSection('testsView'); loadTests();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <h3 data-i18n="hubTests">Test savollari</h3>
+        <p data-i18n="hubTestsDesc">Test savollarini qo'shish, tahrirlash, o'chirish</p>
+      </button>
+      <button class="hub-card" id="docsCard" onclick="openSection('docsView'); loadDocs();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <h3 data-i18n="hubDocs">Hujjat qo'shish</h3>
+        <p data-i18n="hubDocsDesc">Normativ hujjatlarni qo'shish, tahrirlash, o'chirish</p>
+      </button>
+      <button class="hub-card" id="notifSendCard" onclick="openSection('notifSendView'); renderNotifUserList(); loadNotifHistory();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <h3 data-i18n="hubNotif">Xabarnoma yuborish</h3>
+        <p data-i18n="hubNotifDesc">Xodimlarga xabarnoma yuborish va hisobot</p>
+      </button>
+    </div>
+    <div class="denied" id="noAccessMsg" style="display:none;" data-i18n="denied">Sizda bu sahifaga kirish huquqi yo'q</div>
+  </div>
+
+  <!-- Korrupsiyaga qarshi kurashish statistikasi -->
+  <div id="anticorView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubAnticor">Korrupsiyaga qarshi kurashish</div>
+        <h1 data-i18n="pageTitle">Statistika</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="cards" id="cards">
+      <div class="stat-card"><div class="num">—</div><div class="lbl" data-i18n="totalLbl">Jami xodimlar</div></div>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()">
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th><th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th>
+            <th data-i18n="thPhone">Telefon</th><th data-i18n="thDoc">Hujjat sanasi</th><th data-i18n="thTest">Test natijasi</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="7" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Xodimlar ro'yxati (gl-admin) -->
+  <div id="employeesView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubEmployees">Xodimlar</div>
+        <h1 data-i18n="hubEmployees">Xodimlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="empSearchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onEmpSearch()">
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
+            <th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th><th data-i18n="thPhone">Telefon</th>
+          </tr>
+        </thead>
+        <tbody id="empTbody"><tr><td colspan="5" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Test savollari (CRUD) -->
+  <div id="testsView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubTests">Test savollari</div>
+        <h1 data-i18n="hubTests">Test savollari</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="form-card" style="max-width:640px;">
+      <h3 id="testFormTitle" style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:16px;" data-i18n="testFormAdd">Yangi savol qo'shish</h3>
+      <form onsubmit="return submitTestForm(event)">
+        <div class="field-group-title" data-i18n="langUzTitle">O'zbekcha</div>
+        <div class="field"><label data-i18n="qSavol">Savol</label><textarea id="tSavol" rows="2" required></textarea></div>
+        <div class="field"><label data-i18n="qVariantA">Variant A</label><input type="text" id="tA" required oninput="refreshCorrectSelects()"></div>
+        <div class="field"><label data-i18n="qVariantB">Variant B</label><input type="text" id="tB" required oninput="refreshCorrectSelects()"></div>
+        <div class="field"><label data-i18n="qVariantC">Variant C</label><input type="text" id="tC" required oninput="refreshCorrectSelects()"></div>
+        <div class="field"><label data-i18n="qVariantD">Variant D</label><input type="text" id="tD" required oninput="refreshCorrectSelects()"></div>
+        <div class="field">
+          <label data-i18n="qCorrect">To'g'ri javob</label>
+          <select id="tCorrect" required>
+            <option value="" data-i18n="qCorrectPh">Variantni tanlang</option>
+          </select>
+        </div>
+
+        <div class="field-group-title" data-i18n="langRuTitle" style="margin-top:8px;">Русский</div>
+        <div class="field"><label data-i18n="qSavolRu">Вопрос</label><textarea id="tSavolRu" rows="2"></textarea></div>
+        <div class="field"><label data-i18n="qVariantARu">Ответ А</label><input type="text" id="tARu" oninput="refreshCorrectSelects()"></div>
+        <div class="field"><label data-i18n="qVariantBRu">Ответ Б</label><input type="text" id="tBRu" oninput="refreshCorrectSelects()"></div>
+        <div class="field"><label data-i18n="qVariantCRu">Ответ В</label><input type="text" id="tCRu" oninput="refreshCorrectSelects()"></div>
+        <div class="field"><label data-i18n="qVariantDRu">Ответ Г</label><input type="text" id="tDRu" oninput="refreshCorrectSelects()"></div>
+        <div class="field">
+          <label data-i18n="qCorrectRu">Правильный ответ</label>
+          <select id="tCorrectRu">
+            <option value="" data-i18n="qCorrectPh">Variantni tanlang</option>
+          </select>
+        </div>
+
+        <button class="submit-btn" type="submit" id="testSubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <button type="button" class="back-btn" id="testCancelBtn" onclick="cancelTestEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
+        <div class="msg" id="testFormMsg"></div>
+      </form>
+    </div>
+
+    <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin:24px 0 14px;" data-i18n="testListTitle">Mavjud savollar</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:48px;" data-i18n="thId">ID</th><th data-i18n="qSavol">Savol</th><th style="width:90px;" data-i18n="thAmal">Amal</th></tr></thead>
+        <tbody id="testsTbody"><tr><td colspan="3" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Hujjat qo'shish (CRUD) -->
+  <div id="docsView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubDocs">Hujjat qo'shish</div>
+        <h1 data-i18n="hubDocs">Hujjat qo'shish</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="form-card">
+      <h3 id="docFormTitle" style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:16px;" data-i18n="docFormAdd">Yangi hujjat qo'shish</h3>
+      <form onsubmit="return submitDocForm(event)">
+        <div class="field"><label data-i18n="docNameUz">Hujjat nomi (O'zbek)</label><input type="text" id="dUz" required></div>
+        <div class="field"><label data-i18n="docNameRu">Hujjat nomi (Rus)</label><input type="text" id="dRu"></div>
+        <div class="field"><label data-i18n="docUrl">Havola (URL)</label><input type="text" id="dUrl" required placeholder="https://..."></div>
+        <button class="submit-btn" type="submit" id="docSubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <button type="button" class="back-btn" id="docCancelBtn" onclick="cancelDocEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
+        <div class="msg" id="docFormMsg"></div>
+      </form>
+    </div>
+
+    <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin:24px 0 14px;" data-i18n="docListTitle">Mavjud hujjatlar</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:48px;" data-i18n="thId">ID</th><th data-i18n="docNameUz">Hujjat nomi (O'zbek)</th><th style="width:90px;" data-i18n="thAmal">Amal</th></tr></thead>
+        <tbody id="docsTbody"><tr><td colspan="3" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Xabarnoma yuborish -->
+  <div id="notifSendView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubNotif">Xabarnoma yuborish</div>
+        <h1 data-i18n="hubNotif">Xabarnoma yuborish</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="form-card" style="margin-bottom:24px;">
+      <form onsubmit="return submitNotification(event)">
+        <div class="field">
+          <label data-i18n="notifTargetTypeLabel">Qamrov</label>
+          <select id="notifTargetType" onchange="onNotifTargetTypeChange()">
+            <option value="users" data-i18n="notifTargetUsers">Foydalanuvchilar</option>
+            <option value="department" data-i18n="notifTargetDept">Bo'linma</option>
+          </select>
+        </div>
+        <div class="field" id="notifUsersField">
+          <label data-i18n="notifUsersLabel">Xodimlarni tanlang</label>
+          <input type="text" id="notifUserSearch" data-i18n-ph="searchPh" placeholder="F.I.Sh bo'yicha qidirish..." oninput="renderNotifUserList()">
+          <div id="notifUserList" style="max-height:200px; overflow-y:auto; margin-top:8px; border:1px solid var(--input-border); border-radius:10px; padding:6px;"></div>
+        </div>
+        <div class="field" id="notifDeptField" style="display:none;">
+          <label data-i18n="notifDeptLabel">Bo'linmani tanlang</label>
+          <select id="notifDeptSelect"></select>
+        </div>
+        <div class="field">
+          <label data-i18n="notifTextLabel">Xabar matni</label>
+          <textarea id="notifText" rows="4" required data-i18n-ph="notifTextPh" placeholder="Xabarnoma matnini kiriting"></textarea>
+        </div>
+        <button class="submit-btn" type="submit" data-i18n="notifSendBtn">Yuborish</button>
+        <div class="msg" id="notifSendMsg"></div>
+      </form>
+    </div>
+
+    <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin-bottom:14px;" data-i18n="notifHistoryTitle">Yuborilgan xabarnomalar</h3>
+    <div id="notifHistoryList" style="display:flex; flex-direction:column; gap:10px;">
+      <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
+const APP_SECRET = "kmp-#anticor2-#2026";
+
+// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
+// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+async function apiCall(payload){
+  const body = JSON.stringify(payload);
+  let lastErr;
+  for(let attempt=0; attempt<3; attempt++){
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const text = await res.text();
+      try{
+        const parsed = JSON.parse(text);
+        if(parsed && parsed.success === false && parsed.code === 'SESSION_EXPIRED'){
+          try{ sessionStorage.removeItem('km_user'); }catch(e){}
+          window.location.href = 'login.html';
+        }
+        return parsed;
+      }
+      catch(parseErr){
+        lastErr = new Error("Serverdan noto'g'ri javob keldi");
+        if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+        throw lastErr;
+      }
+    }catch(networkErr){
+      lastErr = networkErr;
+      if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+      throw lastErr;
+    }
+  }
+}
+
+let currentLang = localStorage.getItem('km_lang') || 'uz';
+const dict = {
+  uz:{ brandName:"\"O'zbektelekom\" AK", eyebrow:"Admin", pageTitle:"Statistika",
+    hubAnticor:"Korrupsiyaga qarshi kurashish", hubAnticorDesc:"Hujjat va test statistikasi",
+    hubEmployees:"Xodimlar", hubEmployeesDesc:"Xodimlar bo'yicha umumiy ma'lumot",
+    hubTests:"Test savollari", hubTestsDesc:"Test savollarini qo'shish, tahrirlash, o'chirish",
+    hubDocs:"Hujjat qo'shish", hubDocsDesc:"Normativ hujjatlarni qo'shish, tahrirlash, o'chirish",
+    soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish",
+    hubNotif:"Xabarnoma yuborish", hubNotifDesc:"Xodimlarga xabarnoma yuborish va hisobot",
+    notifTargetTypeLabel:"Qamrov", notifTargetUsers:"Foydalanuvchilar", notifTargetDept:"Bo'linma",
+    notifUsersLabel:"Xodimlarni tanlang", notifDeptLabel:"Bo'linmani tanlang",
+    notifTextLabel:"Xabar matni", notifTextPh:"Xabarnoma matnini kiriting", notifSendBtn:"Yuborish",
+    notifNoTarget:"Kamida bitta qabul qiluvchi tanlang", notifHistoryTitle:"Yuborilgan xabarnomalar",
+    notifNoHistory:"Hozircha xabarnoma yuborilmagan", notifReadStat:"O'qigan", notifNoReaders:"Hali hech kim o'qimagan",
+    saveBtn:"Saqlash", savedOk:"Saqlandi ✓", savedErr:"Xatolik yuz berdi, qayta urinib ko'ring",
+    totalLbl:"Jami xodimlar", docsLbl:"Hujjat bilan tanishgan", passLbl:"Testdan o'tgan", failLbl:"O'tmagan", waitLbl:"Boshlamagan",
+    thId:"ID", thFish:"F.I.Sh", thPos:"Lavozim", thDept:"Bo'linma", thPhone:"Telefon", thDoc:"Hujjat sanasi", thTest:"Test natijasi",
+    thLogin:"Login", thRol:"Rol", thAmal:"Amal",
+    searchPh:"F.I.Sh bo'yicha qidirish...", noResults:"Hech narsa topilmadi",
+    loading:"Yuklanmoqda...", yes:"Ha", no:"Yo'q", notTaken:"Ishlamagan", denied:"Sizda bu sahifaga kirish huquqi yo'q",
+    testFormAdd:"Yangi savol qo'shish", testFormEdit:"Savolni tahrirlash", testListTitle:"Mavjud savollar",
+    langUzTitle:"O'zbekcha", langRuTitle:"Русский",
+    qSavol:"Savol", qVariantA:"Variant A", qVariantB:"Variant B", qVariantC:"Variant C", qVariantD:"Variant D",
+    qCorrect:"To'g'ri javob", qCorrectPh:"Variantni tanlang",
+    qSavolRu:"Вопрос", qVariantARu:"Ответ А", qVariantBRu:"Ответ Б", qVariantCRu:"Ответ В", qVariantDRu:"Ответ Г", qCorrectRu:"Правильный ответ",
+    docFormAdd:"Yangi hujjat qo'shish", docFormEdit:"Hujjatni tahrirlash", docListTitle:"Mavjud hujjatlar",
+    docNameUz:"Hujjat nomi (O'zbek)", docNameRu:"Hujjat nomi (Rus)", docUrl:"Havola (URL)",
+    confirmDeleteTest:"Ushbu savolni o'chirmoqchimisiz?", confirmDeleteDoc:"Ushbu hujjatni o'chirmoqchimisiz?",
+    deletedOk:"O'chirildi ✓", editBtn:"Tahrirlash", deleteBtn:"O'chirish" },
+  ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
+    hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
+    hubEmployees:"Сотрудники", hubEmployeesDesc:"Общая информация по сотрудникам",
+    hubTests:"Тестовые вопросы", hubTestsDesc:"Добавление, редактирование, удаление вопросов",
+    hubDocs:"Добавить документ", hubDocsDesc:"Добавление, редактирование, удаление документов",
+    soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена",
+    hubNotif:"Отправить уведомление", hubNotifDesc:"Отправка уведомлений сотрудникам и отчёт",
+    notifTargetTypeLabel:"Охват", notifTargetUsers:"Пользователи", notifTargetDept:"Подразделение",
+    notifUsersLabel:"Выберите сотрудников", notifDeptLabel:"Выберите подразделение",
+    notifTextLabel:"Текст уведомления", notifTextPh:"Введите текст уведомления", notifSendBtn:"Отправить",
+    notifNoTarget:"Выберите хотя бы одного получателя", notifHistoryTitle:"Отправленные уведомления",
+    notifNoHistory:"Уведомления ещё не отправлялись", notifReadStat:"Прочитали", notifNoReaders:"Пока никто не прочитал",
+    saveBtn:"Сохранить", savedOk:"Сохранено ✓", savedErr:"Произошла ошибка, попробуйте снова",
+    totalLbl:"Всего сотрудников", docsLbl:"Ознакомились с документами", passLbl:"Прошли тест", failLbl:"Не прошли", waitLbl:"Не начали",
+    thId:"ID", thFish:"ФИО", thPos:"Должность", thDept:"Подразделение", thPhone:"Телефон", thDoc:"Дата ознакомления", thTest:"Результат теста",
+    thLogin:"Логин", thRol:"Роль", thAmal:"Действие",
+    searchPh:"Поиск по ФИО...", noResults:"Ничего не найдено",
+    loading:"Загрузка...", yes:"Да", no:"Нет", notTaken:"Не пройден", denied:"У вас нет доступа к этой странице",
+    testFormAdd:"Добавить новый вопрос", testFormEdit:"Редактировать вопрос", testListTitle:"Существующие вопросы",
+    langUzTitle:"Узбекский", langRuTitle:"Русский",
+    qSavol:"Вопрос", qVariantA:"Вариант A", qVariantB:"Вариант B", qVariantC:"Вариант C", qVariantD:"Вариант D",
+    qCorrect:"Правильный ответ", qCorrectPh:"Выберите вариант",
+    qSavolRu:"Вопрос", qVariantARu:"Ответ А", qVariantBRu:"Ответ Б", qVariantCRu:"Ответ В", qVariantDRu:"Ответ Г", qCorrectRu:"Правильный ответ",
+    docFormAdd:"Добавить новый документ", docFormEdit:"Редактировать документ", docListTitle:"Существующие документы",
+    docNameUz:"Название документа (узб.)", docNameRu:"Название документа (рус.)", docUrl:"Ссылка (URL)",
+    confirmDeleteTest:"Удалить этот вопрос?", confirmDeleteDoc:"Удалить этот документ?",
+    deletedOk:"Удалено ✓", editBtn:"Редактировать", deleteBtn:"Удалить" }
+};
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
+  document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
+  document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
+}
+function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderAll(); }
+applyLang();
+
+const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
+const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
+let theme = localStorage.getItem('km_theme') || 'dark';
+function applyTheme(){ document.body.setAttribute('data-theme', theme); document.getElementById('themeBtn').innerHTML = theme==='dark'?sunIcon:moonIcon; document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; }); }
+function toggleTheme(){ theme = theme==='dark'?'light':'dark'; localStorage.setItem('km_theme', theme); applyTheme(); }
+applyTheme();
+
+function getCurrentUser(){
+  try{ return JSON.parse(sessionStorage.getItem('km_user')); }catch(e){ return null; }
+}
+
+let statsData = null;
+let filteredEmployees = [];
+let usersData = null;
+let filteredUsers = [];
+let currentUserForKpi = null;
+let testsData = null;
+let editingTestId = null;
+let docsData = null;
+let editingDocId = null;
+
+function openSection(id){
+  document.querySelectorAll('#mainContent > div').forEach(d => d.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+}
+
+function onSearch(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  filteredEmployees = !q ? statsData.employees : statsData.employees.filter(e => e.fish.toLowerCase().includes(q));
+  renderTable();
+}
+
+function renderCards(){
+  const s = statsData.summary;
+  document.getElementById('cards').innerHTML = `
+    <div class="stat-card"><div class="num">${s.total}</div><div class="lbl">${dict[currentLang].totalLbl}</div></div>
+    <div class="stat-card teal"><div class="num">${s.docsDone}</div><div class="lbl">${dict[currentLang].docsLbl}</div></div>
+    <div class="stat-card teal"><div class="num">${s.testsPassed}</div><div class="lbl">${dict[currentLang].passLbl}</div></div>
+    <div class="stat-card coral"><div class="num">${s.testsFailed}</div><div class="lbl">${dict[currentLang].failLbl}</div></div>
+    <div class="stat-card amber"><div class="num">${s.notStarted}</div><div class="lbl">${dict[currentLang].waitLbl}</div></div>
+  `;
+}
+
+// Sheets'dan kelgan matnni HTML sifatida joylashtirishdan oldin xavfsizlashtiradi (XSS himoyasi)
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderTable(){
+  if(filteredEmployees.length === 0){
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    return;
+  }
+  document.getElementById('tbody').innerHTML = filteredEmployees.map((emp, i) => {
+    const docBadge = emp.hujjatSana ? `<span class="badge ok">${escapeHtml(emp.hujjatSana)}</span>` : `<span class="badge no">${dict[currentLang].no}</span>`;
+    let testBadge = `<span class="badge wait">${dict[currentLang].notTaken}</span>`;
+    if(emp.testTaken) testBadge = `<span class="badge ${emp.passed?'ok':'no'}">${emp.testPoints} — ${emp.testPercent}%</span>`;
+    return `<tr><td>${i + 1}</td><td>${escapeHtml(emp.fish)}</td><td>${escapeHtml(emp.lavozim)||'—'}</td><td>${escapeHtml(emp.bolinma)||'—'}</td><td>${escapeHtml(emp.telefon)||'—'}</td><td>${docBadge}</td><td>${testBadge}</td></tr>`;
+  }).join('');
+}
+
+function renderAll(){
+  if(!statsData) return;
+  renderCards();
+  onSearch();
+  if(usersData) onEmpSearch();
+}
+
+/* ---------- Xodimlar (gl-admin) ---------- */
+function onEmpSearch(){
+  const q = document.getElementById('empSearchInput').value.trim().toLowerCase();
+  filteredUsers = !q ? usersData : usersData.filter(u => (u.familiya+' '+u.ism+' '+(u.otasi||'')).toLowerCase().includes(q) || u.login.toLowerCase().includes(q));
+  renderUsersTable();
+}
+
+function renderUsersTable(){
+  if(filteredUsers.length === 0){
+    document.getElementById('empTbody').innerHTML = `<tr><td colspan="5" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    return;
+  }
+  document.getElementById('empTbody').innerHTML = filteredUsers.map((u, i) => {
+    const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
+    return `<tr><td>${u.id ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td></tr>`;
+  }).join('');
+}
+
+async function loadUsersList(user){
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getUsersList', token: user.token });
+    if(data.success){
+      usersData = data.users;
+      if(document.getElementById('employeesView').style.display !== 'none') { filteredUsers = usersData; renderUsersTable(); }
+    }
+  } catch(ex){}
+}
+
+async function loadStats(user){
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getStats', token: user.token });
+    if(!data.success) return;
+    statsData = data;
+    renderAll();
+  } catch(ex){
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
+  }
+}
+
+/* ---------- Test savollari (CRUD) ---------- */
+function refreshCorrectSelects(){
+  const uzOpts = [document.getElementById('tA').value, document.getElementById('tB').value, document.getElementById('tC').value, document.getElementById('tD').value];
+  const ruOpts = [document.getElementById('tARu').value, document.getElementById('tBRu').value, document.getElementById('tCRu').value, document.getElementById('tDRu').value];
+  const selUz = document.getElementById('tCorrect'), selRu = document.getElementById('tCorrectRu');
+  const prevUz = selUz.value, prevRu = selRu.value;
+  const phUz = dict[currentLang].qCorrectPh, phRu = dict[currentLang].qCorrectPh;
+  selUz.innerHTML = `<option value="">${phUz}</option>` + uzOpts.filter(Boolean).map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  selRu.innerHTML = `<option value="">${phRu}</option>` + ruOpts.filter(Boolean).map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  if(uzOpts.includes(prevUz)) selUz.value = prevUz;
+  if(ruOpts.includes(prevRu)) selRu.value = prevRu;
+}
+
+async function loadTests(){
+  document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getTestQuestions', token: currentUserForKpi.token });
+    if(data.success){ testsData = data.questions; renderTestsTable(); }
+  } catch(ex){
+    document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
+  }
+}
+
+function renderTestsTable(){
+  if(!testsData || testsData.length === 0){
+    document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    return;
+  }
+  document.getElementById('testsTbody').innerHTML = testsData.map(q => `
+    <tr>
+      <td>${escapeHtml(q.id)}</td>
+      <td style="white-space:normal;">${escapeHtml(q.uz.savol)}</td>
+      <td><div class="row-actions">
+        <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditTest('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteTestRow('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function startEditTest(id){
+  const q = testsData.find(t => String(t.id) === String(id));
+  if(!q) return;
+  editingTestId = id;
+  document.getElementById('tSavol').value = q.uz.savol || '';
+  document.getElementById('tA').value = q.uz.a || '';
+  document.getElementById('tB').value = q.uz.b || '';
+  document.getElementById('tC').value = q.uz.c || '';
+  document.getElementById('tD').value = q.uz.d || '';
+  document.getElementById('tSavolRu').value = q.ru.savol || '';
+  document.getElementById('tARu').value = q.ru.a || '';
+  document.getElementById('tBRu').value = q.ru.b || '';
+  document.getElementById('tCRu').value = q.ru.c || '';
+  document.getElementById('tDRu').value = q.ru.d || '';
+  refreshCorrectSelects();
+  document.getElementById('testFormTitle').textContent = dict[currentLang].testFormEdit;
+  document.getElementById('testSubmitBtn').textContent = dict[currentLang].saveBtn;
+  document.getElementById('testCancelBtn').style.display = 'inline-flex';
+  document.getElementById('testsView').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function cancelTestEdit(){
+  editingTestId = null;
+  document.getElementById('testFormTitle').textContent = dict[currentLang].testFormAdd;
+  document.getElementById('testCancelBtn').style.display = 'none';
+  document.querySelector('#testsView form').reset();
+  refreshCorrectSelects();
+}
+
+async function submitTestForm(e){
+  e.preventDefault();
+  const msg = document.getElementById('testFormMsg'); msg.className = 'msg';
+  const payload = {
+    secret: APP_SECRET, token: currentUserForKpi.token,
+    action: editingTestId ? 'editTestQuestion' : 'addTestQuestion',
+    savol: document.getElementById('tSavol').value, a: document.getElementById('tA').value, b: document.getElementById('tB').value,
+    c: document.getElementById('tC').value, d: document.getElementById('tD').value, correct: document.getElementById('tCorrect').value,
+    savolRu: document.getElementById('tSavolRu').value, aRu: document.getElementById('tARu').value, bRu: document.getElementById('tBRu').value,
+    cRu: document.getElementById('tCRu').value, dRu: document.getElementById('tDRu').value, correctRu: document.getElementById('tCorrectRu').value
+  };
+  if(editingTestId) payload.id = editingTestId;
+  const btn = document.getElementById('testSubmitBtn'); btn.disabled = true;
+  try{
+    const data = await apiCall(payload);
+    btn.disabled = false;
+    if(data.success){
+      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
+      cancelTestEdit();
+      loadTests();
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
+    }
+  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+async function deleteTestRow(id){
+  if(!confirm(dict[currentLang].confirmDeleteTest)) return;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'deleteTestQuestion', token: currentUserForKpi.token, id });
+    if(data.success) loadTests();
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+/* ---------- Hujjatlar (CRUD) ---------- */
+async function loadDocs(){
+  document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getDocuments', token: currentUserForKpi.token });
+    if(data.success){ docsData = data.docs; renderDocsTable(); }
+  } catch(ex){
+    document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
+  }
+}
+
+function renderDocsTable(){
+  if(!docsData || docsData.length === 0){
+    document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    return;
+  }
+  document.getElementById('docsTbody').innerHTML = docsData.map(d => `
+    <tr>
+      <td>${escapeHtml(d.id)}</td>
+      <td style="white-space:normal;">${escapeHtml(d.uz)}</td>
+      <td><div class="row-actions">
+        <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditDoc('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteDocRow('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function startEditDoc(id){
+  const d = docsData.find(x => String(x.id) === String(id));
+  if(!d) return;
+  editingDocId = id;
+  document.getElementById('dUz').value = d.uz || '';
+  document.getElementById('dRu').value = d.ru || '';
+  document.getElementById('dUrl').value = d.url || '';
+  document.getElementById('docFormTitle').textContent = dict[currentLang].docFormEdit;
+  document.getElementById('docCancelBtn').style.display = 'inline-flex';
+  document.getElementById('docsView').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function cancelDocEdit(){
+  editingDocId = null;
+  document.getElementById('docFormTitle').textContent = dict[currentLang].docFormAdd;
+  document.getElementById('docCancelBtn').style.display = 'none';
+  document.querySelector('#docsView form').reset();
+}
+
+async function submitDocForm(e){
+  e.preventDefault();
+  const msg = document.getElementById('docFormMsg'); msg.className = 'msg';
+  const payload = {
+    secret: APP_SECRET, token: currentUserForKpi.token,
+    action: editingDocId ? 'editDocument' : 'addDocument',
+    uz: document.getElementById('dUz').value, ru: document.getElementById('dRu').value, url: document.getElementById('dUrl').value
+  };
+  if(editingDocId) payload.id = editingDocId;
+  const btn = document.getElementById('docSubmitBtn'); btn.disabled = true;
+  try{
+    const data = await apiCall(payload);
+    btn.disabled = false;
+    if(data.success){
+      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
+      cancelDocEdit();
+      loadDocs();
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
+    }
+  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+async function deleteDocRow(id){
+  if(!confirm(dict[currentLang].confirmDeleteDoc)) return;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'deleteDocument', token: currentUserForKpi.token, id });
+    if(data.success) loadDocs();
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+/* ---------- Xabarnoma yuborish ---------- */
+let notifSelectedLogins = new Set();
+let notifHistoryLoaded = false;
+
+function onNotifTargetTypeChange(){
+  const type = document.getElementById('notifTargetType').value;
+  document.getElementById('notifUsersField').style.display = type === 'users' ? 'block' : 'none';
+  document.getElementById('notifDeptField').style.display = type === 'department' ? 'block' : 'none';
+  if(type === 'department' && document.getElementById('notifDeptSelect').options.length === 0){
+    const depts = [...new Set((usersData||[]).filter(u=>u.rol==='user').map(u=>u.bolinma).filter(Boolean))];
+    document.getElementById('notifDeptSelect').innerHTML = depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+  }
+}
+
+function renderNotifUserList(){
+  const q = document.getElementById('notifUserSearch').value.trim().toLowerCase();
+  const list = (usersData||[]).filter(u=>u.rol==='user').filter(u=>{
+    const fish = [u.familiya,u.ism,u.otasi].filter(Boolean).join(' ').toLowerCase();
+    return !q || fish.includes(q);
+  });
+  document.getElementById('notifUserList').innerHTML = list.map(u=>{
+    const fish = [u.familiya,u.ism,u.otasi].filter(Boolean).join(' ');
+    const checked = notifSelectedLogins.has(u.login) ? 'checked' : '';
+    return `<label class="notif-user-opt"><input type="checkbox" ${checked} onchange="toggleNotifUser('${u.login}', this.checked)"> ${escapeHtml(fish)}</label>`;
+  }).join('') || `<p style="color:var(--text-dim); font-size:12.5px; padding:6px;">${dict[currentLang].noResults}</p>`;
+}
+
+function toggleNotifUser(login, checked){
+  if(checked) notifSelectedLogins.add(login); else notifSelectedLogins.delete(login);
+}
+
+async function submitNotification(e){
+  e.preventDefault();
+  const msg = document.getElementById('notifSendMsg'); msg.className = 'msg';
+  const type = document.getElementById('notifTargetType').value;
+  const text = document.getElementById('notifText').value.trim();
+  const payload = { secret: APP_SECRET, action:'sendNotification', token: currentUserForKpi.token, targetType: type, text };
+  if(type === 'department'){
+    payload.department = document.getElementById('notifDeptSelect').value;
+    if(!payload.department){ msg.textContent = dict[currentLang].notifNoTarget; msg.classList.add('err'); return false; }
+  } else {
+    payload.targetLogins = Array.from(notifSelectedLogins);
+    if(payload.targetLogins.length === 0){ msg.textContent = dict[currentLang].notifNoTarget; msg.classList.add('err'); return false; }
+  }
+  const btn = e.target.querySelector('.submit-btn'); btn.disabled = true;
+  try{
+    const data = await apiCall(payload);
+    btn.disabled = false;
+    if(data.success){
+      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
+      e.target.reset();
+      notifSelectedLogins.clear();
+      renderNotifUserList();
+      notifHistoryLoaded = false;
+      loadNotifHistory();
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
+    }
+  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+async function loadNotifHistory(){
+  if(notifHistoryLoaded) return;
+  notifHistoryLoaded = true;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getNotificationReport', token: currentUserForKpi.token });
+    if(data.success) renderNotifHistory(data.report);
+  } catch(ex){
+    document.getElementById('notifHistoryList').innerHTML = `<p style="color:var(--coral); font-size:13px;">Xatolik: ${ex.message}</p>`;
+  }
+}
+
+function renderNotifHistory(report){
+  const box = document.getElementById('notifHistoryList');
+  if(!report || report.length === 0){
+    box.innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].notifNoHistory}</p>`;
+    return;
+  }
+  box.innerHTML = report.map((n, i) => {
+    const targetLabel = n.targetType === 'department' ? (dict[currentLang].notifTargetDept + ': ' + escapeHtml(n.targetValue)) : (dict[currentLang].notifTargetUsers + ' (' + n.totalTarget + ')');
+    const readers = n.readers.map(r => `<div>${escapeHtml(r.fish)} — ${escapeHtml(r.sana)}</div>`).join('') || `<div>${dict[currentLang].notifNoReaders}</div>`;
+    return `<div class="notif-hist-item" onclick="document.getElementById('nh-${i}').classList.toggle('show')">
+      <div class="h-meta"><span>${escapeHtml(n.senderFish)} • ${targetLabel}</span><span>${escapeHtml(n.sana)}</span></div>
+      <div class="h-text">${escapeHtml(n.text)}</div>
+      <div class="h-stat">${dict[currentLang].notifReadStat}: ${n.readCount}/${n.totalTarget}</div>
+      <div class="notif-readers" id="nh-${i}">${readers}</div>
+    </div>`;
+  }).join('');
+}
+
+function init(){
+  const user = getCurrentUser();
+  if(!user || !user.token){ window.location.href = 'login.html'; return; }
+  const rol = user.rol;
+
+  const canAnticor = rol === 'gl-admin';
+  const canEmployees = rol === 'gl-admin' || rol === 'admin';
+  const canManage = rol === 'gl-admin' || rol === 'admin'; // Test savollari, Hujjat qo'shish
+  const canNotifSend = rol === 'gl-admin' || rol === 'admin';
+
+  if(!canAnticor && !canEmployees && !canManage && !canNotifSend){
+    document.querySelector('.hub-grid').style.display = 'none';
+    document.getElementById('noAccessMsg').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('anticorCard').style.display = canAnticor ? 'block' : 'none';
+  document.getElementById('employeesCard').style.display = canEmployees ? 'block' : 'none';
+  document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';
+  document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
+  document.getElementById('notifSendCard').style.display = canNotifSend ? 'block' : 'none';
+
+  if(canAnticor) loadStats(user);
+  if(canEmployees) loadUsersList(user);
+  currentUserForKpi = user;
+}
+init();
+
+/* ---------- Fon animatsiyasi (tarmoq) ---------- */
+const canvas = document.getElementById('net'); const ctx = canvas.getContext('2d');
+let W,H,nodes;
+function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+function initNodes(){
+  const count = Math.min(70, Math.floor((W*H)/22000));
+  nodes = Array.from({length:count}, ()=>({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*0.35, vy:(Math.random()-0.5)*0.35, r:Math.random()*1.6+0.6 }));
+}
+initNodes(); window.addEventListener('resize', initNodes);
+function isLight(){ return document.body.getAttribute('data-theme')==='light'; }
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const lineColor = isLight() ? 'rgba(11,37,69,' : 'rgba(0,217,192,';
+  const dotColor = isLight() ? 'rgba(0,163,224,0.55)' : 'rgba(0,217,192,0.75)';
+  for(let i=0;i<nodes.length;i++){
+    const n=nodes[i]; n.x+=n.vx; n.y+=n.vy;
+    if(n.x<0||n.x>W) n.vx*=-1; if(n.y<0||n.y>H) n.vy*=-1;
+    for(let j=i+1;j<nodes.length;j++){
+      const m=nodes[j]; const dx=n.x-m.x, dy=n.y-m.y; const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<130){ ctx.strokeStyle=lineColor+(0.12*(1-dist/130))+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(n.x,n.y); ctx.lineTo(m.x,m.y); ctx.stroke(); }
+    }
+  }
+  for(const n of nodes){ ctx.fillStyle=dotColor; ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill(); }
+  requestAnimationFrame(draw);
+}
+draw();
+
+// XAVFSIZLIK: brauzer "Ortga" tugmasi orqali keshdagi (bfcache) sahifani qaytarganda
+// (masalan, Chiqish qilingandan keyin) sessiyani qayta tekshiradi — agar sessiya
+// endi mavjud bo'lmasa (chiqilgan bo'lsa), darhol login sahifasiga qaytaradi.
+window.addEventListener('pageshow', function(event){
+  if (event.persisted) {
+    let u;
+    try{ u = JSON.parse(sessionStorage.getItem('km_user')); }catch(e){}
+    if (!u || !u.token) { window.location.href = 'login.html'; }
+  }
+});
+</script>
+</body>
+</html>

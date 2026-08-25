@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'zbektelekom AK — Test</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
+  --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
+  --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
+}
+[data-theme="light"]{
+  --bg:#EAF3FA; --bg-deep:#DCEAF5; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
+  --text:#0B2545; --text-dim:#4E6A88; --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .5s ease, color .5s ease; }
+.topbar{ position:fixed; top:0; left:0; right:0; z-index:30; display:flex; justify-content:space-between; align-items:center; padding:18px 32px; backdrop-filter:blur(14px); border-bottom:1px solid var(--card-border); background:var(--bg); }
+.brand-link{ text-decoration:none; cursor:pointer; color:inherit; }
+.brand{ display:flex; align-items:center; gap:10px; font-family:'Unbounded', sans-serif; font-weight:700; font-size:14px; text-decoration:none; color:var(--text); }
+.brand-logo{ height:22px; width:auto; display:block; }
+.controls{ display:flex; align-items:center; gap:12px; }
+.lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
+.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; }
+.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
+.home-icon-btn{ width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); text-decoration:none; transition:border-color .2s ease, color .2s ease; margin-left:2px; }
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.theme-toggle{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
+.theme-toggle svg{ width:17px; height:17px; }
+.back-link{ display:flex; align-items:center; gap:6px; color:var(--text-dim); font-size:13px; text-decoration:none; margin-right:6px; }
+
+.main{ max-width:680px; margin:0 auto; padding:120px 24px 80px; }
+.page-head{ margin-bottom:10px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.back-btn{
+  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--card-border);
+  color:var(--text); font-size:13px; font-weight:600; padding:9px 16px; border-radius:11px; cursor:pointer;
+  text-decoration:none; transition:border-color .2s ease; white-space:nowrap; flex-shrink:0;
+}
+.back-btn:hover{ border-color:var(--azure); }
+.page-head .eyebrow{ font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--azure); }
+.page-head h1{ font-family:'Unbounded', sans-serif; font-size:clamp(22px,4vw,30px); margin-top:8px; }
+
+.progress-bar{ height:5px; background:var(--input-bg); border-radius:99px; margin:20px 0 30px; overflow:hidden; }
+.progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--azure), var(--teal)); transition:width .3s ease; }
+
+.q-card{
+  background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:24px; margin-bottom:16px;
+  transition:box-shadow .2s ease; opacity:0; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both;
+}
+.q-card:hover{ box-shadow:0 16px 32px -18px rgba(0,0,0,0.4); }
+@keyframes qRise{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+.skeleton{ height:150px; border-radius:16px; background:linear-gradient(90deg, var(--input-bg) 25%, var(--card-border) 50%, var(--input-bg) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; margin-bottom:16px; }
+@keyframes shimmer{ 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+.q-card .q-num{ font-size:11.5px; font-weight:700; color:var(--azure); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.q-card .q-text{ font-size:15px; font-weight:600; margin-bottom:16px; line-height:1.5; }
+.opt{
+  display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:11px;
+  border:1px solid var(--input-border); background:var(--input-bg); margin-bottom:9px; cursor:pointer;
+  font-size:13.5px; transition:border-color .15s ease, background .15s ease, transform .1s ease;
+}
+.opt:hover{ border-color:var(--azure); transform:translateX(2px); }
+.opt.selected{ border-color:var(--teal); background:rgba(0,217,192,0.12); }
+.opt input{ accent-color:var(--teal); width:16px; height:16px; }
+
+.submit-wrap{ text-align:center; margin-top:24px; }
+.submit-btn{
+  padding:14px 32px; border:none; border-radius:12px; cursor:pointer;
+  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:14.5px;
+  transition:transform .15s ease, box-shadow .2s ease;
+}
+.submit-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,163,224,0.6); }
+.submit-btn:active:not(:disabled){ transform:translateY(0) scale(.98); }
+.submit-btn:disabled{ opacity:.4; cursor:default; }
+
+.result-card{
+  display:none; text-align:center; background:var(--card); border:1px solid var(--card-border);
+  border-radius:20px; padding:40px 30px;
+}
+.result-card.show{ display:block; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both; }
+.result-card .score{ font-family:'Unbounded', sans-serif; font-size:44px; font-weight:800; margin:14px 0 6px; }
+.result-card .score.pass{ color:var(--teal); }
+.result-card .score.fail{ color:var(--coral); }
+.result-card .verdict{ font-size:15px; font-weight:600; margin-bottom:6px; }
+.result-card .sub{ color:var(--text-dim); font-size:13px; margin-bottom:6px; }
+.points-line{ color:var(--text-dim); font-size:13px; margin-bottom:22px; font-weight:600; }
+.wrong-block{ text-align:left; background:var(--input-bg); border:1px solid var(--input-border); border-radius:14px; padding:16px 18px; margin-bottom:22px; }
+.wrong-header{ font-size:12.5px; font-weight:700; color:var(--coral); text-transform:uppercase; letter-spacing:.4px; margin-bottom:10px; }
+.wrong-list{ list-style:none; display:flex; flex-direction:column; gap:8px; }
+.wrong-list li{ font-size:13.5px; padding-left:16px; position:relative; line-height:1.4; }
+.wrong-list li::before{ content:"✕"; position:absolute; left:0; color:var(--coral); font-size:11px; top:3px; }
+.result-card a{
+  display:inline-block; padding:12px 24px; border-radius:11px; text-decoration:none;
+  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px;
+  transition:transform .15s ease;
+}
+.result-card a:hover{ transform:translateY(-2px); }
+#quizForm.hidden{ display:none; }
+@media (max-width:520px){
+  .topbar{ padding:14px 18px; }
+  .main{ padding-top:100px; }
+  .q-card{ padding:18px; }
+  .result-card{ padding:30px 20px; }
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="topbar">
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
+  </div>
+  <div class="controls">
+    <div class="lang-toggle">
+      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
+      <button id="lang-ru" onclick="setLang('ru')">RU</button>
+    </div>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"></button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-head">
+    <div>
+      <div class="eyebrow" data-i18n="eyebrow">Bilimingizni sinang</div>
+      <h1 data-i18n="pageTitle">Korrupsiyaga qarshi test</h1>
+    </div>
+    <a class="back-btn" href="main.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+      <span data-i18n="backBtn">Ortga</span>
+    </a>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <form id="quizForm"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></form>
+
+  <div class="submit-wrap">
+    <button class="submit-btn" id="submitBtn" onclick="submitTest()" disabled data-i18n="submitBtn">Testni yakunlash</button>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="verdict" id="resultVerdict"></div>
+    <div class="score" id="resultScore"></div>
+    <div class="sub" id="resultSub"></div>
+    <div class="points-line" id="resultPoints"></div>
+    <div class="wrong-block" id="wrongBlock" style="display:none;">
+      <div class="wrong-header" id="wrongHeader"></div>
+      <ul class="wrong-list" id="wrongList"></ul>
+    </div>
+    <a href="main.html" data-i18n="backHome">Asosiy sahifaga qaytish</a>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
+const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+
+// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
+// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+async function apiCall(payload){
+  const body = JSON.stringify(payload);
+  let lastErr;
+  for(let attempt=0; attempt<3; attempt++){
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const text = await res.text();
+      try{
+        const parsed = JSON.parse(text);
+        if(parsed && parsed.success === false && parsed.code === 'SESSION_EXPIRED'){
+          try{ sessionStorage.removeItem('km_user'); }catch(e){}
+          window.location.href = 'login.html';
+        }
+        return parsed;
+      }
+      catch(parseErr){
+        lastErr = new Error("Serverdan noto'g'ri javob keldi");
+        if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+        throw lastErr;
+      }
+    }catch(networkErr){
+      lastErr = networkErr;
+      if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+      throw lastErr;
+    }
+  }
+}
+
+let currentLang = localStorage.getItem('km_lang') || 'uz';
+const dict = {
+  uz:{ brandName:"\"O'zbektelekom\" AK", backBtn:"Ortga", eyebrow:"Bilimingizni sinang", pageTitle:"Korrupsiyaga qarshi kurashish mavzulari bo'yicha test",
+    submitBtn:"Testni yakunlash", backHome:"Asosiy sahifaga qaytish", noQuestions:"Savollar topilmadi",
+    passVerdict:"Tabriklaymiz, test muvaffaqiyatli topshirildi! 🎉", failVerdict:"Afsuski, o'tish balliga yetmadingiz",
+    passSub:"Natijangiz saqlandi", failSub:"Hujjatlarni qayta ko'rib chiqib, testni qayta urinib ko'ring", savingErr:"Natijani saqlashda xatolik",
+    pointsLabel:"ball", wrongHeader:"Xato javob berilgan savollar:" },
+  ru:{ brandName:"АО «Узтелеком»", backBtn:"Назад", eyebrow:"Проверьте свои знания", pageTitle:"Тест по темам противодействия коррупции",
+    submitBtn:"Завершить тест", backHome:"Вернуться на главную", noQuestions:"Вопросы не найдены",
+    passVerdict:"Поздравляем, тест успешно пройден! 🎉", failVerdict:"К сожалению, вы не набрали проходной балл",
+    passSub:"Результат сохранён", failSub:"Пересмотрите документы и попробуйте снова", savingErr:"Ошибка при сохранении результата",
+    pointsLabel:"баллов", wrongHeader:"Вопросы с неверным ответом:" }
+};
+
+// Sheets'dan kelgan matnni HTML sifatida joylashtirishdan oldin xavfsizlashtiradi (XSS himoyasi)
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let allQuestions = [];
+const answers = {}; // { questionId: selectedLetter }
+
+function renderQuestions(){
+  const form = document.getElementById('quizForm');
+  if(allQuestions.length === 0){
+    form.innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].noQuestions}</p>`;
+    return;
+  }
+  form.innerHTML = allQuestions.map((item, qi) => {
+    const q = item[currentLang] || item.uz;
+    const opts = [
+      { letter:'A', text:q.a }, { letter:'B', text:q.b },
+      { letter:'C', text:q.c }, { letter:'D', text:q.d }
+    ].filter(o => o.text);
+    return `<div class="q-card" style="animation-delay:${qi*70}ms">
+      <div class="q-num">${(currentLang==='uz'?'Savol':'Вопрос')} ${qi+1}/${allQuestions.length}</div>
+      <div class="q-text">${escapeHtml(q.savol)}</div>
+      ${opts.map(o => {
+        const isSel = answers[item.id] === o.letter;
+        return `<label class="opt ${isSel?'selected':''}" data-q="${item.id}" data-o="${o.letter}">
+          <input type="radio" name="q${item.id}" value="${o.letter}" ${isSel?'checked':''} onchange="selectOpt('${item.id}','${o.letter}',this)">
+          ${escapeHtml(o.text)}
+        </label>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+async function loadQuestions(){
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getTestQuestions' });
+    allQuestions = data.success ? data.questions : [];
+  } catch(ex){ allQuestions = []; }
+  renderQuestions();
+}
+loadQuestions();
+
+function selectOpt(qid, letter, inputEl){
+  answers[qid] = letter;
+  document.querySelectorAll(`.opt[data-q="${qid}"]`).forEach(el=>el.classList.remove('selected'));
+  inputEl.closest('.opt').classList.add('selected');
+  const total = allQuestions.length;
+  document.getElementById('progressFill').style.width = (Object.keys(answers).length/total*100) + '%';
+  document.getElementById('submitBtn').disabled = Object.keys(answers).length < total;
+}
+
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
+  document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
+  document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
+}
+function setLang(l){
+  currentLang=l; localStorage.setItem('km_lang', l);
+  applyLang(); renderQuestions();
+}
+applyLang();
+
+const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
+const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
+let theme = localStorage.getItem('km_theme') || 'dark';
+function applyTheme(){ document.body.setAttribute('data-theme', theme); document.getElementById('themeBtn').innerHTML = theme==='dark'?sunIcon:moonIcon; document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; }); }
+function toggleTheme(){ theme = theme==='dark'?'light':'dark'; localStorage.setItem('km_theme', theme); applyTheme(); }
+applyTheme();
+
+function getToken(){
+  try{ return JSON.parse(sessionStorage.getItem('km_user'))?.token; }catch(e){ return null; }
+}
+
+async function submitTest(){
+  document.getElementById('quizForm').classList.add('hidden');
+  document.getElementById('submitBtn').style.display = 'none';
+  document.querySelector('.progress-bar').style.display = 'none';
+
+  const token = getToken();
+  const answerList = Object.keys(answers).map(id => ({ id, letter: answers[id] }));
+
+  const rc = document.getElementById('resultCard');
+
+  if(!token){
+    rc.classList.add('show');
+    document.getElementById('resultVerdict').textContent = 'Sessiya topilmadi — login sahifasidan qayta kiring.';
+    return;
+  }
+
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'submitTest', token, answers: answerList });
+    if(!data.success){ throw new Error(data.message || 'error'); }
+
+    rc.classList.add('show');
+    document.getElementById('resultVerdict').textContent = data.passed ? dict[currentLang].passVerdict : dict[currentLang].failVerdict;
+    const scoreEl = document.getElementById('resultScore');
+    scoreEl.textContent = data.percent + '%';
+    scoreEl.className = 'score ' + (data.passed ? 'pass' : 'fail');
+    document.getElementById('resultSub').textContent = data.passed ? dict[currentLang].passSub : dict[currentLang].failSub;
+    document.getElementById('resultPoints').textContent = `${data.points}/${data.maxPoints} ${dict[currentLang].pointsLabel}`;
+
+    if(data.wrongIds && data.wrongIds.length > 0){
+      const wrongBlock = document.getElementById('wrongBlock');
+      document.getElementById('wrongHeader').textContent = dict[currentLang].wrongHeader;
+      document.getElementById('wrongList').innerHTML = data.wrongIds.map(id => {
+        const q = allQuestions.find(x => String(x.id) === String(id));
+        const qText = q ? (q[currentLang] || q.uz).savol : '';
+        return qText ? `<li>${escapeHtml(qText)}</li>` : '';
+      }).join('');
+      wrongBlock.style.display = 'block';
+    }
+  } catch(ex){
+    rc.classList.add('show');
+    document.getElementById('resultVerdict').textContent = dict[currentLang].savingErr + ': ' + ex.message;
+  }
+}
+
+// XAVFSIZLIK: brauzer "Ortga" tugmasi orqali keshdagi (bfcache) sahifani qaytarganda
+// (masalan, Chiqish qilingandan keyin) sessiyani qayta tekshiradi — agar sessiya
+// endi mavjud bo'lmasa (chiqilgan bo'lsa), darhol login sahifasiga qaytaradi.
+window.addEventListener('pageshow', function(event){
+  if (event.persisted) {
+    let u;
+    try{ u = JSON.parse(sessionStorage.getItem('km_user')); }catch(e){}
+    if (!u || !u.token) { window.location.href = 'login.html'; }
+  }
+});
+</script>
+</body>
+</html>

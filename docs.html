@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'zbektelekom AK — Normativ hujjatlar</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --white:#FFFFFF;
+  --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
+  --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
+}
+[data-theme="light"]{
+  --bg:#EAF3FA; --bg-deep:#DCEAF5; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
+  --text:#0B2545; --text-dim:#4E6A88; --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .5s ease, color .5s ease; }
+.topbar{ position:fixed; top:0; left:0; right:0; z-index:30; display:flex; justify-content:space-between; align-items:center; padding:18px 32px; backdrop-filter:blur(14px); border-bottom:1px solid var(--card-border); background:var(--bg); }
+.brand-link{ text-decoration:none; cursor:pointer; color:inherit; }
+.brand{ display:flex; align-items:center; gap:10px; font-family:'Unbounded', sans-serif; font-weight:700; font-size:14px; cursor:pointer; color:var(--text); }
+.brand-logo{ height:22px; width:auto; display:block; }
+.controls{ display:flex; align-items:center; gap:12px; }
+.lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
+.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; }
+.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
+.home-icon-btn{ width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); text-decoration:none; transition:border-color .2s ease, color .2s ease; margin-left:2px; }
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.theme-toggle{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
+.theme-toggle svg{ width:17px; height:17px; }
+.back-link{ display:flex; align-items:center; gap:6px; color:var(--text-dim); font-size:13px; text-decoration:none; margin-right:6px; }
+
+.main{ max-width:760px; margin:0 auto; padding:120px 24px 80px; }
+.page-head{ margin-bottom:30px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.back-btn{
+  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--card-border);
+  color:var(--text); font-size:13px; font-weight:600; padding:9px 16px; border-radius:11px; cursor:pointer;
+  text-decoration:none; transition:border-color .2s ease; white-space:nowrap; flex-shrink:0;
+}
+.back-btn:hover{ border-color:var(--azure); }
+.page-head .eyebrow{ font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--azure); }
+.page-head h1{ font-family:'Unbounded', sans-serif; font-size:clamp(22px,4vw,30px); margin-top:8px; }
+.page-head p{ color:var(--text-dim); font-size:14px; margin-top:8px; }
+
+.doc-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
+.doc-item{
+  display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--card-border);
+  border-radius:14px; padding:16px 18px; transition:border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  opacity:0; animation:docRise .5s cubic-bezier(.2,.9,.25,1) both;
+}
+.doc-item:hover{ transform:translateY(-2px); box-shadow:0 16px 32px -18px rgba(0,0,0,0.4); }
+@keyframes docRise{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+.skeleton{ height:74px; border-radius:14px; background:linear-gradient(90deg, var(--input-bg) 25%, var(--card-border) 50%, var(--input-bg) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; margin-bottom:12px; }
+@keyframes shimmer{ 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+.doc-item.checked{ border-color:var(--teal); }
+.doc-icon{ width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg, var(--azure), var(--teal)); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#00263F; font-weight:800; font-size:13px; }
+.doc-info{ flex:1; }
+.doc-info .title{ font-weight:600; font-size:14.5px; margin-bottom:2px; }
+.doc-info .desc{ font-size:12.5px; color:var(--text-dim); }
+.doc-open{ padding:9px 16px; border-radius:9px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text); text-decoration:none; font-size:12.5px; font-weight:600; white-space:nowrap; }
+.doc-check{ width:22px; height:22px; border-radius:50%; border:2px solid var(--input-border); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--teal); }
+.doc-check.on{ border-color:var(--teal); background:rgba(0,217,192,0.15); }
+
+.confirm-box{
+  background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:22px;
+  display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center;
+}
+.confirm-box p{ font-size:13.5px; color:var(--text-dim); }
+.confirm-btn{
+  padding:13px 26px; border:none; border-radius:11px; cursor:pointer;
+  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:14px;
+  transition:transform .15s ease, box-shadow .2s ease;
+}
+.confirm-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 12px 24px -10px rgba(0,163,224,0.6); }
+.confirm-btn:active:not(:disabled){ transform:translateY(0) scale(.98); }
+.confirm-btn:disabled{ opacity:.45; cursor:default; }
+.next-btns{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.next-btn{
+  padding:13px 26px; border:1px solid var(--teal); border-radius:11px; cursor:pointer;
+  background:transparent; color:var(--teal); font-weight:700; font-size:14px; text-decoration:none;
+  transition:transform .15s ease, background .2s ease;
+}
+.next-btn:hover{ transform:translateY(-2px); background:rgba(0,217,192,0.1); }
+.home-btn{
+  padding:13px 26px; border:1px solid var(--card-border); border-radius:11px; cursor:pointer;
+  background:var(--input-bg); color:var(--text); font-weight:700; font-size:14px; text-decoration:none;
+  transition:transform .15s ease, background .2s ease;
+}
+.home-btn:hover{ transform:translateY(-2px); border-color:var(--azure); }
+.status-msg{ font-size:13px; display:none; padding:9px 14px; border-radius:9px; }
+.status-msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); }
+.status-msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); }
+@media (max-width:520px){
+  .topbar{ padding:14px 18px; }
+  .doc-item{ flex-wrap:wrap; }
+  .doc-info{ min-width:60%; }
+  .doc-open{ margin-left:auto; }
+  .main{ padding-top:100px; }
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="topbar">
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
+  </div>
+  <div class="controls">
+    <div class="lang-toggle">
+      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
+      <button id="lang-ru" onclick="setLang('ru')">RU</button>
+    </div>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"></button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-head">
+    <div>
+      <div class="eyebrow" data-i18n="eyebrow">Xodimlar uchun ta'lim dasturi</div>
+      <h1 data-i18n="pageTitle">Ichki normativ hujjatlar</h1>
+      <p data-i18n="pageDesc">Testga o'tishdan oldin quyidagi hujjatlar bilan tanishib chiqing. Har bir hujjatni ochib, o'qib chiqqaningizdan so'ng belgilang.</p>
+    </div>
+    <a class="back-btn" href="main.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+      <span data-i18n="backBtn">Ortga</span>
+    </a>
+  </div>
+
+  <!-- Hujjatlar Google Sheets'dan (Documents varag'i) dinamik yuklanadi -->
+  <div class="doc-list" id="docList">
+    <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+  </div>
+
+  <div class="confirm-box">
+    <p data-i18n="confirmText">Barcha hujjatlar bilan tanishganingizni tasdiqlang</p>
+    <button class="confirm-btn" id="confirmBtn" onclick="confirmRead()" disabled data-i18n="confirmBtn">Men barcha hujjatlar bilan tanishdim</button>
+    <div class="next-btns" id="nextBtns" style="display:none;">
+      <a class="next-btn" id="nextBtn" href="test.html" data-i18n="nextBtn">Testga o'tish →</a>
+      <a class="home-btn" href="main.html" data-i18n="homeBtn">Bosh sahifaga qaytish</a>
+    </div>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
+const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+
+// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
+// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+async function apiCall(payload){
+  const body = JSON.stringify(payload);
+  let lastErr;
+  for(let attempt=0; attempt<3; attempt++){
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const text = await res.text();
+      try{
+        const parsed = JSON.parse(text);
+        if(parsed && parsed.success === false && parsed.code === 'SESSION_EXPIRED'){
+          try{ sessionStorage.removeItem('km_user'); }catch(e){}
+          window.location.href = 'login.html';
+        }
+        return parsed;
+      }
+      catch(parseErr){
+        lastErr = new Error("Serverdan noto'g'ri javob keldi");
+        if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+        throw lastErr;
+      }
+    }catch(networkErr){
+      lastErr = networkErr;
+      if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+      throw lastErr;
+    }
+  }
+}
+
+const dict = {
+  uz:{
+    brandName:"\"O'zbektelekom\" AK", backLink:"← Asosiy sahifa",
+    eyebrow:"Xodimlar uchun ta'lim dasturi", pageTitle:"Ichki normativ hujjatlar", backBtn:"Ortga",
+    pageDesc:"Testga o'tishdan oldin quyidagi hujjatlar bilan tanishib chiqing. Har bir hujjatni ochib, o'qib chiqqaningizdan so'ng belgilang.",
+    doc1title:"Korrupsiyaga qarshi kurashish to'g'risidagi Nizom", doc1desc:"Kompaniya ichki tartib-qoidalari",
+    doc2title:"Odob-axloq kodeksi", doc2desc:"Xodimlar uchun majburiy qoidalar",
+    doc3title:"Manfaatlar to'qnashuvi to'g'risida yo'riqnoma", doc3desc:"Amaliy holatlar va tushuntirishlar",
+    loading:"Yuklanmoqda...", noDocs:"Hujjatlar topilmadi",
+    openBtn:"Ochish", confirmText:"Barcha hujjatlar bilan tanishganingizni tasdiqlang",
+    confirmBtn:"Men barcha hujjatlar bilan tanishdim", nextBtn:"Testga o'tish →", homeBtn:"Bosh sahifaga qaytish",
+    savedOk:"Saqlandi ✓", savedErr:"Xatolik yuz berdi, qayta urinib ko'ring", openAllFirst:"Avval barcha hujjatlarni oching"
+  },
+  ru:{
+    brandName:"АО «Узтелеком»", backLink:"← Главная",
+    eyebrow:"Образовательная программа", pageTitle:"Внутренние нормативные документы", backBtn:"Назад",
+    pageDesc:"Прежде чем перейти к тесту, ознакомьтесь со следующими документами. Откройте каждый документ и отметьте после прочтения.",
+    doc1title:"Положение о противодействии коррупции", doc1desc:"Внутренний регламент компании",
+    doc2title:"Кодекс этики", doc2desc:"Обязательные правила для сотрудников",
+    doc3title:"Инструкция о конфликте интересов", doc3desc:"Практические случаи и разъяснения",
+    loading:"Загрузка...", noDocs:"Документы не найдены",
+    openBtn:"Открыть", confirmText:"Подтвердите, что ознакомились со всеми документами",
+    confirmBtn:"Я ознакомлен со всеми документами", nextBtn:"Перейти к тесту →", homeBtn:"Вернуться на главную",
+    savedOk:"Сохранено ✓", savedErr:"Произошла ошибка, попробуйте снова", openAllFirst:"Сначала откройте все документы"
+  }
+};
+let currentLang = localStorage.getItem('km_lang') || 'uz';
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
+  document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
+  document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
+}
+function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderDocs(); }
+applyLang();
+
+const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
+const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
+let theme = localStorage.getItem('km_theme') || 'dark';
+function applyTheme(){ document.body.setAttribute('data-theme', theme); document.getElementById('themeBtn').innerHTML = theme==='dark'?sunIcon:moonIcon; document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; }); }
+function toggleTheme(){ theme = theme==='dark'?'light':'dark'; localStorage.setItem('km_theme', theme); applyTheme(); }
+applyTheme();
+
+function getToken(){
+  try{ return JSON.parse(sessionStorage.getItem('km_user'))?.token; }catch(e){ return null; }
+}
+
+let allDocs = [];
+// Sheets'dan kelgan matnni HTML sifatida joylashtirishdan oldin xavfsizlashtiradi (XSS himoyasi)
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const openedIdx = new Set(); // massivdagi indeks — Sheets ID'ga bog'liq emas, shuning uchun takrorlangan/bo'sh ID'lardan ta'sirlanmaydi
+
+function renderDocs(){
+  const list = document.getElementById('docList');
+  if(allDocs.length === 0){
+    list.innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].noDocs}</p>`;
+    return;
+  }
+  list.innerHTML = allDocs.map((doc, i) => {
+    const name = escapeHtml(currentLang === 'ru' ? (doc.ru || doc.uz) : doc.uz);
+    const safeUrl = /^https?:\/\//i.test(doc.url || '') ? doc.url : '#';
+    const isOpen = openedIdx.has(i);
+    return `<div class="doc-item ${isOpen?'checked':''}" data-idx="${i}" style="animation-delay:${i*70}ms">
+      <div class="doc-icon">PDF</div>
+      <div class="doc-info"><div class="title">${name}</div></div>
+      <a class="doc-open" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer" onclick="markOpened(${i})">${dict[currentLang].openBtn}</a>
+      <div class="doc-check ${isOpen?'on':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M20 6L9 17l-5-5"/></svg></div>
+    </div>`;
+  }).join('');
+}
+
+async function loadDocs(){
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getDocuments' });
+    allDocs = data.success ? data.docs : [];
+  } catch(ex){ allDocs = []; }
+  renderDocs();
+}
+loadDocs();
+
+function markOpened(idx){
+  openedIdx.add(idx);
+  document.getElementById('confirmBtn').disabled = openedIdx.size < allDocs.length;
+  renderDocs();
+}
+
+async function confirmRead(){
+  const token = getToken();
+  const btn = document.getElementById('confirmBtn');
+  const msg = document.getElementById('statusMsg');
+  msg.className = 'status-msg';
+  if(!token){ msg.textContent = 'Sessiya topilmadi — login sahifasidan qayta kiring.'; msg.classList.add('err'); return; }
+  btn.disabled = true;
+  const docsToSend = Array.from(openedIdx).map(i => ({ id: allDocs[i].id, uz: allDocs[i].uz }));
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'markDocRead', token, docs: docsToSend });
+    if(data.success){
+      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
+      document.getElementById('nextBtns').style.display = 'flex';
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err'); btn.disabled = false;
+    }
+  } catch(ex){
+    msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); btn.disabled = false;
+  }
+}
+
+// XAVFSIZLIK: brauzer "Ortga" tugmasi orqali keshdagi (bfcache) sahifani qaytarganda
+// (masalan, Chiqish qilingandan keyin) sessiyani qayta tekshiradi — agar sessiya
+// endi mavjud bo'lmasa (chiqilgan bo'lsa), darhol login sahifasiga qaytaradi.
+window.addEventListener('pageshow', function(event){
+  if (event.persisted) {
+    let u;
+    try{ u = JSON.parse(sessionStorage.getItem('km_user')); }catch(e){}
+    if (!u || !u.token) { window.location.href = 'login.html'; }
+  }
+});
+</script>
+</body>
+</html>

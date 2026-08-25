@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'zbektelekom AK — Asosiy sahifa</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --navy-950:#071B33; --navy-900:#0B2545; --navy-800:#12356b;
+  --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
+  --bg:#0B2545; --bg-deep:#071B33;
+  --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
+  --text:#F3F7FB; --text-dim:#A9BBD1;
+  --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
+}
+[data-theme="light"]{
+  --bg:#EAF3FA; --bg-deep:#DCEAF5;
+  --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
+  --text:#0B2545; --text-dim:#4E6A88;
+  --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  font-family:'Inter', sans-serif; background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden; transition:background .5s ease, color .5s ease; position:relative;
+}
+canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
+  background:radial-gradient(ellipse at 70% 10%, var(--bg-deep), var(--bg) 70%); }
+
+/* ===== Topbar ===== */
+.topbar{
+  position:fixed; top:0; left:0; right:0; z-index:30;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:18px 32px; backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--card-border);
+}
+.brand-link{ text-decoration:none; cursor:pointer; color:inherit; }
+.brand{ display:flex; align-items:center; gap:10px; font-family:'Unbounded', sans-serif; font-weight:700; font-size:14px; color:var(--text); }
+.brand-logo{ height:22px; width:auto; display:block; }
+
+.controls{ display:flex; align-items:center; gap:12px; }
+.lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
+.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; transition:all .25s ease; }
+.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
+.home-icon-btn{ width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); text-decoration:none; transition:border-color .2s ease, color .2s ease; margin-left:2px; }
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.theme-toggle{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
+.theme-toggle svg{ width:17px; height:17px; }
+
+/* Profile chip */
+.profile-chip{ position:relative; }
+.chip-btn{
+  display:flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--card-border);
+  padding:5px 14px 5px 5px; border-radius:999px; cursor:pointer; color:var(--text); font-family:'Inter';
+  transition:border-color .2s ease, transform .15s ease;
+}
+.chip-btn:hover{ border-color:var(--azure); transform:translateY(-1px); }
+.chip-btn .avatar{
+  width:30px; height:30px; border-radius:50%; object-fit:cover;
+  border:1.5px solid var(--teal); background:linear-gradient(135deg, var(--azure), var(--teal));
+}
+.chip-btn .name{ font-size:13px; font-weight:600; }
+.chip-btn .chevron{ width:10px; height:10px; transition:transform .2s ease; opacity:.7; }
+.chip-btn.open .chevron{ transform:rotate(180deg); }
+
+.dropdown{
+  position:absolute; top:calc(100% + 10px); right:0; width:220px;
+  background:var(--bg-deep); border:1px solid var(--card-border); border-radius:14px;
+  padding:8px; box-shadow:0 20px 40px -12px rgba(0,0,0,0.5);
+  opacity:0; visibility:hidden; transform:translateY(-8px);
+  transition:all .2s ease; z-index:40;
+}
+.dropdown.show{ opacity:1; visibility:visible; transform:translateY(0); }
+.dropdown button{
+  width:100%; text-align:left; background:transparent; border:none; color:var(--text);
+  padding:11px 13px; border-radius:9px; cursor:pointer; font-size:13.5px; font-weight:500;
+  display:flex; align-items:center; gap:10px; font-family:'Inter';
+}
+.dropdown button:hover{ background:var(--card); }
+
+/* ===== Hero ===== */
+.hero{ position:relative; z-index:5; padding:150px 32px 60px; max-width:920px; margin:0 auto; text-align:center; }
+.hero .eyebrow{
+  display:inline-block; font-size:12.5px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--azure); background:rgba(0,163,224,0.12); border:1px solid rgba(0,163,224,0.3);
+  padding:6px 16px; border-radius:999px; margin-bottom:22px;
+  opacity:0; animation:rise .6s cubic-bezier(.2,.9,.25,1) .05s both;
+}
+.hero h1{
+  font-family:'Unbounded', sans-serif; font-weight:800; font-size:clamp(28px,5vw,46px); line-height:1.15;
+  background:linear-gradient(135deg, var(--text) 40%, var(--teal));
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:18px; opacity:0; animation:rise .7s cubic-bezier(.2,.9,.25,1) .15s both;
+}
+.hero p.desc{ color:var(--text-dim); font-size:15.5px; max-width:560px; margin:0 auto; line-height:1.6; opacity:0; animation:rise .7s cubic-bezier(.2,.9,.25,1) .28s both; }
+.hero .hero-actions{ display:flex; gap:12px; justify-content:center; margin-top:26px; flex-wrap:wrap; opacity:0; animation:rise .7s cubic-bezier(.2,.9,.25,1) .4s both; }
+.hero .hero-actions a{
+  padding:13px 24px; border-radius:12px; font-weight:700; font-size:14px; text-decoration:none;
+  transition:transform .15s ease, box-shadow .2s ease;
+}
+.hero .hero-actions a:hover{ transform:translateY(-2px); }
+.hero .hero-actions a.primary{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; box-shadow:0 10px 25px -10px rgba(0,163,224,0.55); }
+.hero .hero-actions a.secondary{ border:1px solid var(--card-border); color:var(--text); background:var(--card); }
+@keyframes rise{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
+
+/* ===== Status check card ===== */
+.status-section{ position:relative; z-index:5; max-width:560px; margin:0 auto; padding:0 24px 100px; opacity:0; animation:rise .7s cubic-bezier(.2,.9,.25,1) .5s both; }
+.status-card{
+  background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:32px;
+  backdrop-filter:blur(16px); box-shadow:0 30px 60px -25px rgba(0,0,0,0.4);
+  transition:box-shadow .3s ease, transform .3s ease;
+}
+.status-card:hover{ box-shadow:0 35px 70px -20px rgba(0,163,224,0.25); }
+.status-card h2{ font-family:'Unbounded', sans-serif; font-size:17px; margin-bottom:6px; }
+.status-card p.sub{ color:var(--text-dim); font-size:13px; margin-bottom:22px; }
+.status-row{ display:flex; gap:10px; }
+.phone-wrap{ position:relative; flex:1; }
+.phone-wrap svg{ position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-dim); pointer-events:none; }
+.status-row input{
+  width:100%; padding:12px 14px 12px 40px; background:var(--input-bg); border:1px solid var(--input-border);
+  border-radius:11px; color:var(--text); font-size:14px; font-family:'Inter'; outline:none;
+}
+.status-row input:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,163,224,0.18); }
+.status-row button{
+  padding:12px 20px; border:none; border-radius:11px; cursor:pointer;
+  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px;
+  white-space:nowrap; transition:transform .15s ease, box-shadow .2s ease;
+}
+.status-row button:hover{ transform:translateY(-2px); box-shadow:0 12px 24px -10px rgba(0,163,224,0.6); }
+.status-row button:active{ transform:translateY(0) scale(.98); }
+.status-result{ margin-top:20px; display:none; flex-direction:column; gap:10px; }
+.status-result.show{ display:flex; animation:rise .4s ease both; }
+.status-item{
+  display:flex; align-items:center; justify-content:space-between; padding:12px 15px;
+  border-radius:11px; background:var(--input-bg); border:1px solid var(--input-border); font-size:13.5px;
+}
+.badge{ font-size:12px; font-weight:700; padding:4px 11px; border-radius:999px; }
+.badge.ok{ background:rgba(0,217,192,0.15); color:var(--teal); border:1px solid rgba(0,217,192,0.4); }
+.badge.no{ background:rgba(255,107,107,0.15); color:var(--coral); border:1px solid rgba(255,107,107,0.4); }
+.status-error{ margin-top:14px; color:var(--amber); font-size:13px; display:none; }
+.status-error.show{ display:block; }
+
+/* ===== Modal ===== */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(4,15,30,0.65); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+.modal-overlay.show{ display:flex; }
+.modal{
+  width:100%; max-width:420px; background:var(--bg-deep); border:1px solid var(--card-border);
+  border-radius:20px; padding:30px; animation:rise .3s ease both;
+  max-height:85vh; overflow-y:auto;
+}
+.modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+.modal-head h3{ font-family:'Unbounded', sans-serif; font-size:17px; }
+.modal-close{ background:var(--card); border:1px solid var(--card-border); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
+
+.info-row{ display:flex; justify-content:space-between; padding:13px 0; border-bottom:1px solid var(--card-border); font-size:14px; }
+.notif-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:12px; padding:13px 14px; position:relative; }
+.notif-item.unread{ border-color:var(--azure); }
+.notif-item.unread::before{ content:''; position:absolute; top:14px; left:-6px; width:8px; height:8px; border-radius:50%; background:var(--azure); }
+.notif-item .notif-meta{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); margin-bottom:6px; }
+.notif-item .notif-text{ font-size:13.5px; line-height:1.5; white-space:pre-wrap; }
+.info-row:last-child{ border-bottom:none; }
+.info-row .label{ color:var(--text-dim); }
+.info-row .val{ font-weight:600; text-align:right; }
+
+.settings-menu-item{
+  width:100%; display:flex; align-items:center; gap:10px; text-align:left;
+  background:var(--input-bg); border:1px solid var(--input-border); color:var(--text);
+  padding:14px 15px; border-radius:12px; cursor:pointer; font-size:14px; font-weight:500; font-family:'Inter';
+  transition:border-color .2s ease, transform .15s ease;
+}
+.settings-menu-item:hover{ border-color:var(--azure); transform:translateX(2px); }
+.settings-menu-item .chev{ margin-left:auto; opacity:.5; font-size:16px; }
+.settings-back{
+  background:none; border:none; color:var(--text-dim); font-size:13px; cursor:pointer;
+  margin-bottom:16px; padding:0; font-family:'Inter'; font-weight:600;
+  display:inline-flex; align-items:center; gap:5px;
+}
+.settings-back:hover{ color:var(--azure); }
+
+.field{ margin-bottom:15px; }
+.field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:.2px; }
+.field input{ width:100%; padding:12px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:14px; outline:none; }
+.field input:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,163,224,0.18); }
+.modal-submit{ width:100%; margin-top:6px; padding:12px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:14px; }
+.modal-msg{ margin-top:12px; font-size:13px; display:none; padding:10px 12px; border-radius:9px; }
+.modal-msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); border:1px solid rgba(255,176,32,0.3); }
+.modal-msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); border:1px solid rgba(0,217,192,0.3); }
+
+@media (max-width:480px){
+  .status-row{ flex-direction:column; }
+  .chip-btn .name{ display:none; }
+  .topbar{ padding:14px 16px; }
+  .brand span{ font-size:12.5px; }
+  .controls{ gap:8px; }
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<canvas id="net"></canvas>
+
+<div class="topbar">
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
+  </div>
+  <div class="controls">
+    <div class="lang-toggle">
+      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
+      <button id="lang-ru" onclick="setLang('ru')">RU</button>
+    </div>
+    <a id="adminMenuBtn" class="home-icon-btn" href="#" title="Boshqaruv" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-4-4L3 15.5"/></svg></a>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"></button>
+    <button class="theme-toggle" id="notifBtn" onclick="openNotifPanel()" style="position:relative;" title="Xabarnomalar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notifBadge" style="display:none; position:absolute; top:4px; right:5px; width:8px; height:8px; border-radius:50%; background:var(--coral); border:1.5px solid var(--bg);"></span>
+    </button>
+    <div class="profile-chip">
+      <button class="chip-btn" id="chipBtn" onclick="toggleDropdown()">
+        <img class="avatar" id="avatarImg" src="" alt="">
+        <span class="name" id="chipName">—</span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="dropdown" id="dropdown">
+        <button onclick="openModal('settingsModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="menuSettings">Sozlamalar</span></button>
+        <button onclick="openModal('infoModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span data-i18n="menuInfo">Mening ma'lumotlarim</span></button>
+        <button onclick="logout()" style="color:var(--coral)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg> <span data-i18n="menuLogout">Chiqish</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <h1 data-i18n="heroTitle">Korrupsiyaga qarshi kurashish</h1>
+  <p class="desc" data-i18n="heroDesc">Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.</p>
+  <div class="hero-actions">
+    <a href="docs.html" class="primary" data-i18n="docsBtn">Hujjatlar bilan tanishish</a>
+    <a href="test.html" class="secondary" data-i18n="testBtn">Testni topshirish</a>
+  </div>
+</div>
+
+<div class="status-section">
+  <div class="status-card">
+    <h2 data-i18n="statusTitle">Holatingizni tekshiring</h2>
+    <p class="sub" data-i18n="statusSub">Telefon raqamingizni kiriting</p>
+    <div class="status-row">
+      <div class="phone-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <input type="tel" id="phoneInput" data-i18n-ph="phonePh">
+      </div>
+      <button onclick="checkStatus()" data-i18n="checkBtn">Tekshirish</button>
+    </div>
+    <div class="status-error" id="statusError" data-i18n="statusErrText">Bu raqam topilmadi</div>
+    <div class="status-result" id="statusResult">
+      <div class="status-item">
+        <span data-i18n="docLabel">Ichki normativ hujjatlar bilan tanishgan</span>
+        <span class="badge" id="docBadge">—</span>
+      </div>
+      <div class="status-item">
+        <span data-i18n="testLabel">Testdan o'tgan</span>
+        <span class="badge" id="testBadge">—</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="menuSettings">Sozlamalar</h3>
+      <button class="modal-close" onclick="closeModal('settingsModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+
+    <div id="settingsMenu">
+      <button class="settings-menu-item" onclick="showSettingsView('passwordView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        <span data-i18n="changePassMenu">Parolni almashtirish</span>
+        <span class="chev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
+      <button class="settings-menu-item" onclick="showSettingsView('supportView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
+        <span data-i18n="helpMenu">Yordam</span>
+        <span class="chev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
+    </div>
+
+    <div id="supportView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <form onsubmit="return submitSupport(event)">
+        <div class="field">
+          <textarea id="supportText" required placeholder="Iltimos, savolingiz yoki xatoni izohlab bering" data-i18n-ph="supportPh" rows="5" style="width:100%; padding:12px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:14px; font-family:'Inter'; outline:none; resize:vertical;"></textarea>
+        </div>
+        <button class="modal-submit" type="submit" data-i18n="sendBtn">Yuborish</button>
+        <div class="modal-msg" id="supportMsg"></div>
+      </form>
+    </div>
+
+    <div id="passwordView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <form onsubmit="return changePassword(event)">
+        <div class="field"><label data-i18n="oldPassLabel">Eski parol</label><input type="password" id="oldPass" required></div>
+        <div class="field"><label data-i18n="newPassLabel">Yangi parol</label><input type="password" id="newPass" required></div>
+        <div class="field"><label data-i18n="confirmPassLabel">Yangi parolni tasdiqlash</label><input type="password" id="confirmPass" required></div>
+        <button class="modal-submit" type="submit" data-i18n="saveBtn">Saqlash</button>
+        <div class="modal-msg" id="passMsg"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Info modal -->
+<div class="modal-overlay" id="infoModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="menuInfo">Mening ma'lumotlarim</h3>
+      <button class="modal-close" onclick="closeModal('infoModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="info-row"><span class="label" data-i18n="fishLabel">F.I.Sh</span><span class="val" id="infoFish">—</span></div>
+    <div class="info-row"><span class="label" data-i18n="posLabel">Lavozim</span><span class="val" id="infoPos">—</span></div>
+    <div class="info-row"><span class="label" data-i18n="deptLabel">Bo'linma</span><span class="val" id="infoDept">—</span></div>
+    <div class="info-row"><span class="label" data-i18n="phoneLabel">Telefon</span><span class="val" id="infoPhone">—</span></div>
+  </div>
+</div>
+
+<!-- Xabarnomalar modal -->
+<div class="modal-overlay" id="notifModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h3 data-i18n="notifTitle">Xabarnomalar</h3>
+      <button class="modal-close" onclick="closeModal('notifModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div id="notifList" style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+      <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
+const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+
+// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
+// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+async function apiCall(payload){
+  const body = JSON.stringify(payload);
+  let lastErr;
+  for(let attempt=0; attempt<3; attempt++){
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const text = await res.text();
+      try{
+        const parsed = JSON.parse(text);
+        if(parsed && parsed.success === false && parsed.code === 'SESSION_EXPIRED'){
+          try{ sessionStorage.removeItem('km_user'); }catch(e){}
+          window.location.href = 'login.html';
+        }
+        return parsed;
+      }
+      catch(parseErr){
+        lastErr = new Error("Serverdan noto'g'ri javob keldi");
+        if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+        throw lastErr;
+      }
+    }catch(networkErr){
+      lastErr = networkErr;
+      if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
+      throw lastErr;
+    }
+  }
+}
+
+/* ---------- i18n ---------- */
+const dict = {
+  uz:{
+    brandName:"\"O'zbektelekom\" AK",
+    menuSettings:"Sozlamalar", menuInfo:"Mening ma'lumotlarim",
+    eyebrow:"«O'zbektelekom» AK",
+    heroTitle:"Korrupsiyaga qarshi kurashish",
+    heroDesc:"Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.",
+    statusTitle:"Holatingizni tekshiring", statusSub:"Telefon raqamingizni kiriting",
+    docsBtn:"Hujjatlar bilan tanishish", testBtn:"Testni topshirish",
+    checkBtn:"Tekshirish", statusErrText:"Bu raqam topilmadi", notYourNumber:"Ushbu raqam sizga tegishli emas",
+    notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
+    docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Testdan o'tgan",
+    oldPassLabel:"Eski parol", newPassLabel:"Yangi parol", confirmPassLabel:"Yangi parolni tasdiqlash",
+    saveBtn:"Saqlash", fishLabel:"F.I.Sh", posLabel:"Lavozim", deptLabel:"Bo'linma", phoneLabel:"Telefon",
+    menuLogout:"Chiqish", changePassMenu:"Parolni almashtirish", backLabel:"Orqaga",
+    yes:"Ha", no:"Yo'q", mismatchErr:"Yangi parollar mos kelmadi", oldWrongErr:"Eski parol noto'g'ri",
+    savedOk:"Parol muvaffaqiyatli o'zgartirildi", checking:"Tekshirilmoqda...",
+    phonePh:"Telefon raqamingiz", pointsLabel:"ball",
+    helpMenu:"Yordam", supportPh:"Iltimos, savolingiz yoki xatoni izohlab bering", sendBtn:"Yuborish",
+    supportSentOk:"Murojaatingiz qabul qilindi, rahmat!", savingErr:"Xatolik yuz berdi, qayta urinib ko'ring"
+  },
+  ru:{
+    brandName:"АО «Узтелеком»",
+    menuSettings:"Настройки", menuInfo:"Мои данные",
+    eyebrow:"АО «Узтелеком»",
+    heroTitle:"Противодействие коррупции",
+    heroDesc:"Образовательная программа для сотрудников — ознакомьтесь с нормативными документами и проверьте свои знания.",
+    statusTitle:"Проверьте свой статус", statusSub:"Введите номер телефона",
+    docsBtn:"Ознакомиться с документами", testBtn:"Пройти тест",
+    checkBtn:"Проверить", statusErrText:"Номер не найден", notYourNumber:"Этот номер вам не принадлежит",
+    notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
+    docLabel:"Ознакомлен с внутренними документами", testLabel:"Тест пройден",
+    oldPassLabel:"Старый пароль", newPassLabel:"Новый пароль", confirmPassLabel:"Подтвердите новый пароль",
+    saveBtn:"Сохранить", fishLabel:"ФИО", posLabel:"Должность", deptLabel:"Подразделение", phoneLabel:"Телефон",
+    menuLogout:"Выйти", changePassMenu:"Изменить пароль", backLabel:"Назад",
+    yes:"Да", no:"Нет", mismatchErr:"Новые пароли не совпадают", oldWrongErr:"Старый пароль неверен",
+    savedOk:"Пароль успешно изменён", checking:"Проверка...",
+    phonePh:"Ваш номер телефона", pointsLabel:"баллов",
+    helpMenu:"Помощь", supportPh:"Пожалуйста, поясните свой вопрос или опишите ошибку.", sendBtn:"Отправить",
+    supportSentOk:"Ваше обращение принято, спасибо!", savingErr:"Произошла ошибка, попробуйте снова"
+  }
+};
+let currentLang = localStorage.getItem('km_lang') || 'uz';
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(dict[currentLang][key]) el.textContent = dict[currentLang][key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-ph');
+    if(dict[currentLang][key]) el.placeholder = dict[currentLang][key];
+  });
+  document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
+  document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
+}
+function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderInfoLang(); }
+applyLang();
+
+/* ---------- Theme ---------- */
+const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
+const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
+let theme = localStorage.getItem('km_theme') || 'dark';
+function applyTheme(){ document.body.setAttribute('data-theme', theme); document.getElementById('themeBtn').innerHTML = theme==='dark'?sunIcon:moonIcon; document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; }); }
+function toggleTheme(){ theme = theme==='dark'?'light':'dark'; localStorage.setItem('km_theme', theme); applyTheme(); }
+applyTheme();
+
+/* ---------- Session user ---------- */
+function loadUser(){
+  let user;
+  try{ user = JSON.parse(sessionStorage.getItem('km_user')); }catch(e){}
+  if(!user || !user.token){
+    window.location.href = 'login.html';
+    return null;
+  }
+  document.getElementById('chipName').textContent = user.familiya + ' ' + user.ism;
+  document.getElementById('avatarImg').src = user.rasm || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(user.familiya+' '+user.ism) + '&backgroundColor=00A3E0';
+  document.getElementById('infoFish').textContent = [user.familiya, user.ism, user.otasi].filter(Boolean).join(' ');
+  document.getElementById('infoPhone').textContent = user.telefon || '—';
+  if(user.rol === 'gl-admin' || user.rol === 'admin'){
+    const adminBtn = document.getElementById('adminMenuBtn');
+    if(adminBtn){
+      adminBtn.style.display = 'flex';
+      adminBtn.href = 'admin.html';
+    }
+  }
+  return user;
+}
+let currentUser = loadUser();
+if(currentUser) renderInfoLang();
+
+async function renderInfoLang(){
+  if(!currentUser) return;
+  if(currentLang === 'ru' && !currentUser.lavozimRu && !currentUser._ruFetched){
+    currentUser._ruFetched = true; // qayta-qayta so'rov yubormaslik uchun
+    try{
+      const data = await apiCall({ secret: APP_SECRET, action:'getProfileRu', token: currentUser.token });
+      if(data.success){
+        currentUser.lavozimRu = data.lavozim_ru;
+        currentUser.bolinmaRu = data.bolinma_ru;
+        try{ sessionStorage.setItem('km_user', JSON.stringify(currentUser)); }catch(e){}
+      }
+    } catch(ex){ /* tarjima kelmasa, UZ matni ko'rsatiladi */ }
+  }
+  const pos = currentLang === 'ru' ? (currentUser.lavozimRu || currentUser.lavozim) : currentUser.lavozim;
+  const dept = currentLang === 'ru' ? (currentUser.bolinmaRu || currentUser.bolinma) : currentUser.bolinma;
+  document.getElementById('infoPos').textContent = pos || '—';
+  document.getElementById('infoDept').textContent = dept || '—';
+}
+
+/* ---------- Dropdown & modals ---------- */
+function toggleDropdown(){
+  document.getElementById('dropdown').classList.toggle('show');
+  document.getElementById('chipBtn').classList.toggle('open');
+}
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.profile-chip')){
+    document.getElementById('dropdown').classList.remove('show');
+    document.getElementById('chipBtn').classList.remove('open');
+  }
+});
+function openModal(id){
+  document.getElementById(id).classList.add('show');
+  document.getElementById('dropdown').classList.remove('show');
+  if(id === 'settingsModal') showSettingsView('settingsMenu');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(ov=>{
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('show'); });
+});
+
+/* ---------- Xabarnomalar ---------- */
+let notifCache = null;
+
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadNotifBadge(){
+  if(!currentUser) return;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getMyNotifications', token: currentUser.token });
+    if(data.success){
+      notifCache = data.notifications;
+      const hasUnread = notifCache.some(n => !n.read);
+      document.getElementById('notifBadge').style.display = hasUnread ? 'block' : 'none';
+    }
+  } catch(ex){ /* jimgina o'tkazib yuboramiz — bu asosiy funksionallikka ta'sir qilmasin */ }
+}
+// Sahifa yuklangach fonda (bloklamasdan) tekshiradi
+if(currentUser) setTimeout(loadNotifBadge, 400);
+
+function renderNotifList(){
+  const box = document.getElementById('notifList');
+  if(!notifCache || notifCache.length === 0){
+    box.innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].notifEmpty}</p>`;
+    return;
+  }
+  box.innerHTML = notifCache.map(n => `
+    <div class="notif-item ${n.read?'':'unread'}" data-id="${n.id}">
+      <div class="notif-meta"><span>${escapeHtml(n.senderFish)}</span><span>${escapeHtml(n.sana)}</span></div>
+      <div class="notif-text">${escapeHtml(n.text)}</div>
+    </div>
+  `).join('');
+}
+
+async function openNotifPanel(){
+  openModal('notifModal');
+  if(!notifCache){
+    document.getElementById('notifList').innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].loading}</p>`;
+  }
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'getMyNotifications', token: currentUser.token });
+    if(data.success){
+      notifCache = data.notifications;
+      renderNotifList();
+      // Ochilgan barcha o'qilmagan xabarnomalarni "o'qildi" deb belgilaymiz
+      const unread = notifCache.filter(n => !n.read);
+      for(const n of unread){
+        apiCall({ secret: APP_SECRET, action:'markNotificationRead', token: currentUser.token, notifId: n.id }).catch(()=>{});
+        n.read = true;
+      }
+      document.getElementById('notifBadge').style.display = 'none';
+    }
+  } catch(ex){
+    document.getElementById('notifList').innerHTML = `<p style="color:var(--coral); font-size:13px;">Xatolik: ${ex.message}</p>`;
+  }
+}
+
+function showSettingsView(viewId){
+  document.getElementById('settingsMenu').style.display = viewId === 'settingsMenu' ? 'block' : 'none';
+  document.getElementById('passwordView').style.display = viewId === 'passwordView' ? 'block' : 'none';
+  document.getElementById('supportView').style.display = viewId === 'supportView' ? 'block' : 'none';
+  document.getElementById('passMsg').className = 'modal-msg';
+  document.getElementById('supportMsg').className = 'modal-msg';
+}
+
+function logout(){
+  const token = currentUser && currentUser.token;
+  try{ sessionStorage.removeItem('km_user'); }catch(e){}
+  if(token){
+    // Sessiyani serverda ham bekor qilishga urinamiz, lekin natijani kutmaymiz
+    // (foydalanuvchi darhol login sahifasiga o'tishi kerak)
+    fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify({ secret: APP_SECRET, action:'logout', token }) }).catch(()=>{});
+  }
+  window.location.href = 'login.html';
+}
+
+/* ---------- Yordam / Support ---------- */
+async function submitSupport(e){
+  e.preventDefault();
+  const text = document.getElementById('supportText').value.trim();
+  const msg = document.getElementById('supportMsg');
+  const btn = e.target.querySelector('.modal-submit');
+  msg.className = 'modal-msg';
+  if(!text) return false;
+  btn.disabled = true;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'submitSupport', token: currentUser.token, murojaat: text });
+    btn.disabled = false;
+    if(data.success){
+      msg.textContent = dict[currentLang].supportSentOk; msg.classList.add('ok');
+      document.getElementById('supportText').value = '';
+    } else {
+      msg.textContent = dict[currentLang].savingErr; msg.classList.add('err');
+    }
+  } catch(ex){
+    btn.disabled = false;
+    msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err');
+  }
+  return false;
+}
+
+/* ---------- Change password ---------- */
+async function changePassword(e){
+  e.preventDefault();
+  const oldP = document.getElementById('oldPass').value;
+  const newP = document.getElementById('newPass').value;
+  const confP = document.getElementById('confirmPass').value;
+  const msg = document.getElementById('passMsg');
+  msg.className = 'modal-msg';
+
+  if(newP !== confP){ msg.textContent = dict[currentLang].mismatchErr; msg.classList.add('err'); return false; }
+
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'changePassword', token: currentUser.token, eskiParol: oldP, yangiParol: newP });
+    if(data.success){
+      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
+      document.getElementById('oldPass').value = document.getElementById('newPass').value = document.getElementById('confirmPass').value = '';
+    } else {
+      msg.textContent = dict[currentLang].oldWrongErr; msg.classList.add('err');
+    }
+  } catch(ex){
+    msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err');
+  }
+  return false;
+}
+
+/* ---------- Check status ---------- */
+async function checkStatus(){
+  const phone = document.getElementById('phoneInput').value.trim();
+  const errBox = document.getElementById('statusError');
+  const result = document.getElementById('statusResult');
+  const btn = document.querySelector('.status-row button');
+  errBox.classList.remove('show'); result.classList.remove('show');
+  if(!phone) return;
+
+  btn.disabled = true;
+  const prevText = btn.textContent;
+  btn.textContent = dict[currentLang].checking;
+
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'checkStatus', token: currentUser.token, telefon: phone });
+    btn.disabled = false; btn.textContent = prevText;
+
+    if(data.success){
+      const docBadge = document.getElementById('docBadge');
+      if(data.hujjatSana){ docBadge.textContent = data.hujjatSana; docBadge.className = 'badge ok'; }
+      else { docBadge.textContent = dict[currentLang].no; docBadge.className = 'badge no'; }
+
+      const testBadge = document.getElementById('testBadge');
+      if(data.testPercent !== null && data.testPercent !== undefined){
+        testBadge.textContent = data.testPoints + ' ' + dict[currentLang].pointsLabel + ', ' + data.testPercent + '%';
+        testBadge.className = 'badge ' + (data.passed ? 'ok' : 'no');
+      } else {
+        testBadge.textContent = dict[currentLang].no; testBadge.className = 'badge no';
+      }
+      result.classList.add('show');
+    } else {
+      errBox.textContent = data.code === 'NOT_YOUR_NUMBER' ? dict[currentLang].notYourNumber : dict[currentLang].statusErrText;
+      errBox.classList.add('show');
+    }
+  } catch(ex){
+    btn.disabled = false; btn.textContent = prevText;
+    errBox.textContent = 'Xatolik: ' + ex.message;
+    errBox.classList.add('show');
+  }
+}
+
+/* ---------- Network background (login sahifasidagi bilan bir xil) ---------- */
+const canvas = document.getElementById('net'); const ctx = canvas.getContext('2d');
+let W,H,nodes;
+function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+function initNodes(){
+  const count = Math.min(70, Math.floor((W*H)/22000));
+  nodes = Array.from({length:count}, ()=>({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*0.35, vy:(Math.random()-0.5)*0.35, r:Math.random()*1.6+0.6 }));
+}
+initNodes(); window.addEventListener('resize', initNodes);
+function isLight(){ return document.body.getAttribute('data-theme')==='light'; }
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const lineColor = isLight() ? 'rgba(11,37,69,' : 'rgba(0,217,192,';
+  const dotColor = isLight() ? 'rgba(0,163,224,0.55)' : 'rgba(0,217,192,0.75)';
+  for(let i=0;i<nodes.length;i++){
+    const n=nodes[i]; n.x+=n.vx; n.y+=n.vy;
+    if(n.x<0||n.x>W) n.vx*=-1; if(n.y<0||n.y>H) n.vy*=-1;
+    for(let j=i+1;j<nodes.length;j++){
+      const m=nodes[j]; const dx=n.x-m.x, dy=n.y-m.y; const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<130){ ctx.strokeStyle=lineColor+(0.12*(1-dist/130))+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(n.x,n.y); ctx.lineTo(m.x,m.y); ctx.stroke(); }
+    }
+  }
+  for(const n of nodes){ ctx.fillStyle=dotColor; ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill(); }
+  requestAnimationFrame(draw);
+}
+draw();
+
+// XAVFSIZLIK: brauzer "Ortga" tugmasi orqali keshdagi (bfcache) sahifani qaytarganda
+// (masalan, Chiqish qilingandan keyin) sessiyani qayta tekshiradi — agar sessiya
+// endi mavjud bo'lmasa (chiqilgan bo'lsa), darhol login sahifasiga qaytaradi.
+window.addEventListener('pageshow', function(event){
+  if (event.persisted) {
+    let u;
+    try{ u = JSON.parse(sessionStorage.getItem('km_user')); }catch(e){}
+    if (!u || !u.token) { window.location.href = 'login.html'; }
+  }
+});
+</script>
+</body>
+</html>
