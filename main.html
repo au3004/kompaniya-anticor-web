@@ -278,6 +278,13 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
     </div>
 
     <div id="settingsMenu">
+      <button class="settings-menu-item" onclick="showSettingsView('photoView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span data-i18n="changePhotoMenu">Rasmni o'zgartirish</span>
+        <span class="chev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
       <button class="settings-menu-item" onclick="showSettingsView('passwordView')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
         <span data-i18n="changePassMenu">Parolni almashtirish</span>
@@ -305,6 +312,25 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
         </div>
         <button class="modal-submit" type="submit" data-i18n="sendBtn">Yuborish</button>
         <div class="modal-msg" id="supportMsg"></div>
+      </form>
+    </div>
+
+    <div id="photoView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <div style="display:flex; justify-content:center; margin-bottom:16px;">
+        <img id="photoPreview" src="" alt="" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:1px solid var(--card-border);">
+      </div>
+      <form onsubmit="return submitPhoto(event)">
+        <div class="field">
+          <label data-i18n="photoUrlLabel">Rasm havolasi (URL)</label>
+          <input type="text" id="photoUrlInput" required data-i18n-ph="photoUrlPh" placeholder="https://... rasmga to'g'ridan-to'g'ri havola" oninput="document.getElementById('photoPreview').src=this.value;">
+          <div class="field-hint" data-i18n="photoHint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;">Google Drive, Telegra.ph yoki boshqa xizmatga yuklab, ochiq havolasini shu yerga joylashtiring.</div>
+        </div>
+        <button class="modal-submit" type="submit" data-i18n="saveBtn">Saqlash</button>
+        <div class="modal-msg" id="photoMsg"></div>
       </form>
     </div>
 
@@ -405,7 +431,10 @@ const dict = {
     savedOk:"Parol muvaffaqiyatli o'zgartirildi", checking:"Tekshirilmoqda...",
     phonePh:"Telefon raqamingiz", pointsLabel:"ball",
     helpMenu:"Yordam", supportPh:"Iltimos, savolingiz yoki xatoni izohlab bering", sendBtn:"Yuborish",
-    supportSentOk:"Murojaatingiz qabul qilindi, rahmat!", savingErr:"Xatolik yuz berdi, qayta urinib ko'ring"
+    supportSentOk:"Murojaatingiz qabul qilindi, rahmat!", savingErr:"Xatolik yuz berdi, qayta urinib ko'ring",
+    changePhotoMenu:"Rasmni o'zgartirish", photoUrlLabel:"Rasm havolasi (URL)", photoUrlPh:"https://... rasmga to'g'ridan-to'g'ri havola",
+    photoHint:"Google Drive, Telegra.ph yoki boshqa xizmatga yuklab, ochiq havolasini shu yerga joylashtiring.",
+    photoSavedOk:"Rasm muvaffaqiyatli saqlandi", photoEmptyErr:"Havolani kiriting"
   },
   ru:{
     brandName:"АО «Узтелеком»",
@@ -425,7 +454,10 @@ const dict = {
     savedOk:"Пароль успешно изменён", checking:"Проверка...",
     phonePh:"Ваш номер телефона", pointsLabel:"баллов",
     helpMenu:"Помощь", supportPh:"Пожалуйста, поясните свой вопрос или опишите ошибку.", sendBtn:"Отправить",
-    supportSentOk:"Ваше обращение принято, спасибо!", savingErr:"Произошла ошибка, попробуйте снова"
+    supportSentOk:"Ваше обращение принято, спасибо!", savingErr:"Произошла ошибка, попробуйте снова",
+    changePhotoMenu:"Изменить фото", photoUrlLabel:"Ссылка на фото (URL)", photoUrlPh:"https://... прямая ссылка на изображение",
+    photoHint:"Загрузите на Google Drive, Telegra.ph или другой сервис и вставьте открытую ссылку сюда.",
+    photoSavedOk:"Фото успешно сохранено", photoEmptyErr:"Введите ссылку"
   }
 };
 let currentLang = localStorage.getItem('km_lang') || 'uz';
@@ -576,10 +608,17 @@ async function openNotifPanel(){
 
 function showSettingsView(viewId){
   document.getElementById('settingsMenu').style.display = viewId === 'settingsMenu' ? 'block' : 'none';
+  document.getElementById('photoView').style.display = viewId === 'photoView' ? 'block' : 'none';
   document.getElementById('passwordView').style.display = viewId === 'passwordView' ? 'block' : 'none';
   document.getElementById('supportView').style.display = viewId === 'supportView' ? 'block' : 'none';
   document.getElementById('passMsg').className = 'modal-msg';
   document.getElementById('supportMsg').className = 'modal-msg';
+  document.getElementById('photoMsg').className = 'modal-msg';
+  if(viewId === 'photoView'){
+    const current = (currentUser && currentUser.rasm) || '';
+    document.getElementById('photoUrlInput').value = current;
+    document.getElementById('photoPreview').src = current || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(currentUser.familiya+' '+currentUser.ism) + '&backgroundColor=00A3E0';
+  }
 }
 
 function logout(){
@@ -608,6 +647,34 @@ async function submitSupport(e){
     if(data.success){
       msg.textContent = dict[currentLang].supportSentOk; msg.classList.add('ok');
       document.getElementById('supportText').value = '';
+    } else {
+      msg.textContent = dict[currentLang].savingErr; msg.classList.add('err');
+    }
+  } catch(ex){
+    btn.disabled = false;
+    msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err');
+  }
+  return false;
+}
+
+/* ---------- Rasmni o'zgartirish ---------- */
+async function submitPhoto(e){
+  e.preventDefault();
+  const url = document.getElementById('photoUrlInput').value.trim();
+  const msg = document.getElementById('photoMsg');
+  msg.className = 'modal-msg';
+  if(!url){ msg.textContent = dict[currentLang].photoEmptyErr; msg.classList.add('err'); return false; }
+
+  const btn = e.target.querySelector('.modal-submit');
+  btn.disabled = true;
+  try{
+    const data = await apiCall({ secret: APP_SECRET, action:'updateProfilePhoto', token: currentUser.token, rasm: url });
+    btn.disabled = false;
+    if(data.success){
+      msg.textContent = dict[currentLang].photoSavedOk; msg.classList.add('ok');
+      currentUser.rasm = url;
+      try{ sessionStorage.setItem('km_user', JSON.stringify(currentUser)); }catch(ex){}
+      document.getElementById('avatarImg').src = url;
     } else {
       msg.textContent = dict[currentLang].savingErr; msg.classList.add('err');
     }
