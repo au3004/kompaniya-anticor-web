@@ -162,7 +162,6 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .notif-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:12px; padding:13px 14px; position:relative; }
 .notif-item.unread{ border-color:var(--azure); }
 .notif-item.unread::before{ content:''; position:absolute; top:14px; left:-6px; width:8px; height:8px; border-radius:50%; background:var(--azure); }
-.notif-item .notif-meta{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); margin-bottom:6px; }
 .notif-item .notif-text{ font-size:13.5px; line-height:1.5; white-space:pre-wrap; }
 .info-row:last-child{ border-bottom:none; }
 .info-row .label{ color:var(--text-dim); }
@@ -218,7 +217,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
     <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"></button>
     <button class="theme-toggle" id="notifBtn" onclick="openNotifPanel()" style="position:relative;" title="Xabarnomalar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <span id="notifBadge" style="display:none; position:absolute; top:4px; right:5px; width:8px; height:8px; border-radius:50%; background:var(--coral); border:1.5px solid var(--bg);"></span>
+      <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px; border-radius:9px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:10px; font-weight:700; line-height:13px; text-align:center;"></span>
     </button>
     <div class="profile-chip">
       <button class="chip-btn" id="chipBtn" onclick="toggleDropdown()">
@@ -325,11 +324,11 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
       </div>
       <form onsubmit="return submitPhoto(event)">
         <div class="field">
-          <label data-i18n="photoUrlLabel">Rasm havolasi (URL)</label>
-          <input type="text" id="photoUrlInput" required data-i18n-ph="photoUrlPh" placeholder="https://... rasmga to'g'ridan-to'g'ri havola" oninput="document.getElementById('photoPreview').src=this.value;">
-          <div class="field-hint" data-i18n="photoHint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;">Google Drive, Telegra.ph yoki boshqa xizmatga yuklab, ochiq havolasini shu yerga joylashtiring.</div>
+          <label data-i18n="photoUrlLabel">Rasm tanlang</label>
+          <input type="file" id="photoFileInput" accept="image/*" required onchange="onPhotoFileChange(event)">
+          <div class="field-hint" data-i18n="photoHint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;">Qurilmangizdan rasm tanlang (JPG, PNG).</div>
         </div>
-        <button class="modal-submit" type="submit" data-i18n="saveBtn">Saqlash</button>
+        <button class="modal-submit" type="submit" id="photoSubmitBtn" data-i18n="saveBtn" disabled>Saqlash</button>
         <div class="modal-msg" id="photoMsg"></div>
       </form>
     </div>
@@ -432,9 +431,9 @@ const dict = {
     phonePh:"Telefon raqamingiz", pointsLabel:"ball",
     helpMenu:"Yordam", supportPh:"Iltimos, savolingiz yoki xatoni izohlab bering", sendBtn:"Yuborish",
     supportSentOk:"Murojaatingiz qabul qilindi, rahmat!", savingErr:"Xatolik yuz berdi, qayta urinib ko'ring",
-    changePhotoMenu:"Rasmni o'zgartirish", photoUrlLabel:"Rasm havolasi (URL)", photoUrlPh:"https://... rasmga to'g'ridan-to'g'ri havola",
-    photoHint:"Google Drive, Telegra.ph yoki boshqa xizmatga yuklab, ochiq havolasini shu yerga joylashtiring.",
-    photoSavedOk:"Rasm muvaffaqiyatli saqlandi", photoEmptyErr:"Havolani kiriting"
+    changePhotoMenu:"Rasmni o'zgartirish", photoUrlLabel:"Rasm tanlang",
+    photoHint:"Qurilmangizdan rasm tanlang (JPG, PNG).",
+    photoSavedOk:"Rasm muvaffaqiyatli saqlandi", photoEmptyErr:"Rasm tanlang", photoReadErr:"Rasmni o'qib bo'lmadi, boshqa faylni tanlang"
   },
   ru:{
     brandName:"АО «Узтелеком»",
@@ -455,9 +454,9 @@ const dict = {
     phonePh:"Ваш номер телефона", pointsLabel:"баллов",
     helpMenu:"Помощь", supportPh:"Пожалуйста, поясните свой вопрос или опишите ошибку.", sendBtn:"Отправить",
     supportSentOk:"Ваше обращение принято, спасибо!", savingErr:"Произошла ошибка, попробуйте снова",
-    changePhotoMenu:"Изменить фото", photoUrlLabel:"Ссылка на фото (URL)", photoUrlPh:"https://... прямая ссылка на изображение",
-    photoHint:"Загрузите на Google Drive, Telegra.ph или другой сервис и вставьте открытую ссылку сюда.",
-    photoSavedOk:"Фото успешно сохранено", photoEmptyErr:"Введите ссылку"
+    changePhotoMenu:"Изменить фото", photoUrlLabel:"Выберите фото",
+    photoHint:"Выберите фото с вашего устройства (JPG, PNG).",
+    photoSavedOk:"Фото успешно сохранено", photoEmptyErr:"Выберите фото", photoReadErr:"Не удалось прочитать фото, выберите другой файл"
   }
 };
 let currentLang = localStorage.getItem('km_lang') || 'uz';
@@ -555,14 +554,20 @@ function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function updateNotifBadge(){
+  const count = (notifCache || []).filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if(count > 0){ badge.textContent = count > 99 ? '99+' : String(count); badge.style.display = 'flex'; badge.style.alignItems = 'center'; badge.style.justifyContent = 'center'; }
+  else { badge.style.display = 'none'; }
+}
+
 async function loadNotifBadge(){
   if(!currentUser) return;
   try{
     const data = await apiCall({ secret: APP_SECRET, action:'getMyNotifications', token: currentUser.token });
     if(data.success){
       notifCache = data.notifications;
-      const hasUnread = notifCache.some(n => !n.read);
-      document.getElementById('notifBadge').style.display = hasUnread ? 'block' : 'none';
+      updateNotifBadge();
     }
   } catch(ex){ /* jimgina o'tkazib yuboramiz — bu asosiy funksionallikka ta'sir qilmasin */ }
 }
@@ -577,7 +582,6 @@ function renderNotifList(){
   }
   box.innerHTML = notifCache.map(n => `
     <div class="notif-item ${n.read?'':'unread'}" data-id="${n.id}">
-      <div class="notif-meta"><span>${escapeHtml(n.senderFish)}</span><span>${escapeHtml(n.sana)}</span></div>
       <div class="notif-text">${escapeHtml(n.text)}</div>
     </div>
   `).join('');
@@ -599,7 +603,7 @@ async function openNotifPanel(){
         apiCall({ secret: APP_SECRET, action:'markNotificationRead', token: currentUser.token, notifId: n.id }).catch(()=>{});
         n.read = true;
       }
-      document.getElementById('notifBadge').style.display = 'none';
+      updateNotifBadge();
     }
   } catch(ex){
     document.getElementById('notifList').innerHTML = `<p style="color:var(--coral); font-size:13px;">Xatolik: ${ex.message}</p>`;
@@ -616,7 +620,9 @@ function showSettingsView(viewId){
   document.getElementById('photoMsg').className = 'modal-msg';
   if(viewId === 'photoView'){
     const current = (currentUser && currentUser.rasm) || '';
-    document.getElementById('photoUrlInput').value = current;
+    pendingPhotoDataUrl = null;
+    document.getElementById('photoFileInput').value = '';
+    document.getElementById('photoSubmitBtn').disabled = true;
     document.getElementById('photoPreview').src = current || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(currentUser.familiya+' '+currentUser.ism) + '&backgroundColor=00A3E0';
   }
 }
@@ -658,25 +664,66 @@ async function submitSupport(e){
 }
 
 /* ---------- Rasmni o'zgartirish ---------- */
+let pendingPhotoDataUrl = null;
+
+function resizeImageToDataUrl(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read-failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode-failed'));
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > h && w > maxDim){ h = Math.round(h * maxDim / w); w = maxDim; }
+        else if(h > maxDim){ w = Math.round(w * maxDim / h); h = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function onPhotoFileChange(e){
+  const file = e.target.files[0];
+  const msg = document.getElementById('photoMsg'); msg.className = 'modal-msg';
+  const btn = document.getElementById('photoSubmitBtn');
+  if(!file){ btn.disabled = true; return; }
+  try{
+    const dataUrl = await resizeImageToDataUrl(file, 300, 0.7);
+    pendingPhotoDataUrl = dataUrl;
+    document.getElementById('photoPreview').src = dataUrl;
+    btn.disabled = false;
+  } catch(ex){
+    pendingPhotoDataUrl = null;
+    btn.disabled = true;
+    msg.textContent = dict[currentLang].photoReadErr; msg.classList.add('err');
+  }
+}
+
 async function submitPhoto(e){
   e.preventDefault();
-  const url = document.getElementById('photoUrlInput').value.trim();
   const msg = document.getElementById('photoMsg');
   msg.className = 'modal-msg';
-  if(!url){ msg.textContent = dict[currentLang].photoEmptyErr; msg.classList.add('err'); return false; }
+  if(!pendingPhotoDataUrl){ msg.textContent = dict[currentLang].photoEmptyErr; msg.classList.add('err'); return false; }
 
-  const btn = e.target.querySelector('.modal-submit');
+  const btn = document.getElementById('photoSubmitBtn');
   btn.disabled = true;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'updateProfilePhoto', token: currentUser.token, rasm: url });
+    const data = await apiCall({ secret: APP_SECRET, action:'updateProfilePhoto', token: currentUser.token, rasm: pendingPhotoDataUrl });
     btn.disabled = false;
     if(data.success){
       msg.textContent = dict[currentLang].photoSavedOk; msg.classList.add('ok');
-      currentUser.rasm = url;
+      currentUser.rasm = pendingPhotoDataUrl;
       try{ sessionStorage.setItem('km_user', JSON.stringify(currentUser)); }catch(ex){}
-      document.getElementById('avatarImg').src = url;
+      document.getElementById('avatarImg').src = pendingPhotoDataUrl;
     } else {
-      msg.textContent = dict[currentLang].savingErr; msg.classList.add('err');
+      msg.textContent = data.code === 'PHOTO_TOO_LARGE' ? dict[currentLang].photoReadErr : dict[currentLang].savingErr;
+      msg.classList.add('err');
     }
   } catch(ex){
     btn.disabled = false;
