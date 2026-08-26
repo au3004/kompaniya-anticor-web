@@ -164,17 +164,17 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 </div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+// PHP backend'ning ochiq API manzili (backend/public/index.php).
+// Joylashtirilgan domeningizga qarab shu qatorni o'zgartiring.
+const API_BASE_URL = "https://api.your-domain.uz/backend/public/index.php";
 
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+// Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
   const body = JSON.stringify(payload);
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', body });
       const text = await res.text();
       try{
         const parsed = JSON.parse(text);
@@ -247,7 +247,7 @@ function renderQuestions(){
 
 async function loadQuestions(){
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getTestQuestions' });
+    const data = await apiCall({ action:'getTestQuestions' });
     if(data.success && data.active === false){
       document.getElementById('quizForm').style.display = 'none';
       document.getElementById('submitBtn').style.display = 'none';
@@ -309,7 +309,7 @@ async function submitTest(){
   }
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'submitTest', token, answers: answerList });
+    const data = await apiCall({ action:'submitTest', token, answers: answerList });
     if(!data.success){ throw new Error(data.message || 'error'); }
 
     rc.classList.add('show');

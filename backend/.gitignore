@@ -1,0 +1,3 @@
+.env
+public/uploads/photos/*
+!public/uploads/photos/.gitkeep

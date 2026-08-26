@@ -415,17 +415,17 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 </div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+// PHP backend'ning ochiq API manzili (backend/public/index.php).
+// Joylashtirilgan domeningizga qarab shu qatorni o'zgartiring.
+const API_BASE_URL = "https://api.your-domain.uz/backend/public/index.php";
 
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+// Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
   const body = JSON.stringify(payload);
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', body });
       const text = await res.text();
       try{
         const parsed = JSON.parse(text);
@@ -550,7 +550,7 @@ async function renderInfoLang(){
   if(currentLang === 'ru' && !currentUser.lavozimRu && !currentUser._ruFetched){
     currentUser._ruFetched = true; // qayta-qayta so'rov yubormaslik uchun
     try{
-      const data = await apiCall({ secret: APP_SECRET, action:'getProfileRu', token: currentUser.token });
+      const data = await apiCall({ action:'getProfileRu', token: currentUser.token });
       if(data.success){
         currentUser.lavozimRu = data.lavozim_ru;
         currentUser.bolinmaRu = data.bolinma_ru;
@@ -602,7 +602,7 @@ function updateNotifBadge(){
 async function loadNotifBadge(){
   if(!currentUser) return;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getMyNotifications', token: currentUser.token });
+    const data = await apiCall({ action:'getMyNotifications', token: currentUser.token });
     if(data.success){
       notifCache = data.notifications;
       updateNotifBadge();
@@ -631,14 +631,14 @@ async function openNotifPanel(){
     document.getElementById('notifList').innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].loading}</p>`;
   }
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getMyNotifications', token: currentUser.token });
+    const data = await apiCall({ action:'getMyNotifications', token: currentUser.token });
     if(data.success){
       notifCache = data.notifications;
       renderNotifList();
       // Ochilgan barcha o'qilmagan xabarnomalarni "o'qildi" deb belgilaymiz
       const unread = notifCache.filter(n => !n.read);
       for(const n of unread){
-        apiCall({ secret: APP_SECRET, action:'markNotificationRead', token: currentUser.token, notifId: n.id }).catch(()=>{});
+        apiCall({ action:'markNotificationRead', token: currentUser.token, notifId: n.id }).catch(()=>{});
         n.read = true;
       }
       updateNotifBadge();
@@ -674,7 +674,7 @@ function logout(){
   if(token){
     // Sessiyani serverda ham bekor qilishga urinamiz, lekin natijani kutmaymiz
     // (foydalanuvchi darhol login sahifasiga o'tishi kerak)
-    fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify({ secret: APP_SECRET, action:'logout', token }) }).catch(()=>{});
+    fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }) }).catch(()=>{});
   }
   window.location.href = 'login.html';
 }
@@ -689,7 +689,7 @@ async function submitSupport(e){
   if(!text) return false;
   btn.disabled = true;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'submitSupport', token: currentUser.token, murojaat: text });
+    const data = await apiCall({ action:'submitSupport', token: currentUser.token, murojaat: text });
     btn.disabled = false;
     if(data.success){
       msg.textContent = dict[currentLang].supportSentOk; msg.classList.add('ok');
@@ -823,7 +823,7 @@ async function submitPhoto(e){
   const btn = document.getElementById('photoSubmitBtn');
   btn.disabled = true;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'updateProfilePhoto', token: currentUser.token, rasm: pendingPhotoDataUrl });
+    const data = await apiCall({ action:'updateProfilePhoto', token: currentUser.token, rasm: pendingPhotoDataUrl });
     btn.disabled = false;
     if(data.success){
       msg.textContent = dict[currentLang].photoSavedOk; msg.classList.add('ok');
@@ -853,7 +853,7 @@ async function changePassword(e){
   if(newP !== confP){ msg.textContent = dict[currentLang].mismatchErr; msg.classList.add('err'); return false; }
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'changePassword', token: currentUser.token, eskiParol: oldP, yangiParol: newP });
+    const data = await apiCall({ action:'changePassword', token: currentUser.token, eskiParol: oldP, yangiParol: newP });
     if(data.success){
       msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
       document.getElementById('oldPass').value = document.getElementById('newPass').value = document.getElementById('confirmPass').value = '';
@@ -880,7 +880,7 @@ async function checkStatus(){
   btn.textContent = dict[currentLang].checking;
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'checkStatus', token: currentUser.token, telefon: phone });
+    const data = await apiCall({ action:'checkStatus', token: currentUser.token, telefon: phone });
     btn.disabled = false; btn.textContent = prevText;
 
     if(data.success){
