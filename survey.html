@@ -267,11 +267,20 @@ async function loadQuestions(){
     allQuestions = data.success ? data.questions : [];
   } catch(ex){ allQuestions = []; }
   renderQuestions();
+  updateSubmitState();
 }
 loadQuestions();
 
 function starSvg(filled){
   return `<svg viewBox="0 0 24 24" fill="${filled?'currentColor':'none'}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"/></svg>`;
+}
+
+// "matn" (erkin javob) turidagi savollar ixtiyoriy — yuborish tugmasi faqat
+// qolgan (tanlov/yulduz) savollar to'liq javoblanganda yoqiladi.
+function updateSubmitState(){
+  const requiredIds = allQuestions.filter(q => q.turi !== 'matn').map(q => q.id);
+  const allAnswered = requiredIds.every(id => answers[id] !== undefined && answers[id] !== '');
+  document.getElementById('submitBtn').disabled = !allAnswered;
 }
 
 function selectStar(qid, val){
@@ -281,20 +290,20 @@ function selectStar(qid, val){
     btn.classList.toggle('on', on);
     btn.innerHTML = starSvg(on);
   });
-  document.getElementById('submitBtn').disabled = Object.keys(answers).length < allQuestions.length;
+  updateSubmitState();
 }
 
 function selectOpt(qid, letter, inputEl){
   answers[qid] = letter;
   document.querySelectorAll(`.opt[data-q="${qid}"]`).forEach(el=>el.classList.remove('selected'));
   inputEl.closest('.opt').classList.add('selected');
-  document.getElementById('submitBtn').disabled = Object.keys(answers).length < allQuestions.length;
+  updateSubmitState();
 }
 
 function selectText(qid, val){
   const trimmed = val.trim();
   if(trimmed) answers[qid] = trimmed; else delete answers[qid];
-  document.getElementById('submitBtn').disabled = Object.keys(answers).length < allQuestions.length;
+  updateSubmitState();
 }
 
 function applyLang(){

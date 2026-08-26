@@ -138,6 +138,21 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .ro-pct{ color:var(--text-dim); font-weight:500; }
 .text-answers{ display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; }
 .text-answer-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; padding:10px 13px; font-size:12.5px; line-height:1.5; white-space:pre-wrap; }
+.survey-summary-row{ display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+.survey-summary-row .stat-card{ flex:1; min-width:140px; }
+.chart-row{ display:flex; align-items:center; gap:20px; margin-bottom:16px; flex-wrap:wrap; }
+.donut{ width:104px; height:104px; border-radius:50%; flex:none; position:relative; }
+.donut-hole{ position:absolute; inset:16px; background:var(--bg-deep); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-dim); font-weight:700; text-align:center; line-height:1.3; }
+.donut-legend{ display:flex; flex-direction:column; gap:7px; font-size:12px; flex:1; min-width:160px; }
+.donut-legend .leg-row{ display:flex; align-items:center; gap:7px; }
+.donut-legend .leg-dot{ width:9px; height:9px; border-radius:50%; flex:none; }
+.donut-legend .leg-label{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+.donut-legend .leg-pct{ font-weight:700; color:var(--text-dim); }
+.gauge{ width:96px; height:96px; border-radius:50%; flex:none; position:relative; }
+.gauge-hole{ position:absolute; inset:14px; background:var(--bg-deep); border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.gauge-hole .g-num{ font-family:'Unbounded',sans-serif; font-size:18px; font-weight:800; color:var(--amber); line-height:1; }
+.gauge-hole .g-sub{ font-size:9px; color:var(--text-dim); margin-top:2px; }
+.section-divider{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; font-weight:700; margin:16px 0 10px; }
 .msg{ margin-top:12px; font-size:13px; display:none; padding:9px 14px; border-radius:9px; }
 .msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); }
 .msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); }
@@ -622,7 +637,8 @@ const dict = {
     confirmDeleteSurvey:"Ushbu savolni o'chirmoqchimisiz?",
     testActiveLabel:"Test holati", surveyActiveLabel:"So'rovnoma holati", activeOn:"Faol — xodimlar ko'ra oladi", activeOff:"Faol emas — 'yakunlangan' ko'rinadi",
     resultsEmpty:"Hozircha javoblar yo'q", totalResponsesLbl:"ta javob",
-    qTuri:"Savol turi", qTuriTanlov:"Tanlov (A, B, C, D)", qTuriYulduz:"Yulduzcha bilan baholash", qTuriMatn:"Erkin javob (matn)", qStars:"Yulduzlar soni" },
+    qTuri:"Savol turi", qTuriTanlov:"Tanlov (A, B, C, D)", qTuriYulduz:"Yulduzcha bilan baholash", qTuriMatn:"Erkin javob (matn)", qStars:"Yulduzlar soni",
+    totalSubmissionsLbl:"Jami ishtirokchilar", totalQuestionsLbl:"Savollar soni", byQuestionLbl:"Javoblar taqsimoti", avgScoreLbl:"O'rtacha ball" },
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
     hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
     hubEmployees:"Сотрудники", hubEmployeesDesc:"Общая информация по сотрудникам",
@@ -657,7 +673,8 @@ const dict = {
     confirmDeleteSurvey:"Удалить этот вопрос?",
     testActiveLabel:"Статус теста", surveyActiveLabel:"Статус опроса", activeOn:"Активен — сотрудники видят", activeOff:"Не активен — показывается 'завершён'",
     resultsEmpty:"Пока нет ответов", totalResponsesLbl:"ответ(ов)",
-    qTuri:"Тип вопроса", qTuriTanlov:"Выбор (A, B, C, D)", qTuriYulduz:"Оценка звёздами", qTuriMatn:"Свободный ответ (текст)", qStars:"Количество звёзд" }
+    qTuri:"Тип вопроса", qTuriTanlov:"Выбор (A, B, C, D)", qTuriYulduz:"Оценка звёздами", qTuriMatn:"Свободный ответ (текст)", qStars:"Количество звёзд",
+    totalSubmissionsLbl:"Всего участников", totalQuestionsLbl:"Количество вопросов", byQuestionLbl:"Распределение ответов", avgScoreLbl:"Средний балл" }
 };
 function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
@@ -1145,6 +1162,50 @@ function starsSvg(filled){
   return `<svg viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"/></svg>`;
 }
 
+const CHART_COLORS = ['#00A3E0', '#00D9C0', '#FFB020', '#FF6B6B'];
+
+// CSS conic-gradient asosida oddiy "donut" doiraviy diagramma quradi — tashqi
+// kutubxonasiz, faqat bitta div orqali.
+function buildDonutGradient(segments){
+  let acc = 0;
+  const stops = segments.map((s, i) => {
+    const start = acc; acc += s.pct;
+    return `${CHART_COLORS[i % CHART_COLORS.length]} ${start}% ${acc}%`;
+  }).join(', ');
+  return acc > 0 ? `conic-gradient(${stops})` : 'conic-gradient(var(--input-border) 0% 100%)';
+}
+
+function renderChoiceChart(q){
+  const opts = q.options.filter(o => o.text);
+  const total = q.total || 0;
+  const segments = opts.map(o => ({ pct: total ? Math.round(o.count / total * 100) : 0 }));
+  const gradient = buildDonutGradient(segments);
+  return `<div class="chart-row">
+    <div class="donut" style="background:${gradient}"><div class="donut-hole">${total}<br>${dict[currentLang].totalResponsesLbl}</div></div>
+    <div class="donut-legend">
+      ${opts.map((o, i) => `
+        <div class="leg-row">
+          <span class="leg-dot" style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></span>
+          <span class="leg-label" title="${escapeHtml(o.text)}">${escapeHtml(o.text)}</span>
+          <span class="leg-pct">${total ? Math.round(o.count/total*100) : 0}%</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderRatingGauge(q){
+  const pct = q.stars ? Math.round((q.average / q.stars) * 100) : 0;
+  return `<div class="chart-row">
+    <div class="gauge" style="background:conic-gradient(var(--amber) 0% ${pct}%, var(--input-bg) ${pct}% 100%)">
+      <div class="gauge-hole"><div class="g-num">${q.average || 0}</div><div class="g-sub">/ ${q.stars} ⭐</div></div>
+    </div>
+    <div class="donut-legend">
+      <div class="leg-row"><span class="leg-label">${dict[currentLang].totalResponsesLbl}</span><span class="leg-pct">${q.total}</span></div>
+      <div class="leg-row"><span class="leg-label">${dict[currentLang].avgScoreLbl}</span><span class="leg-pct">${pct}%</span></div>
+    </div>
+  </div>`;
+}
+
 async function loadSurveyResults(){
   const box = document.getElementById('surveyResultsBox');
   box.innerHTML = `<p class="loading-row">${dict[currentLang].loading}</p>`;
@@ -1152,7 +1213,13 @@ async function loadSurveyResults(){
     const data = await apiCall({ secret: APP_SECRET, action:'getSurveyResults', token: currentUserForKpi.token });
     if(!data.success){ box.innerHTML = `<p class="loading-row">Xatolik</p>`; return; }
     if(!data.report || data.report.length === 0){ box.innerHTML = `<p class="loading-row">${dict[currentLang].noResults}</p>`; return; }
-    box.innerHTML = data.report.map(q => {
+
+    const summaryHtml = `<div class="survey-summary-row">
+      <div class="stat-card"><div class="num">${data.totalSubmissions || 0}</div><div class="lbl">${dict[currentLang].totalSubmissionsLbl}</div></div>
+      <div class="stat-card teal"><div class="num">${data.report.length}</div><div class="lbl">${dict[currentLang].totalQuestionsLbl}</div></div>
+    </div>`;
+
+    const questionsHtml = data.report.map(q => {
       if(q.turi === 'yulduz'){
         const maxCount = Math.max(1, ...q.ratingCounts.map(r => r.count));
         const fullStars = Math.round(q.average);
@@ -1162,6 +1229,8 @@ async function loadSurveyResults(){
             <div class="rq-avg-num">${q.average || 0}</div>
             <div class="rq-avg-stars">${Array.from({length:q.stars}).map((_,i)=>starsSvg(i<fullStars)).join('')}</div>
           </div>
+          ${q.total > 0 ? renderRatingGauge(q) : ''}
+          <div class="section-divider">${dict[currentLang].byQuestionLbl}</div>
           ${q.ratingCounts.map(r => `
             <div class="result-opt-row">
               <div class="ro-label">${r.value} ⭐</div>
@@ -1183,6 +1252,8 @@ async function loadSurveyResults(){
       const maxCount = Math.max(1, ...q.options.map(o => o.count));
       return `<div class="result-q">
         <div class="rq-text">${escapeHtml(q.savol)}</div>
+        ${q.total > 0 ? renderChoiceChart(q) : ''}
+        <div class="section-divider">${dict[currentLang].byQuestionLbl}</div>
         ${q.options.filter(o => o.text).map(o => `
           <div class="result-opt-row">
             <div class="ro-label" title="${escapeHtml(o.text)}">${escapeHtml(o.text)}</div>
@@ -1192,6 +1263,8 @@ async function loadSurveyResults(){
         <div class="rq-total">${q.total} ${dict[currentLang].totalResponsesLbl}</div>
       </div>`;
     }).join('');
+
+    box.innerHTML = summaryHtml + questionsHtml;
   } catch(ex){
     box.innerHTML = `<p class="loading-row">Xatolik: ${ex.message}</p>`;
   }
