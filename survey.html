@@ -65,6 +65,8 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .star-btn svg{ width:32px; height:32px; }
 .star-btn:hover{ transform:scale(1.12); color:var(--amber); }
 .star-btn.on{ color:var(--amber); }
+.text-input{ width:100%; padding:12px 14px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:11px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; resize:vertical; }
+.text-input:focus{ border-color:var(--azure); }
 
 .submit-wrap{ text-align:center; margin-top:24px; }
 .submit-btn{
@@ -226,6 +228,14 @@ function renderQuestions(){
         </div>
       </div>`;
     }
+    if(item.turi === 'matn'){
+      const currentVal = answers[item.id] || '';
+      return `<div class="q-card" style="animation-delay:${qi*70}ms">
+        <div class="q-num">${(currentLang==='uz'?'Savol':'Вопрос')} ${qi+1}/${allQuestions.length}</div>
+        <div class="q-text">${escapeHtml(q.savol)}</div>
+        <textarea class="text-input" data-q="${item.id}" rows="3" oninput="selectText('${item.id}',this.value)" placeholder="${currentLang==='uz'?"Javobingizni shu yerga yozing...":"Введите ваш ответ здесь..."}">${escapeHtml(currentVal)}</textarea>
+      </div>`;
+    }
     const opts = [
       { letter:'A', text:q.a }, { letter:'B', text:q.b },
       { letter:'C', text:q.c }, { letter:'D', text:q.d }
@@ -278,6 +288,12 @@ function selectOpt(qid, letter, inputEl){
   answers[qid] = letter;
   document.querySelectorAll(`.opt[data-q="${qid}"]`).forEach(el=>el.classList.remove('selected'));
   inputEl.closest('.opt').classList.add('selected');
+  document.getElementById('submitBtn').disabled = Object.keys(answers).length < allQuestions.length;
+}
+
+function selectText(qid, val){
+  const trimmed = val.trim();
+  if(trimmed) answers[qid] = trimmed; else delete answers[qid];
   document.getElementById('submitBtn').disabled = Object.keys(answers).length < allQuestions.length;
 }
 
