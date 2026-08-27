@@ -70,6 +70,7 @@ $routes = [
 
     'getUsersList' => [AdminController::class, 'usersList'],
     'getStats' => [AdminController::class, 'stats'],
+    'addEmployee' => [AdminController::class, 'addEmployee'],
 ];
 
 if (!isset($routes[$action])) {

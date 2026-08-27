@@ -292,6 +292,30 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       </button>
     </div>
 
+    <div class="form-card" id="addEmployeeCard" style="display:none; max-width:640px;">
+      <h3 style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:16px;" data-i18n="empFormAdd">Yangi xodim qo'shish</h3>
+      <form onsubmit="return submitEmployeeForm(event)">
+        <div class="field"><label data-i18n="empLoginLabel">Login</label><input type="text" id="eLogin" required autocomplete="off"></div>
+        <div class="field"><label data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password"></div>
+        <div class="field"><label data-i18n="empFamiliyaLabel">Familiya</label><input type="text" id="eFamiliya" required></div>
+        <div class="field"><label data-i18n="empIsmLabel">Ism</label><input type="text" id="eIsm" required></div>
+        <div class="field"><label data-i18n="empOtasiLabel">Otasining ismi</label><input type="text" id="eOtasi"></div>
+        <div class="field"><label data-i18n="thPos">Lavozim</label><input type="text" id="eLavozim"></div>
+        <div class="field"><label data-i18n="thDept">Bo'linma</label><input type="text" id="eBolinma"></div>
+        <div class="field"><label data-i18n="thPhone">Telefon</label><input type="text" id="eTelefon"></div>
+        <div class="field">
+          <label data-i18n="thRol">Rol</label>
+          <select id="eRol">
+            <option value="user" data-i18n="roleUser">Xodim</option>
+            <option value="admin" data-i18n="roleAdmin">Admin</option>
+            <option value="gl-admin" data-i18n="roleGlAdmin">Bosh admin</option>
+          </select>
+        </div>
+        <button class="submit-btn" type="submit" id="empSubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <div class="msg" id="empFormMsg"></div>
+      </form>
+    </div>
+
     <div class="search-row">
       <input type="text" id="empSearchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onEmpSearch()">
     </div>
@@ -638,7 +662,12 @@ const dict = {
     testActiveLabel:"Test holati", surveyActiveLabel:"So'rovnoma holati", activeOn:"Faol — xodimlar ko'ra oladi", activeOff:"Faol emas — 'yakunlangan' ko'rinadi",
     resultsEmpty:"Hozircha javoblar yo'q", totalResponsesLbl:"ta javob",
     qTuri:"Savol turi", qTuriTanlov:"Tanlov (A, B, C, D)", qTuriYulduz:"Yulduzcha bilan baholash", qTuriMatn:"Erkin javob (matn)", qStars:"Yulduzlar soni",
-    totalSubmissionsLbl:"Jami ishtirokchilar", totalQuestionsLbl:"Savollar soni", byQuestionLbl:"Javoblar taqsimoti", avgScoreLbl:"O'rtacha ball" },
+    totalSubmissionsLbl:"Jami ishtirokchilar", totalQuestionsLbl:"Savollar soni", byQuestionLbl:"Javoblar taqsimoti", avgScoreLbl:"O'rtacha ball",
+    empFormAdd:"Yangi xodim qo'shish", empLoginLabel:"Login", empPassLabel:"Parol",
+    empFamiliyaLabel:"Familiya", empIsmLabel:"Ism", empOtasiLabel:"Otasining ismi",
+    roleUser:"Xodim", roleAdmin:"Admin", roleGlAdmin:"Bosh admin",
+    empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Bu login band, boshqasini tanlang",
+    weakPasswordErr:"Parol kamida 6 belgidan iborat bo'lishi kerak" },
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
     hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
     hubEmployees:"Сотрудники", hubEmployeesDesc:"Общая информация по сотрудникам",
@@ -674,7 +703,12 @@ const dict = {
     testActiveLabel:"Статус теста", surveyActiveLabel:"Статус опроса", activeOn:"Активен — сотрудники видят", activeOff:"Не активен — показывается 'завершён'",
     resultsEmpty:"Пока нет ответов", totalResponsesLbl:"ответ(ов)",
     qTuri:"Тип вопроса", qTuriTanlov:"Выбор (A, B, C, D)", qTuriYulduz:"Оценка звёздами", qTuriMatn:"Свободный ответ (текст)", qStars:"Количество звёзд",
-    totalSubmissionsLbl:"Всего участников", totalQuestionsLbl:"Количество вопросов", byQuestionLbl:"Распределение ответов", avgScoreLbl:"Средний балл" }
+    totalSubmissionsLbl:"Всего участников", totalQuestionsLbl:"Количество вопросов", byQuestionLbl:"Распределение ответов", avgScoreLbl:"Средний балл",
+    empFormAdd:"Добавить нового сотрудника", empLoginLabel:"Логин", empPassLabel:"Пароль",
+    empFamiliyaLabel:"Фамилия", empIsmLabel:"Имя", empOtasiLabel:"Отчество",
+    roleUser:"Сотрудник", roleAdmin:"Админ", roleGlAdmin:"Гл. админ",
+    empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, выберите другой",
+    weakPasswordErr:"Пароль должен содержать не менее 6 символов" }
 };
 function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
@@ -780,6 +814,40 @@ async function loadUsersList(user){
       if(document.getElementById('employeesView').style.display !== 'none') { filteredUsers = usersData; renderUsersTable(); }
     }
   } catch(ex){}
+}
+
+async function submitEmployeeForm(e){
+  e.preventDefault();
+  const msg = document.getElementById('empFormMsg'); msg.className = 'msg';
+  const payload = {
+    action: 'addEmployee', token: currentUserForKpi.token,
+    login: document.getElementById('eLogin').value.trim(),
+    parol: document.getElementById('eParol').value,
+    familiya: document.getElementById('eFamiliya').value.trim(),
+    ism: document.getElementById('eIsm').value.trim(),
+    otasi: document.getElementById('eOtasi').value.trim(),
+    lavozim: document.getElementById('eLavozim').value.trim(),
+    bolinma: document.getElementById('eBolinma').value.trim(),
+    telefon: document.getElementById('eTelefon').value.trim(),
+    rol: document.getElementById('eRol').value
+  };
+  const btn = document.getElementById('empSubmitBtn'); btn.disabled = true;
+  try{
+    const data = await apiCall(payload);
+    btn.disabled = false;
+    if(data.success){
+      msg.textContent = dict[currentLang].empSavedOk; msg.classList.add('ok');
+      e.target.reset();
+      loadUsersList(currentUserForKpi);
+    } else if(data.code === 'LOGIN_TAKEN'){
+      msg.textContent = dict[currentLang].loginTakenErr; msg.classList.add('err');
+    } else if(data.code === 'WEAK_PASSWORD'){
+      msg.textContent = dict[currentLang].weakPasswordErr; msg.classList.add('err');
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
+    }
+  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
 }
 
 async function loadStats(user){
@@ -1384,6 +1452,7 @@ function init(){
   document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('surveyCard').style.display = canSurvey ? 'block' : 'none';
   document.getElementById('notifSendCard').style.display = canNotifSend ? 'block' : 'none';
+  document.getElementById('addEmployeeCard').style.display = canManage ? 'block' : 'none';
 
   if(canAnticor) loadStats(user);
   if(canEmployees) loadUsersList(user);

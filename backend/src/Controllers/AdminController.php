@@ -7,9 +7,60 @@ use App\Auth;
 use App\Database;
 use App\Response;
 use App\Util;
+use App\Validate;
+use PDOException;
 
 final class AdminController
 {
+    public static function addEmployee(array $input): void
+    {
+        Auth::requireRole($input, ['gl-admin']);
+
+        $login = Validate::requiredStr($input, 'login', 100);
+        $parol = Validate::requiredStr($input, 'parol', 255);
+        $familiya = Validate::requiredStr($input, 'familiya', 150);
+        $ism = Validate::requiredStr($input, 'ism', 150);
+        $otasi = Validate::str($input, 'otasi', 150);
+        $lavozim = Validate::str($input, 'lavozim', 200);
+        $bolinma = Validate::str($input, 'bolinma', 200);
+        $telefon = Validate::str($input, 'telefon', 20);
+        $rol = Validate::str($input, 'rol', 20);
+
+        if (mb_strlen($parol) < 6) {
+            Response::error("Parol kamida 6 belgidan iborat bo'lishi kerak", 'WEAK_PASSWORD', 422);
+        }
+        if (!in_array($rol, ['user', 'admin', 'gl-admin'], true)) {
+            $rol = 'user';
+        }
+
+        $db = Database::connection();
+        $stmt = $db->prepare(
+            'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, lavozim, bolinma, telefon, rol)
+             VALUES (:login, :hash, :familiya, :ism, :otasi, :lavozim, :bolinma, :telefon, :rol)'
+        );
+
+        try {
+            $stmt->execute([
+                'login' => $login,
+                'hash' => Auth::hashPassword($parol),
+                'familiya' => $familiya,
+                'ism' => $ism,
+                'otasi' => $otasi !== '' ? $otasi : null,
+                'lavozim' => $lavozim !== '' ? $lavozim : null,
+                'bolinma' => $bolinma !== '' ? $bolinma : null,
+                'telefon' => $telefon !== '' ? $telefon : null,
+                'rol' => $rol,
+            ]);
+        } catch (PDOException $e) {
+            if ((int) $e->getCode() === 23000 || str_contains($e->getMessage(), 'Duplicate entry')) {
+                Response::error('Bu login band', 'LOGIN_TAKEN', 409);
+            }
+            throw $e;
+        }
+
+        Response::success(['id' => (int) $db->lastInsertId()]);
+    }
+
     public static function usersList(array $input): void
     {
         Auth::requireRole($input, ['gl-admin', 'admin']);
