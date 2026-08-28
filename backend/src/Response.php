@@ -9,6 +9,10 @@ final class Response
     {
         http_response_code($httpCode);
         header('Content-Type: application/json; charset=utf-8');
+        // Qo'shimcha xavfsizlik sarlavhalari (barcha javoblarga, jumladan xatoliklarga ham).
+        header('X-Content-Type-Options: nosniff');
+        header('X-Frame-Options: DENY');
+        header('Referrer-Policy: no-referrer');
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }

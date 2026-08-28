@@ -43,8 +43,8 @@ final class AuthController
         Auth::resetAttempts($login);
 
         $token = Auth::generateToken();
-        $ttlHours = Config::int('SESSION_TTL_HOURS', 12);
-        $expiresAt = date('Y-m-d H:i:s', time() + $ttlHours * 3600);
+        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 30);
+        $expiresAt = date('Y-m-d H:i:s', time() + $idleMinutes * 60);
 
         $ins = $db->prepare(
             'INSERT INTO sessions (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)'

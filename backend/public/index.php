@@ -22,6 +22,24 @@ use App\Controllers\SurveyController;
 use App\Controllers\TestController;
 
 Config::load();
+
+// Production'da HTTPS'ni majburlash (ixtiyoriy — .env'da FORCE_HTTPS=true qilinganda
+// yoqiladi, shu bilan mahalliy XAMPP/http test muhitini buzmaydi).
+if (Config::get('FORCE_HTTPS', 'false') === 'true') {
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    if (!$isHttps) {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        header('Location: https://' . $host . $uri, true, 301);
+        exit;
+    }
+    // HSTS: brauzerga shu domenga keyingi safar ham faqat HTTPS orqali murojaat
+    // qilishni "eslatib qo'yadi" — parol/token kabi ma'lumotlar hech qachon
+    // shifrlanmagan (http) tarmoq orqali yubormaydi.
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
+
 Cors::handle();
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -77,6 +95,8 @@ $routes = [
     'getUsersList' => [AdminController::class, 'usersList'],
     'getStats' => [AdminController::class, 'stats'],
     'addEmployee' => [AdminController::class, 'addEmployee'],
+    'editEmployee' => [AdminController::class, 'editEmployee'],
+    'deleteEmployee' => [AdminController::class, 'deleteEmployee'],
 ];
 
 if (!isset($routes[$action])) {

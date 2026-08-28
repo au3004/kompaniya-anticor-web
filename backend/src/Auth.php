@@ -41,10 +41,11 @@ final class Auth
             Response::error('Sessiya muddati tugagan', 'SESSION_EXPIRED', 401);
         }
 
-        // Sliding expiration: har bir muvaffaqiyatli so'rovda muddatni uzaytiramiz
-        // (lekin sessionTooOld() tekshiruvi orqali umumiy amal qilish muddati baribir cheklangan).
-        $ttlHours = Config::int('SESSION_TTL_HOURS', 12);
-        $newExpiry = date('Y-m-d H:i:s', time() + $ttlHours * 3600);
+        // Sliding expiration: har bir muvaffaqiyatli so'rovda muddatni uzaytiramiz —
+        // shuning uchun bu aslida "harakatsizlik" (idle) muddati (standart: 30 daqiqa).
+        // sessionTooOld() tekshiruvi orqali umumiy amal qilish muddati baribir cheklangan.
+        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 30);
+        $newExpiry = date('Y-m-d H:i:s', time() + $idleMinutes * 60);
         $upd = $db->prepare('UPDATE sessions SET expires_at = :exp WHERE token = :token');
         $upd->execute(['exp' => $newExpiry, 'token' => $token]);
 

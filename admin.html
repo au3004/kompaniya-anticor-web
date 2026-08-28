@@ -221,7 +221,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <h3 data-i18n="hubEmployees">Xodimlar ro'yxati</h3>
         <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
       </button>
-      <button class="hub-card" id="addEmployeeCard" onclick="openSection('addEmployeeView')" style="display:none;">
+      <button class="hub-card" id="addEmployeeCard" onclick="cancelEmployeeEdit(); openSection('addEmployeeView')" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
         <h3 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h3>
         <p data-i18n="hubAddEmployeeDesc">Tizimga yangi xodim yoki administrator qo'shish</p>
@@ -307,19 +307,20 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
           <tr>
             <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
             <th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th><th data-i18n="thPhone">Telefon</th>
+            <th style="width:90px;" data-i18n="thAmal">Amal</th>
           </tr>
         </thead>
-        <tbody id="empTbody"><tr><td colspan="5" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        <tbody id="empTbody"><tr><td colspan="6" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
     </div>
   </div>
 
-  <!-- Yangi xodim qo'shish (faqat gl-admin) -->
+  <!-- Yangi xodim qo'shish / tahrirlash (faqat gl-admin) -->
   <div id="addEmployeeView" style="display:none;">
     <div class="page-head">
       <div>
-        <div class="eyebrow" data-i18n="hubAddEmployee">Yangi xodim qo'shish</div>
-        <h1 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h1>
+        <div class="eyebrow" id="empFormEyebrow" data-i18n="hubAddEmployee">Yangi xodim qo'shish</div>
+        <h1 id="empFormTitle" data-i18n="hubAddEmployee">Yangi xodim qo'shish</h1>
       </div>
       <button class="back-btn" onclick="openSection('hubView')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
@@ -330,7 +331,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
     <div class="form-card" style="max-width:640px;">
       <form onsubmit="return submitEmployeeForm(event)">
         <div class="field"><label data-i18n="empLoginLabel">Login</label><input type="text" id="eLogin" required autocomplete="off"></div>
-        <div class="field"><label data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password"></div>
+        <div class="field"><label id="eParolLabel" data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password"><div class="field-hint" id="eParolHint" style="display:none; font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="empPassEditHint">Bo'sh qoldirsangiz, parol o'zgarmaydi</div></div>
         <div class="field"><label data-i18n="empFamiliyaLabel">Familiya</label><input type="text" id="eFamiliya" required></div>
         <div class="field"><label data-i18n="empIsmLabel">Ism</label><input type="text" id="eIsm" required></div>
         <div class="field"><label data-i18n="empOtasiLabel">Otasining ismi</label><input type="text" id="eOtasi"></div>
@@ -348,6 +349,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
           </select>
         </div>
         <button class="submit-btn" type="submit" id="empSubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <button type="button" class="back-btn" id="empCancelBtn" onclick="cancelEmployeeEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
         <div class="msg" id="empFormMsg"></div>
       </form>
     </div>
@@ -688,6 +690,9 @@ const dict = {
     empLavozimLabel:"Lavozim (O'zbek)", empLavozimRuLabel:"Lavozim (Rus)",
     empBolinmaLabel:"Bo'linma (O'zbek)", empBolinmaRuLabel:"Bo'linma (Rus)",
     hubAddEmployee:"Yangi xodim qo'shish", hubAddEmployeeDesc:"Tizimga yangi xodim yoki administrator qo'shish",
+    empFormEdit:"Xodimni tahrirlash", empPassEditHint:"Bo'sh qoldirsangiz, parol o'zgarmaydi",
+    confirmDeleteEmployee:"Ushbu xodimni butunlay o'chirmoqchimisiz? Uning barcha tarixi (test, hujjat, so'rovnoma) ham o'chadi.",
+    cannotDeleteSelfErr:"O'zingizni o'chira olmaysiz", lastGlAdminErr:"Tizimda kamida bitta bosh administrator qolishi shart",
     roleUser:"Xodim", roleAdmin:"Admin", roleGlAdmin:"Bosh admin",
     empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Bu login band, boshqasini tanlang",
     weakPasswordErr:"Parol kamida 6 belgidan iborat bo'lishi kerak" },
@@ -732,6 +737,9 @@ const dict = {
     empLavozimLabel:"Должность (узб.)", empLavozimRuLabel:"Должность (рус.)",
     empBolinmaLabel:"Подразделение (узб.)", empBolinmaRuLabel:"Подразделение (рус.)",
     hubAddEmployee:"Добавить сотрудника", hubAddEmployeeDesc:"Добавить нового сотрудника или администратора",
+    empFormEdit:"Редактировать сотрудника", empPassEditHint:"Если оставить пустым, пароль не изменится",
+    confirmDeleteEmployee:"Удалить этого сотрудника навсегда? Вся его история (тест, документы, уведомления) также будет удалена.",
+    cannotDeleteSelfErr:"Вы не можете удалить себя", lastGlAdminErr:"В системе должен остаться хотя бы один главный администратор",
     roleUser:"Сотрудник", roleAdmin:"Админ", roleGlAdmin:"Гл. админ",
     empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, выберите другой",
     weakPasswordErr:"Пароль должен содержать не менее 6 символов" }
@@ -766,6 +774,7 @@ let docsData = null;
 let editingDocId = null;
 let surveyData = null;
 let editingSurveyId = null;
+let editingEmployeeId = null;
 
 function openSection(id){
   document.querySelectorAll('#mainContent > div').forEach(d => d.style.display = 'none');
@@ -823,13 +832,71 @@ function onEmpSearch(){
 
 function renderUsersTable(){
   if(filteredUsers.length === 0){
-    document.getElementById('empTbody').innerHTML = `<tr><td colspan="5" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    document.getElementById('empTbody').innerHTML = `<tr><td colspan="6" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
+  const canManageEmp = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
   document.getElementById('empTbody').innerHTML = filteredUsers.map((u, i) => {
     const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
-    return `<tr><td>${u.id ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td></tr>`;
+    const actions = canManageEmp ? `<div class="row-actions">
+        <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+      </div>` : '—';
+    return `<tr><td>${u.id ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
   }).join('');
+}
+
+function startEditEmployee(id){
+  const u = usersData.find(x => String(x.id) === String(id));
+  if(!u) return;
+  editingEmployeeId = id;
+  document.getElementById('eLogin').value = u.login || '';
+  document.getElementById('eLogin').disabled = true;
+  document.getElementById('eParol').required = false;
+  document.getElementById('eParol').value = '';
+  document.getElementById('eParolHint').style.display = 'block';
+  document.getElementById('eFamiliya').value = u.familiya || '';
+  document.getElementById('eIsm').value = u.ism || '';
+  document.getElementById('eOtasi').value = u.otasi || '';
+  document.getElementById('eLavozim').value = u.lavozim || '';
+  document.getElementById('eLavozimRu').value = u.lavozimRu || '';
+  document.getElementById('eBolinma').value = u.bolinma || '';
+  document.getElementById('eBolinmaRu').value = u.bolinmaRu || '';
+  document.getElementById('eTelefon').value = u.telefon || '';
+  document.getElementById('eRol').value = u.rol || 'user';
+  document.getElementById('empFormEyebrow').textContent = dict[currentLang].empFormEdit;
+  document.getElementById('empFormTitle').textContent = dict[currentLang].empFormEdit;
+  document.getElementById('empCancelBtn').style.display = 'inline-flex';
+  document.getElementById('empFormMsg').className = 'msg';
+  openSection('addEmployeeView');
+}
+
+function cancelEmployeeEdit(){
+  editingEmployeeId = null;
+  document.getElementById('eLogin').disabled = false;
+  document.getElementById('eParol').required = true;
+  document.getElementById('eParolHint').style.display = 'none';
+  document.getElementById('empFormEyebrow').textContent = dict[currentLang].hubAddEmployee;
+  document.getElementById('empFormTitle').textContent = dict[currentLang].hubAddEmployee;
+  document.getElementById('empCancelBtn').style.display = 'none';
+  document.querySelector('#addEmployeeView form').reset();
+  document.getElementById('empFormMsg').className = 'msg';
+}
+
+async function deleteEmployeeRow(id){
+  if(!confirm(dict[currentLang].confirmDeleteEmployee)) return;
+  try{
+    const data = await apiCall({ action:'deleteEmployee', token: currentUserForKpi.token, id });
+    if(data.success){
+      loadUsersList(currentUserForKpi);
+    } else if(data.code === 'CANNOT_DELETE_SELF'){
+      alert(dict[currentLang].cannotDeleteSelfErr);
+    } else if(data.code === 'LAST_GL_ADMIN'){
+      alert(dict[currentLang].lastGlAdminErr);
+    } else {
+      alert(dict[currentLang].savedErr);
+    }
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
 async function loadUsersList(user){
@@ -846,7 +913,7 @@ async function submitEmployeeForm(e){
   e.preventDefault();
   const msg = document.getElementById('empFormMsg'); msg.className = 'msg';
   const payload = {
-    action: 'addEmployee', token: currentUserForKpi.token,
+    action: editingEmployeeId ? 'editEmployee' : 'addEmployee', token: currentUserForKpi.token,
     login: document.getElementById('eLogin').value.trim(),
     parol: document.getElementById('eParol').value,
     familiya: document.getElementById('eFamiliya').value.trim(),
@@ -859,18 +926,21 @@ async function submitEmployeeForm(e){
     telefon: document.getElementById('eTelefon').value.trim(),
     rol: document.getElementById('eRol').value
   };
+  if(editingEmployeeId) payload.id = editingEmployeeId;
   const btn = document.getElementById('empSubmitBtn'); btn.disabled = true;
   try{
     const data = await apiCall(payload);
     btn.disabled = false;
     if(data.success){
+      cancelEmployeeEdit();
       msg.textContent = dict[currentLang].empSavedOk; msg.classList.add('ok');
-      e.target.reset();
       loadUsersList(currentUserForKpi);
     } else if(data.code === 'LOGIN_TAKEN'){
       msg.textContent = dict[currentLang].loginTakenErr; msg.classList.add('err');
     } else if(data.code === 'WEAK_PASSWORD'){
       msg.textContent = dict[currentLang].weakPasswordErr; msg.classList.add('err');
+    } else if(data.code === 'LAST_GL_ADMIN'){
+      msg.textContent = dict[currentLang].lastGlAdminErr; msg.classList.add('err');
     } else {
       msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
     }
@@ -1526,6 +1596,29 @@ window.addEventListener('pageshow', function(event){
     if (!u || !u.token) { window.location.href = 'login.html'; }
   }
 });
+
+// XAVFSIZLIK: 30 daqiqa harakatsizlikdan so'ng avtomat chiqish.
+(function initIdleLogout(){
+  const u = getCurrentUser();
+  if(!u || !u.token) return;
+  const IDLE_LIMIT_MS = 30 * 60 * 1000;
+  let idleTimer = null;
+  function doIdleLogout(){
+    const cur = getCurrentUser();
+    const token = cur && cur.token;
+    try{ sessionStorage.removeItem('km_user'); }catch(e){}
+    if(token){ fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }) }).catch(()=>{}); }
+    window.location.href = 'login.html';
+  }
+  function resetIdleTimer(){
+    if(idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(doIdleLogout, IDLE_LIMIT_MS);
+  }
+  ['mousedown','mousemove','keydown','wheel','touchstart','click'].forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive:true });
+  });
+  resetIdleTimer();
+})();
 </script>
 </body>
 </html>

@@ -945,6 +945,29 @@ window.addEventListener('pageshow', function(event){
     if (!u || !u.token) { window.location.href = 'login.html'; }
   }
 });
+
+// XAVFSIZLIK: 30 daqiqa harakatsizlikdan so'ng avtomat chiqish (server ham
+// mustaqil ravishda shu muddatdan so'ng sessiyani tugatadi — bu shunchaki
+// foydalanuvchini darhol login sahifasiga qaytarish uchun mijoz tomonidagi qulaylik).
+(function initIdleLogout(){
+  if(!currentUser || !currentUser.token) return;
+  const IDLE_LIMIT_MS = 30 * 60 * 1000;
+  let idleTimer = null;
+  function doIdleLogout(){
+    const token = currentUser && currentUser.token;
+    try{ sessionStorage.removeItem('km_user'); }catch(e){}
+    if(token){ fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }) }).catch(()=>{}); }
+    window.location.href = 'login.html';
+  }
+  function resetIdleTimer(){
+    if(idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(doIdleLogout, IDLE_LIMIT_MS);
+  }
+  ['mousedown','mousemove','keydown','wheel','touchstart','click'].forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive:true });
+  });
+  resetIdleTimer();
+})();
 </script>
 </body>
 </html>

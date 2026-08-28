@@ -71,7 +71,7 @@ final class AdminController
 
         $db = Database::connection();
         $rows = $db->query(
-            'SELECT id, login, familiya, ism, otasining_ismi, lavozim, bolinma, telefon, rol
+            'SELECT id, login, familiya, ism, otasining_ismi, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol
              FROM users ORDER BY familiya ASC, ism ASC'
         )->fetchAll();
 
@@ -82,12 +82,125 @@ final class AdminController
             'ism' => $r['ism'],
             'otasi' => $r['otasining_ismi'],
             'lavozim' => $r['lavozim'],
+            'lavozimRu' => $r['lavozim_ru'],
             'bolinma' => $r['bolinma'],
+            'bolinmaRu' => $r['bolinma_ru'],
             'telefon' => $r['telefon'],
             'rol' => $r['rol'],
         ], $rows);
 
         Response::success(['users' => $users]);
+    }
+
+    public static function editEmployee(array $input): void
+    {
+        Auth::requireRole($input, ['gl-admin']);
+
+        $id = Validate::int($input, 'id');
+        if (!$id) {
+            Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
+        }
+
+        $familiya = Validate::requiredStr($input, 'familiya', 150);
+        $ism = Validate::requiredStr($input, 'ism', 150);
+        $otasi = Validate::str($input, 'otasi', 150);
+        $lavozim = Validate::str($input, 'lavozim', 200);
+        $lavozimRu = Validate::str($input, 'lavozimRu', 200);
+        $bolinma = Validate::str($input, 'bolinma', 200);
+        $bolinmaRu = Validate::str($input, 'bolinmaRu', 200);
+        $telefon = Validate::str($input, 'telefon', 20);
+        $rol = Validate::str($input, 'rol', 20);
+        $parol = Validate::str($input, 'parol', 255);
+
+        if (!in_array($rol, ['user', 'admin', 'gl-admin'], true)) {
+            $rol = 'user';
+        }
+        if ($parol !== '' && mb_strlen($parol) < 6) {
+            Response::error("Parol kamida 6 belgidan iborat bo'lishi kerak", 'WEAK_PASSWORD', 422);
+        }
+
+        $db = Database::connection();
+
+        $existingStmt = $db->prepare('SELECT rol FROM users WHERE id = :id LIMIT 1');
+        $existingStmt->execute(['id' => $id]);
+        $existing = $existingStmt->fetch();
+        if (!$existing) {
+            Response::error('Xodim topilmadi', 'NOT_FOUND', 404);
+        }
+
+        if ($existing['rol'] === 'gl-admin' && $rol !== 'gl-admin' && self::glAdminCount($db) <= 1) {
+            Response::error("Tizimda kamida bitta bosh administrator (gl-admin) qolishi shart", 'LAST_GL_ADMIN', 409);
+        }
+
+        $params = [
+            'id' => $id,
+            'familiya' => $familiya,
+            'ism' => $ism,
+            'otasi' => $otasi !== '' ? $otasi : null,
+            'lavozim' => $lavozim !== '' ? $lavozim : null,
+            'lavozim_ru' => $lavozimRu !== '' ? $lavozimRu : null,
+            'bolinma' => $bolinma !== '' ? $bolinma : null,
+            'bolinma_ru' => $bolinmaRu !== '' ? $bolinmaRu : null,
+            'telefon' => $telefon !== '' ? $telefon : null,
+            'rol' => $rol,
+        ];
+
+        $setSql = 'familiya = :familiya, ism = :ism, otasining_ismi = :otasi,
+                    lavozim = :lavozim, lavozim_ru = :lavozim_ru,
+                    bolinma = :bolinma, bolinma_ru = :bolinma_ru,
+                    telefon = :telefon, rol = :rol';
+
+        if ($parol !== '') {
+            $setSql .= ', password_hash = :hash';
+            $params['hash'] = Auth::hashPassword($parol);
+        }
+
+        $stmt = $db->prepare("UPDATE users SET {$setSql} WHERE id = :id");
+        $stmt->execute($params);
+
+        // Parol qayta o'rnatilgan bo'lsa, shu xodimning barcha faol sessiyalarini bekor qilamiz.
+        if ($parol !== '') {
+            $revoke = $db->prepare('DELETE FROM sessions WHERE user_id = :id');
+            $revoke->execute(['id' => $id]);
+        }
+
+        Response::success();
+    }
+
+    public static function deleteEmployee(array $input): void
+    {
+        $me = Auth::requireRole($input, ['gl-admin']);
+
+        $id = Validate::int($input, 'id');
+        if (!$id) {
+            Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
+        }
+        if ($id === (int) $me['id']) {
+            Response::error("O'zingizni o'chira olmaysiz", 'CANNOT_DELETE_SELF', 409);
+        }
+
+        $db = Database::connection();
+        $existingStmt = $db->prepare('SELECT rol FROM users WHERE id = :id LIMIT 1');
+        $existingStmt->execute(['id' => $id]);
+        $existing = $existingStmt->fetch();
+        if (!$existing) {
+            Response::success();
+            return;
+        }
+
+        if ($existing['rol'] === 'gl-admin' && self::glAdminCount($db) <= 1) {
+            Response::error("Tizimda kamida bitta bosh administrator (gl-admin) qolishi shart", 'LAST_GL_ADMIN', 409);
+        }
+
+        $stmt = $db->prepare('DELETE FROM users WHERE id = :id');
+        $stmt->execute(['id' => $id]);
+
+        Response::success();
+    }
+
+    private static function glAdminCount(\PDO $db): int
+    {
+        return (int) $db->query("SELECT COUNT(*) FROM users WHERE rol = 'gl-admin'")->fetchColumn();
     }
 
     public static function stats(array $input): void
