@@ -244,6 +244,16 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <h3 data-i18n="hubNotif">Xabarnoma yuborish</h3>
         <p data-i18n="hubNotifDesc">Xodimlarga xabarnoma yuborish va hisobot</p>
       </button>
+      <button class="hub-card" id="supportCard" onclick="openSection('supportView'); loadSupportRequests();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg></div>
+        <h3 data-i18n="hubSupport">Yordam so'rovlari</h3>
+        <p data-i18n="hubSupportDesc">Xodimlardan kelgan murojaatlar</p>
+      </button>
+      <button class="hub-card" id="reportsCard" onclick="openSection('reportsView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg></div>
+        <h3 data-i18n="hubReports">Hisobotlar</h3>
+        <p data-i18n="hubReportsDesc">Barcha ma'lumotlarni Excel fayl sifatida yuklab olish</p>
+      </button>
     </div>
     <div class="denied" id="noAccessMsg" style="display:none;" data-i18n="denied">Sizda bu sahifaga kirish huquqi yo'q</div>
   </div>
@@ -265,12 +275,8 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       <div class="stat-card"><div class="num">—</div><div class="lbl" data-i18n="totalLbl">Jami xodimlar</div></div>
     </div>
 
-    <div class="search-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()" style="margin:0;">
-      <button type="button" class="back-btn" onclick="exportStatsXlsx()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-        <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
-      </button>
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()">
     </div>
 
     <div class="table-wrap">
@@ -326,12 +332,8 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       </button>
     </div>
 
-    <div class="search-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <input type="text" id="empSearchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onEmpSearch()" style="margin:0;">
-      <button type="button" class="back-btn" onclick="exportEmployeesXlsx()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-        <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
-      </button>
+    <div class="search-row">
+      <input type="text" id="empSearchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onEmpSearch()">
     </div>
 
     <div class="table-wrap">
@@ -444,13 +446,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       </form>
     </div>
 
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:24px 0 14px;">
-      <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin:0;" data-i18n="testListTitle">Mavjud savollar</h3>
-      <button type="button" class="back-btn" onclick="exportTestQuestionsXlsx()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-        <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
-      </button>
-    </div>
+    <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin:24px 0 14px;" data-i18n="testListTitle">Mavjud savollar</h3>
     <div class="table-wrap">
       <table>
         <thead><tr><th style="width:48px;" data-i18n="thId">ID</th><th data-i18n="qSavol">Savol</th><th style="width:90px;" data-i18n="thAmal">Amal</th></tr></thead>
@@ -597,16 +593,10 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="eyebrow" data-i18n="hubSurveyResults">So'rovnoma natijalari</div>
         <h1 data-i18n="hubSurveyResults">So'rovnoma natijalari</h1>
       </div>
-      <div style="display:flex; gap:10px;">
-        <button type="button" class="back-btn" onclick="exportSurveyResultsXlsx()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-          <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
-        </button>
-        <button class="back-btn" onclick="backFromSurveyResults()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
-          <span data-i18n="backBtn">Ortga</span>
-        </button>
-      </div>
+      <button class="back-btn" onclick="backFromSurveyResults()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
     </div>
     <div id="surveyResultsBox"><p class="loading-row" data-i18n="loading">Yuklanmoqda...</p></div>
   </div>
@@ -656,6 +646,71 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
     </div>
   </div>
+
+  <!-- Yordam so'rovlari (gl-admin + admin) -->
+  <div id="supportView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubSupport">Yordam so'rovlari</div>
+        <h1 data-i18n="hubSupport">Yordam so'rovlari</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div id="supportList" style="display:flex; flex-direction:column; gap:12px;">
+      <p class="loading-row" data-i18n="loading">Yuklanmoqda...</p>
+    </div>
+  </div>
+
+  <!-- Hisobotlar (faqat gl-admin) -->
+  <div id="reportsView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubReports">Hisobotlar</div>
+        <h1 data-i18n="hubReports">Hisobotlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;" id="reportsList">
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repUsersTitle">Xodimlar (Users)</div><div class="tsub" data-i18n="repUsersDesc">To'liq xodimlar ro'yxati, rol, aloqa ma'lumotlari</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportUsersReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repProgressTitle">Progress</div><div class="tsub" data-i18n="repProgressDesc">Hujjat bilan tanishish va test topshirish tarixi</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportProgressReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repSupportTitle">Support</div><div class="tsub" data-i18n="repSupportDesc">Xodimlardan kelgan murojaatlar va izohlar</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSupportReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repTestsTitle">Test savollari</div><div class="tsub" data-i18n="repTestsDesc">Barcha test savollari va to'g'ri javoblar</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportTestQuestionsXlsx()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repNotifTitle">Xabarnomalar</div><div class="tsub" data-i18n="repNotifDesc">Yuborilgan barcha xabarnomalar</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repNotifReadsTitle">Xabarnoma o'qilganlik</div><div class="tsub" data-i18n="repNotifReadsDesc">Kim, qachon o'qigani</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationReadsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repSurveyQTitle">So'rovnoma savollari</div><div class="tsub" data-i18n="repSurveyQDesc">Anonim so'rovnoma savollari</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSurveyQuestionsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repSurveyATitle">So'rovnoma javoblari</div><div class="tsub" data-i18n="repSurveyADesc">Anonim javoblar (foydalanuvchi bilan bog'lanmagan)</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSurveyAnswersWide()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -702,6 +757,17 @@ const dict = {
     hubDocs:"Hujjat qo'shish", hubDocsDesc:"Normativ hujjatlarni qo'shish, tahrirlash, o'chirish",
     soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish", downloadBtn:"Hisobotni yuklab olish",
     xlsxLibErr:"Excel fayl yaratish kutubxonasi yuklanmadi. Internet ulanishini tekshirib, sahifani qayta yuklang.",
+    hubSupport:"Yordam so'rovlari", hubSupportDesc:"Xodimlardan kelgan murojaatlar",
+    hubReports:"Hisobotlar", hubReportsDesc:"Barcha ma'lumotlarni Excel fayl sifatida yuklab olish",
+    repUsersTitle:"Xodimlar (Users)", repUsersDesc:"To'liq xodimlar ro'yxati, rol, aloqa ma'lumotlari",
+    repProgressTitle:"Progress", repProgressDesc:"Hujjat bilan tanishish va test topshirish tarixi",
+    repSupportTitle:"Support", repSupportDesc:"Xodimlardan kelgan murojaatlar va izohlar",
+    repTestsTitle:"Test savollari", repTestsDesc:"Barcha test savollari va to'g'ri javoblar",
+    repNotifTitle:"Xabarnomalar", repNotifDesc:"Yuborilgan barcha xabarnomalar",
+    repNotifReadsTitle:"Xabarnoma o'qilganlik", repNotifReadsDesc:"Kim, qachon o'qigani",
+    repSurveyQTitle:"So'rovnoma savollari", repSurveyQDesc:"Anonim so'rovnoma savollari",
+    repSurveyATitle:"So'rovnoma javoblari", repSurveyADesc:"Anonim javoblar (foydalanuvchi bilan bog'lanmagan)",
+    supportIzohLabel:"Izoh", supportIzohPh:"Murojaatga izoh/javob yozing",
     hubNotif:"Xabarnoma yuborish", hubNotifDesc:"Xodimlarga xabarnoma yuborish va hisobot",
     notifTargetTypeLabel:"Qamrov", notifTargetUsers:"Foydalanuvchilar", notifTargetDept:"Bo'linma",
     notifUsersLabel:"Xodimlarni tanlang", notifDeptLabel:"Bo'linmani tanlang",
@@ -751,6 +817,17 @@ const dict = {
     hubDocs:"Добавить документ", hubDocsDesc:"Добавление, редактирование, удаление документов",
     soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена", downloadBtn:"Скачать отчёт",
     xlsxLibErr:"Библиотека для создания Excel-файла не загрузилась. Проверьте интернет-соединение и обновите страницу.",
+    hubSupport:"Обращения", hubSupportDesc:"Обращения от сотрудников",
+    hubReports:"Отчёты", hubReportsDesc:"Скачать все данные в формате Excel",
+    repUsersTitle:"Сотрудники (Users)", repUsersDesc:"Полный список сотрудников, роль, контакты",
+    repProgressTitle:"Progress", repProgressDesc:"История ознакомления с документами и прохождения теста",
+    repSupportTitle:"Support", repSupportDesc:"Обращения сотрудников и комментарии",
+    repTestsTitle:"Тестовые вопросы", repTestsDesc:"Все вопросы теста и правильные ответы",
+    repNotifTitle:"Уведомления", repNotifDesc:"Все отправленные уведомления",
+    repNotifReadsTitle:"Прочтение уведомлений", repNotifReadsDesc:"Кто и когда прочитал",
+    repSurveyQTitle:"Вопросы опроса", repSurveyQDesc:"Вопросы анонимного опроса",
+    repSurveyATitle:"Ответы опроса", repSurveyADesc:"Анонимные ответы (не связаны с пользователем)",
+    supportIzohLabel:"Комментарий", supportIzohPh:"Напишите комментарий/ответ на обращение",
     hubNotif:"Отправить уведомление", hubNotifDesc:"Отправка уведомлений сотрудникам и отчёт",
     notifTargetTypeLabel:"Охват", notifTargetUsers:"Пользователи", notifTargetDept:"Подразделение",
     notifUsersLabel:"Выберите сотрудников", notifDeptLabel:"Выберите подразделение",
@@ -871,64 +948,112 @@ function todayStamp(){
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
-function exportStatsXlsx(){
-  if(!statsData) return;
-  const rows = [['ID', 'F.I.Sh', 'Lavozim', "Bo'linma", 'Telefon', 'Hujjat sanasi', 'Test balli', 'Test foizi', "Testdan o'tganmi"]];
-  statsData.employees.forEach((e, i) => {
-    rows.push([
-      i + 1, e.fish, e.lavozim || '', e.bolinma || '', e.telefon || '',
-      e.hujjatSana || '', e.testTaken ? e.testPoints : '', e.testTaken ? e.testPercent + '%' : '',
-      e.testTaken ? (e.passed ? 'Ha' : "Yo'q") : "Ishlamagan"
-    ]);
-  });
-  downloadXlsx(`statistika_${todayStamp()}.xlsx`, rows, 'Statistika');
+// Har bir hisobot o'zi kerakli ma'lumotni serverdan (qayta) so'raydi — shu sabab
+// "Hisobotlar" bo'limiga boshqa sahifalarga kirmasdan to'g'ridan-to'g'ri kirilsa ham ishlaydi.
+
+async function exportUsersReport(){
+  try{
+    const data = await apiCall({ action:'getUsersReport', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','Login','Parol','Familiya','Ism',"Otasining ismi",'Lavozim',"Bo'linma",'Telefon','Lavozim RU',"Bo'linma RU",'Rol',"Hujjatlar bilan tanishgan","Test topshirgan"]];
+    data.users.forEach(u => {
+      rows.push([
+        u.id, u.login, '', u.familiya, u.ism, u.otasi || '', u.lavozim || '', u.bolinma || '',
+        u.telefon || '', u.lavozimRu || '', u.bolinmaRu || '', u.rol,
+        u.hujjatTanishgan ? 'Ha' : "Yo'q", u.testTopshirgan ? 'Ha' : "Yo'q"
+      ]);
+    });
+    downloadXlsx(`users_${todayStamp()}.xlsx`, rows, 'Users');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
-function exportEmployeesXlsx(){
-  if(!usersData) return;
-  const rows = [['ID', 'Login', 'F.I.Sh', 'Lavozim', "Bo'linma", 'Telefon', 'Rol']];
-  usersData.forEach(u => {
-    const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
-    rows.push([u.id, u.login, fish, u.lavozim || '', u.bolinma || '', u.telefon || '', u.rol]);
-  });
-  downloadXlsx(`xodimlar_${todayStamp()}.xlsx`, rows, 'Xodimlar');
+async function exportProgressReport(){
+  try{
+    const data = await apiCall({ action:'getProgressReport', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','F.I.Sh','Telefon',"Tanishgan sana","Qayta tanishgan",'Test','Natija',"Qayta topshirish"]];
+    data.rows.forEach(r => {
+      rows.push([r.id, r.fish, r.telefon || '', r.tanishganSana, r.qaytaTanishgan, r.test, r.natija, r.qaytaTopshirish]);
+    });
+    downloadXlsx(`progress_${todayStamp()}.xlsx`, rows, 'Progress');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
-function exportTestQuestionsXlsx(){
-  if(!testsData) return;
-  const rows = [['ID', 'Savol (UZ)', 'A', 'B', 'C', 'D', "To'g'ri javob (UZ)", 'Savol (RU)', 'A (RU)', 'B (RU)', 'C (RU)', 'D (RU)', "To'g'ri javob (RU)"]];
-  testsData.forEach(q => {
-    rows.push([
-      q.id, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.uz.correct || '',
-      q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '', q.ru.correct || ''
-    ]);
-  });
-  downloadXlsx(`test_savollari_${todayStamp()}.xlsx`, rows, 'Test savollari');
+async function exportSupportReport(){
+  try{
+    const data = await apiCall({ action:'getSupportRequests', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','Login','F.I.Sh',"Telefon raqam",'Murojaat','Izoh']];
+    data.requests.forEach(r => {
+      rows.push([r.id, r.login, r.fish, r.telefon || '', r.murojaat, r.izoh || '']);
+    });
+    downloadXlsx(`support_${todayStamp()}.xlsx`, rows, 'Support');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
-function exportSurveyResultsXlsx(){
-  if(!surveyResultsData || !surveyResultsData.report) return;
-  const rows = [['Jami ishtirokchilar', surveyResultsData.totalSubmissions || 0]];
-  rows.push([]);
-  surveyResultsData.report.forEach(q => {
-    rows.push([q.savol]);
-    if(q.turi === 'tanlov'){
-      rows.push(['Variant', 'Ovozlar soni', 'Foiz']);
-      q.options.filter(o => o.text).forEach(o => {
-        rows.push([o.text, o.count, q.total ? Math.round(o.count / q.total * 100) + '%' : '0%']);
-      });
-    } else if(q.turi === 'yulduz'){
-      rows.push(["O'rtacha baho", q.average, 'dan', q.stars]);
-      rows.push(['Yulduz', 'Ovozlar soni']);
-      q.ratingCounts.forEach(r => rows.push([r.value, r.count]));
-    } else {
-      rows.push(['Erkin javoblar:']);
-      q.responses.forEach(t => rows.push([t]));
-    }
-    rows.push([`Jami: ${q.total} ta javob`]);
-    rows.push([]);
-  });
-  downloadXlsx(`sorovnoma_natijalari_${todayStamp()}.xlsx`, rows, "So'rovnoma");
+async function exportTestQuestionsXlsx(){
+  try{
+    const data = await apiCall({ action:'getTestQuestions', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','Savol','Variant A','Variant B','Variant C','Variant D',"To'g'ri javob",'Вопрос','Ответ А','Ответ Б','Ответ В','Ответ Г','Правильный ответ']];
+    data.questions.forEach(q => {
+      rows.push([
+        q.id, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.uz.correct || '',
+        q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '', q.ru.correct || ''
+      ]);
+    });
+    downloadXlsx(`tests_${todayStamp()}.xlsx`, rows, 'Tests');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportNotificationsReport(){
+  try{
+    const data = await apiCall({ action:'getNotificationsRaw', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID',"Yuboruvchi login","Yuboruvchi F.I.Sh",'Sana','Matn',"Qamrov turi","Qamrov qiymati"]];
+    data.notifications.forEach(n => {
+      rows.push([n.id, n.senderLogin, n.senderFish, n.sana, n.text, n.targetType, n.targetValue]);
+    });
+    downloadXlsx(`xabarnoma_${todayStamp()}.xlsx`, rows, 'Xabarnoma');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportNotificationReadsReport(){
+  try{
+    const data = await apiCall({ action:'getNotificationReadsRaw', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID',"Xabarnoma ID",'Login','F.I.Sh',"O'qilgan sana"]];
+    data.reads.forEach(r => {
+      rows.push([r.id, r.notificationId, r.login, r.fish, r.sana]);
+    });
+    downloadXlsx(`xabarnoma_oqildi_${todayStamp()}.xlsx`, rows, "Xabarnoma o'qildi");
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportSurveyQuestionsReport(){
+  try{
+    const data = await apiCall({ action:'getSurveyQuestions', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','Savol','Variant A','Variant B','Variant C','Variant D','Turi',"Yulduzchalar soni",'Вопрос','Ответ А','Ответ Б','Ответ В','Ответ Г']];
+    data.questions.forEach(q => {
+      rows.push([q.id, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.turi, q.stars, q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '']);
+    });
+    downloadXlsx(`anonim_sorovnoma_${todayStamp()}.xlsx`, rows, "So'rovnoma");
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportSurveyAnswersWide(){
+  try{
+    const data = await apiCall({ action:'getSurveyAnswersWide', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const header = ['ID','Sana'];
+    for(let i = 1; i <= data.questionCount; i++) header.push(`ID-${i}`);
+    const rows = [header];
+    data.submissions.forEach(s => {
+      rows.push([s.id, s.sana, ...s.answers]);
+    });
+    downloadXlsx(`anonim_sorovnoma_javoblari_${todayStamp()}.xlsx`, rows, 'Javoblar');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
 function renderTable(){
@@ -1660,6 +1785,61 @@ function renderNotifHistory(report){
   }).join('');
 }
 
+/* ---------- Yordam so'rovlari (Support) ---------- */
+let supportData = null;
+
+async function loadSupportRequests(){
+  const box = document.getElementById('supportList');
+  box.innerHTML = `<p class="loading-row">${dict[currentLang].loading}</p>`;
+  try{
+    const data = await apiCall({ action:'getSupportRequests', token: currentUserForKpi.token });
+    if(data.success){ supportData = data.requests; renderSupportList(); }
+    else box.innerHTML = `<p class="loading-row">Xatolik</p>`;
+  } catch(ex){
+    box.innerHTML = `<p class="loading-row">Xatolik: ${ex.message}</p>`;
+  }
+}
+
+function renderSupportList(){
+  const box = document.getElementById('supportList');
+  if(!supportData || supportData.length === 0){
+    box.innerHTML = `<p class="loading-row">${dict[currentLang].noResults}</p>`;
+    return;
+  }
+  box.innerHTML = supportData.map(r => `
+    <div class="notif-hist-item" style="cursor:default;">
+      <div class="h-meta"><span>${escapeHtml(r.fish)} (${escapeHtml(r.login)}) • ${escapeHtml(r.telefon || '—')}</span><span>${escapeHtml(r.sana)}</span></div>
+      <div class="h-text">${escapeHtml(r.murojaat)}</div>
+      <div class="field" style="margin-top:10px; margin-bottom:0;">
+        <label style="font-size:11px; text-transform:uppercase; color:var(--text-dim); display:block; margin-bottom:5px;">${dict[currentLang].supportIzohLabel}</label>
+        <textarea id="izoh-${r.id}" rows="2" placeholder="${dict[currentLang].supportIzohPh}">${escapeHtml(r.izoh || '')}</textarea>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+        <button type="button" class="back-btn" onclick="saveSupportIzoh(${r.id})">${dict[currentLang].saveBtn}</button>
+        <span id="izohMsg-${r.id}" style="font-size:12px;"></span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveSupportIzoh(id){
+  const izoh = document.getElementById(`izoh-${id}`).value.trim();
+  const msg = document.getElementById(`izohMsg-${id}`);
+  msg.textContent = '';
+  try{
+    const data = await apiCall({ action:'updateSupportIzoh', token: currentUserForKpi.token, id, izoh });
+    if(data.success){
+      msg.textContent = dict[currentLang].savedOk; msg.style.color = 'var(--teal)';
+      const r = supportData.find(x => x.id === id);
+      if(r) r.izoh = izoh;
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.style.color = 'var(--coral)';
+    }
+  } catch(ex){
+    msg.textContent = 'Xatolik: ' + ex.message; msg.style.color = 'var(--coral)';
+  }
+}
+
 function init(){
   const user = getCurrentUser();
   if(!user || !user.token){ window.location.href = 'login.html'; return; }
@@ -1670,8 +1850,10 @@ function init(){
   const canManage = rol === 'gl-admin'; // Test savollari, Hujjat qo'shish — faqat gl-admin
   const canSurvey = rol === 'gl-admin' || rol === 'admin'; // Anonim so'rovnoma (ichki huquqlar rolga qarab farqlanadi)
   const canNotifSend = rol === 'gl-admin' || rol === 'admin';
+  const canSupport = rol === 'gl-admin' || rol === 'admin';
+  const canReports = rol === 'gl-admin'; // Hisobotlar — tashkilot bo'yicha to'liq ma'lumot, faqat gl-admin
 
-  if(!canAnticor && !canEmployees && !canManage && !canSurvey && !canNotifSend){
+  if(!canAnticor && !canEmployees && !canManage && !canSurvey && !canNotifSend && !canSupport && !canReports){
     document.querySelector('.hub-grid').style.display = 'none';
     document.getElementById('noAccessMsg').style.display = 'block';
     return;
@@ -1684,6 +1866,8 @@ function init(){
   document.getElementById('surveyCard').style.display = canSurvey ? 'block' : 'none';
   document.getElementById('notifSendCard').style.display = canNotifSend ? 'block' : 'none';
   document.getElementById('addEmployeeSubCard').style.display = canManage ? 'block' : 'none';
+  document.getElementById('supportCard').style.display = canSupport ? 'block' : 'none';
+  document.getElementById('reportsCard').style.display = canReports ? 'block' : 'none';
 
   if(canAnticor) loadStats(user);
   if(canEmployees) loadUsersList(user);

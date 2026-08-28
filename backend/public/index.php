@@ -17,6 +17,7 @@ use App\Controllers\AuthController;
 use App\Controllers\DocsController;
 use App\Controllers\NotificationController;
 use App\Controllers\ProfileController;
+use App\Controllers\ReportsController;
 use App\Controllers\SupportController;
 use App\Controllers\SurveyController;
 use App\Controllers\TestController;
@@ -97,6 +98,15 @@ $routes = [
     'addEmployee' => [AdminController::class, 'addEmployee'],
     'editEmployee' => [AdminController::class, 'editEmployee'],
     'deleteEmployee' => [AdminController::class, 'deleteEmployee'],
+
+    'getSupportRequests' => [ReportsController::class, 'getSupportRequests'],
+    'updateSupportIzoh' => [ReportsController::class, 'updateSupportIzoh'],
+
+    'getUsersReport' => [ReportsController::class, 'getUsersReport'],
+    'getProgressReport' => [ReportsController::class, 'getProgressReport'],
+    'getNotificationsRaw' => [ReportsController::class, 'getNotificationsRaw'],
+    'getNotificationReadsRaw' => [ReportsController::class, 'getNotificationReadsRaw'],
+    'getSurveyAnswersWide' => [ReportsController::class, 'getSurveyAnswersWide'],
 ];
 
 if (!isset($routes[$action])) {
