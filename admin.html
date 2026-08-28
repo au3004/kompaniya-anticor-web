@@ -5,6 +5,9 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>O'zbektelekom AK — Statistika</title>
+<!-- Hisobotlarni haqiqiy Excel (.xlsx) fayl sifatida yuklab olish uchun (CSV'dagi
+     vergul/nuqta-vergul ajratkich muammosisiz — ustunlar har doim to'g'ri ajraladi). -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root{
@@ -264,7 +267,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 
     <div class="search-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
       <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()" style="margin:0;">
-      <button type="button" class="back-btn" onclick="exportStatsCsv()">
+      <button type="button" class="back-btn" onclick="exportStatsXlsx()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
         <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
       </button>
@@ -325,7 +328,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 
     <div class="search-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
       <input type="text" id="empSearchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onEmpSearch()" style="margin:0;">
-      <button type="button" class="back-btn" onclick="exportEmployeesCsv()">
+      <button type="button" class="back-btn" onclick="exportEmployeesXlsx()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
         <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
       </button>
@@ -443,7 +446,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 
     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:24px 0 14px;">
       <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin:0;" data-i18n="testListTitle">Mavjud savollar</h3>
-      <button type="button" class="back-btn" onclick="exportTestQuestionsCsv()">
+      <button type="button" class="back-btn" onclick="exportTestQuestionsXlsx()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
         <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
       </button>
@@ -595,7 +598,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <h1 data-i18n="hubSurveyResults">So'rovnoma natijalari</h1>
       </div>
       <div style="display:flex; gap:10px;">
-        <button type="button" class="back-btn" onclick="exportSurveyResultsCsv()">
+        <button type="button" class="back-btn" onclick="exportSurveyResultsXlsx()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
           <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
         </button>
@@ -698,6 +701,7 @@ const dict = {
     hubTests:"Test savollari", hubTestsDesc:"Test savollarini qo'shish, tahrirlash, o'chirish",
     hubDocs:"Hujjat qo'shish", hubDocsDesc:"Normativ hujjatlarni qo'shish, tahrirlash, o'chirish",
     soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish", downloadBtn:"Hisobotni yuklab olish",
+    xlsxLibErr:"Excel fayl yaratish kutubxonasi yuklanmadi. Internet ulanishini tekshirib, sahifani qayta yuklang.",
     hubNotif:"Xabarnoma yuborish", hubNotifDesc:"Xodimlarga xabarnoma yuborish va hisobot",
     notifTargetTypeLabel:"Qamrov", notifTargetUsers:"Foydalanuvchilar", notifTargetDept:"Bo'linma",
     notifUsersLabel:"Xodimlarni tanlang", notifDeptLabel:"Bo'linmani tanlang",
@@ -746,6 +750,7 @@ const dict = {
     hubTests:"Тестовые вопросы", hubTestsDesc:"Добавление, редактирование, удаление вопросов",
     hubDocs:"Добавить документ", hubDocsDesc:"Добавление, редактирование, удаление документов",
     soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена", downloadBtn:"Скачать отчёт",
+    xlsxLibErr:"Библиотека для создания Excel-файла не загрузилась. Проверьте интернет-соединение и обновите страницу.",
     hubNotif:"Отправить уведомление", hubNotifDesc:"Отправка уведомлений сотрудникам и отчёт",
     notifTargetTypeLabel:"Охват", notifTargetUsers:"Пользователи", notifTargetDept:"Подразделение",
     notifUsersLabel:"Выберите сотрудников", notifDeptLabel:"Выберите подразделение",
@@ -848,27 +853,25 @@ function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-/* ---------- Hisobotlarni CSV (Excel) sifatida yuklab olish ---------- */
-function csvCell(v){
-  const s = String(v ?? '');
-  return /[",\n\r;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-}
-function downloadCsv(filename, rows){
-  const csv = rows.map(r => r.map(csvCell).join(',')).join('\r\n');
-  // ﻿ (BOM) — Excel'da o'zbek/rus harflari (', ў, я kabi) to'g'ri ko'rinishi uchun.
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+/* ---------- Hisobotlarni haqiqiy Excel (.xlsx) fayl sifatida yuklab olish ---------- */
+// SheetJS orqali — CSV'dagi vergul/nuqta-vergul ajratkich muammosisiz, ustunlar
+// Excel'da har doim to'g'ri ajralib chiqadi (mamlakat/til sozlamalaridan qat'i nazar).
+function downloadXlsx(filename, rows, sheetName){
+  if(typeof XLSX === 'undefined'){
+    alert(dict[currentLang].xlsxLibErr);
+    return;
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, (sheetName || 'Hisobot').slice(0, 31));
+  XLSX.writeFile(wb, filename);
 }
 function todayStamp(){
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
-function exportStatsCsv(){
+function exportStatsXlsx(){
   if(!statsData) return;
   const rows = [['ID', 'F.I.Sh', 'Lavozim', "Bo'linma", 'Telefon', 'Hujjat sanasi', 'Test balli', 'Test foizi', "Testdan o'tganmi"]];
   statsData.employees.forEach((e, i) => {
@@ -878,20 +881,20 @@ function exportStatsCsv(){
       e.testTaken ? (e.passed ? 'Ha' : "Yo'q") : "Ishlamagan"
     ]);
   });
-  downloadCsv(`statistika_${todayStamp()}.csv`, rows);
+  downloadXlsx(`statistika_${todayStamp()}.xlsx`, rows, 'Statistika');
 }
 
-function exportEmployeesCsv(){
+function exportEmployeesXlsx(){
   if(!usersData) return;
   const rows = [['ID', 'Login', 'F.I.Sh', 'Lavozim', "Bo'linma", 'Telefon', 'Rol']];
   usersData.forEach(u => {
     const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
     rows.push([u.id, u.login, fish, u.lavozim || '', u.bolinma || '', u.telefon || '', u.rol]);
   });
-  downloadCsv(`xodimlar_${todayStamp()}.csv`, rows);
+  downloadXlsx(`xodimlar_${todayStamp()}.xlsx`, rows, 'Xodimlar');
 }
 
-function exportTestQuestionsCsv(){
+function exportTestQuestionsXlsx(){
   if(!testsData) return;
   const rows = [['ID', 'Savol (UZ)', 'A', 'B', 'C', 'D', "To'g'ri javob (UZ)", 'Savol (RU)', 'A (RU)', 'B (RU)', 'C (RU)', 'D (RU)', "To'g'ri javob (RU)"]];
   testsData.forEach(q => {
@@ -900,10 +903,10 @@ function exportTestQuestionsCsv(){
       q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '', q.ru.correct || ''
     ]);
   });
-  downloadCsv(`test_savollari_${todayStamp()}.csv`, rows);
+  downloadXlsx(`test_savollari_${todayStamp()}.xlsx`, rows, 'Test savollari');
 }
 
-function exportSurveyResultsCsv(){
+function exportSurveyResultsXlsx(){
   if(!surveyResultsData || !surveyResultsData.report) return;
   const rows = [['Jami ishtirokchilar', surveyResultsData.totalSubmissions || 0]];
   rows.push([]);
@@ -925,7 +928,7 @@ function exportSurveyResultsCsv(){
     rows.push([`Jami: ${q.total} ta javob`]);
     rows.push([]);
   });
-  downloadCsv(`sorovnoma_natijalari_${todayStamp()}.csv`, rows);
+  downloadXlsx(`sorovnoma_natijalari_${todayStamp()}.xlsx`, rows, "So'rovnoma");
 }
 
 function renderTable(){
