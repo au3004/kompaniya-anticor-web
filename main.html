@@ -417,7 +417,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 <script>
 // PHP backend'ning ochiq API manzili (backend/public/index.php).
 // Joylashtirilgan domeningizga qarab shu qatorni o'zgartiring.
-const API_BASE_URL = "https://api.your-domain.uz/backend/public/index.php";
+const API_BASE_URL = "http://localhost/anticor/backend/public/index.php"; // XAMPP'da mahalliy test uchun
 
 // Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
