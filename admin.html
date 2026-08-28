@@ -216,15 +216,10 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <h3 data-i18n="hubAnticor">Korrupsiyaga qarshi kurashish</h3>
         <p data-i18n="hubAnticorDesc">Hujjat va test statistikasi</p>
       </button>
-      <button class="hub-card" id="employeesCard" onclick="openSection('employeesView'); if(usersData){ filteredUsers=usersData; renderUsersTable(); }" style="display:none;">
+      <button class="hub-card" id="employeesCard" onclick="openEmployeesEntry()" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <h3 data-i18n="hubEmployees">Xodimlar ro'yxati</h3>
-        <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
-      </button>
-      <button class="hub-card" id="addEmployeeCard" onclick="cancelEmployeeEdit(); openSection('addEmployeeView')" style="display:none;">
-        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
-        <h3 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h3>
-        <p data-i18n="hubAddEmployeeDesc">Tizimga yangi xodim yoki administrator qo'shish</p>
+        <h3 data-i18n="hubEmployeesMain">Xodimlar</h3>
+        <p data-i18n="hubEmployeesMainDesc">Xodimlar ro'yxati va yangi xodim qo'shish</p>
       </button>
       <button class="hub-card" id="testsCard" onclick="openSection('testsView'); loadTests();" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
@@ -267,8 +262,12 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       <div class="stat-card"><div class="num">—</div><div class="lbl" data-i18n="totalLbl">Jami xodimlar</div></div>
     </div>
 
-    <div class="search-row">
-      <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()">
+    <div class="search-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()" style="margin:0;">
+      <button type="button" class="back-btn" onclick="exportStatsCsv()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
+      </button>
     </div>
 
     <div class="table-wrap">
@@ -284,12 +283,12 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
     </div>
   </div>
 
-  <!-- Xodimlar ro'yxati (gl-admin) -->
-  <div id="employeesView" style="display:none;">
+  <!-- Xodimlar: ichki hub (ro'yxat / yangi qo'shish) -->
+  <div id="employeesHubView" style="display:none;">
     <div class="page-head">
       <div>
-        <div class="eyebrow" data-i18n="hubEmployees">Xodimlar</div>
-        <h1 data-i18n="hubEmployees">Xodimlar</h1>
+        <div class="eyebrow" data-i18n="hubEmployeesMain">Xodimlar</div>
+        <h1 data-i18n="hubEmployeesMain">Xodimlar</h1>
       </div>
       <button class="back-btn" onclick="openSection('hubView')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
@@ -297,8 +296,39 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       </button>
     </div>
 
-    <div class="search-row">
-      <input type="text" id="empSearchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onEmpSearch()">
+    <div class="hub-grid">
+      <button class="hub-card" onclick="openSection('employeesView'); if(usersData){ filteredUsers=usersData; renderUsersTable(); }">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3 data-i18n="hubEmployees">Xodimlar ro'yxati</h3>
+        <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
+      </button>
+      <button class="hub-card" id="addEmployeeSubCard" onclick="cancelEmployeeEdit(); openSection('addEmployeeView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
+        <h3 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h3>
+        <p data-i18n="hubAddEmployeeDesc">Tizimga yangi xodim yoki administrator qo'shish</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- Xodimlar ro'yxati -->
+  <div id="employeesView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubEmployees">Xodimlar ro'yxati</div>
+        <h1 data-i18n="hubEmployees">Xodimlar ro'yxati</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('employeesHubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="search-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <input type="text" id="empSearchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onEmpSearch()" style="margin:0;">
+      <button type="button" class="back-btn" onclick="exportEmployeesCsv()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
+      </button>
     </div>
 
     <div class="table-wrap">
@@ -322,7 +352,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="eyebrow" id="empFormEyebrow" data-i18n="hubAddEmployee">Yangi xodim qo'shish</div>
         <h1 id="empFormTitle" data-i18n="hubAddEmployee">Yangi xodim qo'shish</h1>
       </div>
-      <button class="back-btn" onclick="openSection('hubView')">
+      <button class="back-btn" onclick="openSection('employeesHubView')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
         <span data-i18n="backBtn">Ortga</span>
       </button>
@@ -411,7 +441,13 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       </form>
     </div>
 
-    <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin:24px 0 14px;" data-i18n="testListTitle">Mavjud savollar</h3>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:24px 0 14px;">
+      <h3 style="font-family:'Unbounded',sans-serif; font-size:15px; margin:0;" data-i18n="testListTitle">Mavjud savollar</h3>
+      <button type="button" class="back-btn" onclick="exportTestQuestionsCsv()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
+      </button>
+    </div>
     <div class="table-wrap">
       <table>
         <thead><tr><th style="width:48px;" data-i18n="thId">ID</th><th data-i18n="qSavol">Savol</th><th style="width:90px;" data-i18n="thAmal">Amal</th></tr></thead>
@@ -558,10 +594,16 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="eyebrow" data-i18n="hubSurveyResults">So'rovnoma natijalari</div>
         <h1 data-i18n="hubSurveyResults">So'rovnoma natijalari</h1>
       </div>
-      <button class="back-btn" onclick="backFromSurveyResults()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
-        <span data-i18n="backBtn">Ortga</span>
-      </button>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="back-btn" onclick="exportSurveyResultsCsv()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          <span data-i18n="downloadBtn">Hisobotni yuklab olish</span>
+        </button>
+        <button class="back-btn" onclick="backFromSurveyResults()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+          <span data-i18n="backBtn">Ortga</span>
+        </button>
+      </div>
     </div>
     <div id="surveyResultsBox"><p class="loading-row" data-i18n="loading">Yuklanmoqda...</p></div>
   </div>
@@ -651,10 +693,11 @@ let currentLang = localStorage.getItem('km_lang') || 'uz';
 const dict = {
   uz:{ brandName:"\"O'zbektelekom\" AK", eyebrow:"Admin", pageTitle:"Statistika",
     hubAnticor:"Korrupsiyaga qarshi kurashish", hubAnticorDesc:"Hujjat va test statistikasi",
-    hubEmployees:"Xodimlar", hubEmployeesDesc:"Xodimlar bo'yicha umumiy ma'lumot",
+    hubEmployeesMain:"Xodimlar", hubEmployeesMainDesc:"Xodimlar ro'yxati va yangi xodim qo'shish",
+    hubEmployees:"Xodimlar ro'yxati", hubEmployeesDesc:"Xodimlar bo'yicha umumiy ma'lumot",
     hubTests:"Test savollari", hubTestsDesc:"Test savollarini qo'shish, tahrirlash, o'chirish",
     hubDocs:"Hujjat qo'shish", hubDocsDesc:"Normativ hujjatlarni qo'shish, tahrirlash, o'chirish",
-    soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish",
+    soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish", downloadBtn:"Hisobotni yuklab olish",
     hubNotif:"Xabarnoma yuborish", hubNotifDesc:"Xodimlarga xabarnoma yuborish va hisobot",
     notifTargetTypeLabel:"Qamrov", notifTargetUsers:"Foydalanuvchilar", notifTargetDept:"Bo'linma",
     notifUsersLabel:"Xodimlarni tanlang", notifDeptLabel:"Bo'linmani tanlang",
@@ -698,10 +741,11 @@ const dict = {
     weakPasswordErr:"Parol kamida 6 belgidan iborat bo'lishi kerak" },
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
     hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
-    hubEmployees:"Сотрудники", hubEmployeesDesc:"Общая информация по сотрудникам",
+    hubEmployeesMain:"Сотрудники", hubEmployeesMainDesc:"Список сотрудников и добавление нового сотрудника",
+    hubEmployees:"Список сотрудников", hubEmployeesDesc:"Общая информация по сотрудникам",
     hubTests:"Тестовые вопросы", hubTestsDesc:"Добавление, редактирование, удаление вопросов",
     hubDocs:"Добавить документ", hubDocsDesc:"Добавление, редактирование, удаление документов",
-    soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена",
+    soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена", downloadBtn:"Скачать отчёт",
     hubNotif:"Отправить уведомление", hubNotifDesc:"Отправка уведомлений сотрудникам и отчёт",
     notifTargetTypeLabel:"Охват", notifTargetUsers:"Пользователи", notifTargetDept:"Подразделение",
     notifUsersLabel:"Выберите сотрудников", notifDeptLabel:"Выберите подразделение",
@@ -775,6 +819,7 @@ let editingDocId = null;
 let surveyData = null;
 let editingSurveyId = null;
 let editingEmployeeId = null;
+let surveyResultsData = null;
 
 function openSection(id){
   document.querySelectorAll('#mainContent > div').forEach(d => d.style.display = 'none');
@@ -803,6 +848,86 @@ function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+/* ---------- Hisobotlarni CSV (Excel) sifatida yuklab olish ---------- */
+function csvCell(v){
+  const s = String(v ?? '');
+  return /[",\n\r;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function downloadCsv(filename, rows){
+  const csv = rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+  // ﻿ (BOM) — Excel'da o'zbek/rus harflari (', ў, я kabi) to'g'ri ko'rinishi uchun.
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function todayStamp(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function exportStatsCsv(){
+  if(!statsData) return;
+  const rows = [['ID', 'F.I.Sh', 'Lavozim', "Bo'linma", 'Telefon', 'Hujjat sanasi', 'Test balli', 'Test foizi', "Testdan o'tganmi"]];
+  statsData.employees.forEach((e, i) => {
+    rows.push([
+      i + 1, e.fish, e.lavozim || '', e.bolinma || '', e.telefon || '',
+      e.hujjatSana || '', e.testTaken ? e.testPoints : '', e.testTaken ? e.testPercent + '%' : '',
+      e.testTaken ? (e.passed ? 'Ha' : "Yo'q") : "Ishlamagan"
+    ]);
+  });
+  downloadCsv(`statistika_${todayStamp()}.csv`, rows);
+}
+
+function exportEmployeesCsv(){
+  if(!usersData) return;
+  const rows = [['ID', 'Login', 'F.I.Sh', 'Lavozim', "Bo'linma", 'Telefon', 'Rol']];
+  usersData.forEach(u => {
+    const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
+    rows.push([u.id, u.login, fish, u.lavozim || '', u.bolinma || '', u.telefon || '', u.rol]);
+  });
+  downloadCsv(`xodimlar_${todayStamp()}.csv`, rows);
+}
+
+function exportTestQuestionsCsv(){
+  if(!testsData) return;
+  const rows = [['ID', 'Savol (UZ)', 'A', 'B', 'C', 'D', "To'g'ri javob (UZ)", 'Savol (RU)', 'A (RU)', 'B (RU)', 'C (RU)', 'D (RU)', "To'g'ri javob (RU)"]];
+  testsData.forEach(q => {
+    rows.push([
+      q.id, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.uz.correct || '',
+      q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '', q.ru.correct || ''
+    ]);
+  });
+  downloadCsv(`test_savollari_${todayStamp()}.csv`, rows);
+}
+
+function exportSurveyResultsCsv(){
+  if(!surveyResultsData || !surveyResultsData.report) return;
+  const rows = [['Jami ishtirokchilar', surveyResultsData.totalSubmissions || 0]];
+  rows.push([]);
+  surveyResultsData.report.forEach(q => {
+    rows.push([q.savol]);
+    if(q.turi === 'tanlov'){
+      rows.push(['Variant', 'Ovozlar soni', 'Foiz']);
+      q.options.filter(o => o.text).forEach(o => {
+        rows.push([o.text, o.count, q.total ? Math.round(o.count / q.total * 100) + '%' : '0%']);
+      });
+    } else if(q.turi === 'yulduz'){
+      rows.push(["O'rtacha baho", q.average, 'dan', q.stars]);
+      rows.push(['Yulduz', 'Ovozlar soni']);
+      q.ratingCounts.forEach(r => rows.push([r.value, r.count]));
+    } else {
+      rows.push(['Erkin javoblar:']);
+      q.responses.forEach(t => rows.push([t]));
+    }
+    rows.push([`Jami: ${q.total} ta javob`]);
+    rows.push([]);
+  });
+  downloadCsv(`sorovnoma_natijalari_${todayStamp()}.csv`, rows);
+}
+
 function renderTable(){
   if(filteredEmployees.length === 0){
     document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
@@ -823,7 +948,11 @@ function renderAll(){
   if(usersData) onEmpSearch();
 }
 
-/* ---------- Xodimlar (gl-admin) ---------- */
+/* ---------- Xodimlar ---------- */
+function openEmployeesEntry(){
+  openSection('employeesHubView');
+}
+
 function onEmpSearch(){
   const q = document.getElementById('empSearchInput').value.trim().toLowerCase();
   filteredUsers = !q ? usersData : usersData.filter(u => (u.familiya+' '+u.ism+' '+(u.otasi||'')).toLowerCase().includes(q) || u.login.toLowerCase().includes(q));
@@ -1378,6 +1507,7 @@ async function loadSurveyResults(){
   try{
     const data = await apiCall({ action:'getSurveyResults', token: currentUserForKpi.token });
     if(!data.success){ box.innerHTML = `<p class="loading-row">Xatolik</p>`; return; }
+    surveyResultsData = data;
     if(!data.report || data.report.length === 0){ box.innerHTML = `<p class="loading-row">${dict[currentLang].noResults}</p>`; return; }
 
     const summaryHtml = `<div class="survey-summary-row">
@@ -1550,7 +1680,7 @@ function init(){
   document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('surveyCard').style.display = canSurvey ? 'block' : 'none';
   document.getElementById('notifSendCard').style.display = canNotifSend ? 'block' : 'none';
-  document.getElementById('addEmployeeCard').style.display = canManage ? 'block' : 'none';
+  document.getElementById('addEmployeeSubCard').style.display = canManage ? 'block' : 'none';
 
   if(canAnticor) loadStats(user);
   if(canEmployees) loadUsersList(user);
