@@ -30,7 +30,12 @@ final class AuthController
         $stmt->execute(['login' => $login]);
         $user = $stmt->fetch();
 
-        if (!$user || !Auth::verifyPassword($parol, $user['password_hash'])) {
+        // Foydalanuvchi topilmasa ham password_verify() ni bajaramiz (soxta hash bilan) —
+        // aks holda javob vaqti orqali "bu login mavjud/mavjud emas"ligini bilib olish mumkin bo'lardi.
+        $hashToCheck = $user['password_hash'] ?? Auth::dummyHash();
+        $passwordOk = Auth::verifyPassword($parol, $hashToCheck);
+
+        if (!$user || !$passwordOk) {
             Auth::registerFailedAttempt($login);
             Response::error("Login yoki parol noto'g'ri", 'INVALID_CREDENTIALS');
         }
@@ -91,6 +96,12 @@ final class AuthController
 
         $upd = $db->prepare('UPDATE users SET password_hash = :hash WHERE id = :id');
         $upd->execute(['hash' => Auth::hashPassword($newPass), 'id' => $user['id']]);
+
+        // Parol o'zgartirilgach, shu foydalanuvchining boshqa barcha faol sessiyalarini
+        // bekor qilamiz (masalan, o'g'irlangan token bo'lsa, u endi ishlamaydi) —
+        // joriy sessiya (hozir ishlatilayotgan token) tegilmaydi.
+        $revoke = $db->prepare('DELETE FROM sessions WHERE user_id = :id AND token != :token');
+        $revoke->execute(['id' => $user['id'], 'token' => $user['token']]);
 
         Response::success();
     }

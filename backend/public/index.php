@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+// Kutilmagan xatoliklar (masalan, DB ulanish nosozligi) brauzerga fayl yo'llari yoki
+// stack trace kabi ichki ma'lumotlarni chiqarib yubormasligi uchun — bular faqat
+// server jurnaliga (error_log) yoziladi, mijozga esa umumiy xabar qaytariladi.
+ini_set('display_errors', '0');
+error_reporting(E_ALL);
+
 require dirname(__DIR__) . '/src/autoload.php';
 
 use App\Config;

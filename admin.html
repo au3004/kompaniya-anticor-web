@@ -218,8 +218,13 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       </button>
       <button class="hub-card" id="employeesCard" onclick="openSection('employeesView'); if(usersData){ filteredUsers=usersData; renderUsersTable(); }" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <h3 data-i18n="hubEmployees">Xodimlar</h3>
+        <h3 data-i18n="hubEmployees">Xodimlar ro'yxati</h3>
         <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
+      </button>
+      <button class="hub-card" id="addEmployeeCard" onclick="openSection('addEmployeeView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
+        <h3 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h3>
+        <p data-i18n="hubAddEmployeeDesc">Tizimga yangi xodim yoki administrator qo'shish</p>
       </button>
       <button class="hub-card" id="testsCard" onclick="openSection('testsView'); loadTests();" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
@@ -292,30 +297,6 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       </button>
     </div>
 
-    <div class="form-card" id="addEmployeeCard" style="display:none; max-width:640px;">
-      <h3 style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:16px;" data-i18n="empFormAdd">Yangi xodim qo'shish</h3>
-      <form onsubmit="return submitEmployeeForm(event)">
-        <div class="field"><label data-i18n="empLoginLabel">Login</label><input type="text" id="eLogin" required autocomplete="off"></div>
-        <div class="field"><label data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password"></div>
-        <div class="field"><label data-i18n="empFamiliyaLabel">Familiya</label><input type="text" id="eFamiliya" required></div>
-        <div class="field"><label data-i18n="empIsmLabel">Ism</label><input type="text" id="eIsm" required></div>
-        <div class="field"><label data-i18n="empOtasiLabel">Otasining ismi</label><input type="text" id="eOtasi"></div>
-        <div class="field"><label data-i18n="thPos">Lavozim</label><input type="text" id="eLavozim"></div>
-        <div class="field"><label data-i18n="thDept">Bo'linma</label><input type="text" id="eBolinma"></div>
-        <div class="field"><label data-i18n="thPhone">Telefon</label><input type="text" id="eTelefon"></div>
-        <div class="field">
-          <label data-i18n="thRol">Rol</label>
-          <select id="eRol">
-            <option value="user" data-i18n="roleUser">Xodim</option>
-            <option value="admin" data-i18n="roleAdmin">Admin</option>
-            <option value="gl-admin" data-i18n="roleGlAdmin">Bosh admin</option>
-          </select>
-        </div>
-        <button class="submit-btn" type="submit" id="empSubmitBtn" data-i18n="saveBtn">Saqlash</button>
-        <div class="msg" id="empFormMsg"></div>
-      </form>
-    </div>
-
     <div class="search-row">
       <input type="text" id="empSearchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onEmpSearch()">
     </div>
@@ -330,6 +311,45 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         </thead>
         <tbody id="empTbody"><tr><td colspan="5" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Yangi xodim qo'shish (faqat gl-admin) -->
+  <div id="addEmployeeView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubAddEmployee">Yangi xodim qo'shish</div>
+        <h1 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="form-card" style="max-width:640px;">
+      <form onsubmit="return submitEmployeeForm(event)">
+        <div class="field"><label data-i18n="empLoginLabel">Login</label><input type="text" id="eLogin" required autocomplete="off"></div>
+        <div class="field"><label data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password"></div>
+        <div class="field"><label data-i18n="empFamiliyaLabel">Familiya</label><input type="text" id="eFamiliya" required></div>
+        <div class="field"><label data-i18n="empIsmLabel">Ism</label><input type="text" id="eIsm" required></div>
+        <div class="field"><label data-i18n="empOtasiLabel">Otasining ismi</label><input type="text" id="eOtasi"></div>
+        <div class="field"><label data-i18n="empLavozimLabel">Lavozim (O'zbek)</label><input type="text" id="eLavozim"></div>
+        <div class="field"><label data-i18n="empLavozimRuLabel">Lavozim (Rus)</label><input type="text" id="eLavozimRu"></div>
+        <div class="field"><label data-i18n="empBolinmaLabel">Bo'linma (O'zbek)</label><input type="text" id="eBolinma"></div>
+        <div class="field"><label data-i18n="empBolinmaRuLabel">Bo'linma (Rus)</label><input type="text" id="eBolinmaRu"></div>
+        <div class="field"><label data-i18n="thPhone">Telefon</label><input type="text" id="eTelefon"></div>
+        <div class="field">
+          <label data-i18n="thRol">Rol</label>
+          <select id="eRol">
+            <option value="user" data-i18n="roleUser">Xodim</option>
+            <option value="admin" data-i18n="roleAdmin">Admin</option>
+            <option value="gl-admin" data-i18n="roleGlAdmin">Bosh admin</option>
+          </select>
+        </div>
+        <button class="submit-btn" type="submit" id="empSubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <div class="msg" id="empFormMsg"></div>
+      </form>
     </div>
   </div>
 
@@ -665,6 +685,9 @@ const dict = {
     totalSubmissionsLbl:"Jami ishtirokchilar", totalQuestionsLbl:"Savollar soni", byQuestionLbl:"Javoblar taqsimoti", avgScoreLbl:"O'rtacha ball",
     empFormAdd:"Yangi xodim qo'shish", empLoginLabel:"Login", empPassLabel:"Parol",
     empFamiliyaLabel:"Familiya", empIsmLabel:"Ism", empOtasiLabel:"Otasining ismi",
+    empLavozimLabel:"Lavozim (O'zbek)", empLavozimRuLabel:"Lavozim (Rus)",
+    empBolinmaLabel:"Bo'linma (O'zbek)", empBolinmaRuLabel:"Bo'linma (Rus)",
+    hubAddEmployee:"Yangi xodim qo'shish", hubAddEmployeeDesc:"Tizimga yangi xodim yoki administrator qo'shish",
     roleUser:"Xodim", roleAdmin:"Admin", roleGlAdmin:"Bosh admin",
     empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Bu login band, boshqasini tanlang",
     weakPasswordErr:"Parol kamida 6 belgidan iborat bo'lishi kerak" },
@@ -706,6 +729,9 @@ const dict = {
     totalSubmissionsLbl:"Всего участников", totalQuestionsLbl:"Количество вопросов", byQuestionLbl:"Распределение ответов", avgScoreLbl:"Средний балл",
     empFormAdd:"Добавить нового сотрудника", empLoginLabel:"Логин", empPassLabel:"Пароль",
     empFamiliyaLabel:"Фамилия", empIsmLabel:"Имя", empOtasiLabel:"Отчество",
+    empLavozimLabel:"Должность (узб.)", empLavozimRuLabel:"Должность (рус.)",
+    empBolinmaLabel:"Подразделение (узб.)", empBolinmaRuLabel:"Подразделение (рус.)",
+    hubAddEmployee:"Добавить сотрудника", hubAddEmployeeDesc:"Добавить нового сотрудника или администратора",
     roleUser:"Сотрудник", roleAdmin:"Админ", roleGlAdmin:"Гл. админ",
     empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, выберите другой",
     weakPasswordErr:"Пароль должен содержать не менее 6 символов" }
@@ -827,7 +853,9 @@ async function submitEmployeeForm(e){
     ism: document.getElementById('eIsm').value.trim(),
     otasi: document.getElementById('eOtasi').value.trim(),
     lavozim: document.getElementById('eLavozim').value.trim(),
+    lavozimRu: document.getElementById('eLavozimRu').value.trim(),
     bolinma: document.getElementById('eBolinma').value.trim(),
+    bolinmaRu: document.getElementById('eBolinmaRu').value.trim(),
     telefon: document.getElementById('eTelefon').value.trim(),
     rol: document.getElementById('eRol').value
   };
@@ -1347,14 +1375,14 @@ function onNotifTargetTypeChange(){
   document.getElementById('notifUsersField').style.display = type === 'users' ? 'block' : 'none';
   document.getElementById('notifDeptField').style.display = type === 'department' ? 'block' : 'none';
   if(type === 'department' && document.getElementById('notifDeptSelect').options.length === 0){
-    const depts = [...new Set((usersData||[]).filter(u=>u.rol==='user').map(u=>u.bolinma).filter(Boolean))];
+    const depts = [...new Set((usersData||[]).map(u=>u.bolinma).filter(Boolean))];
     document.getElementById('notifDeptSelect').innerHTML = depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
   }
 }
 
 function renderNotifUserList(){
   const q = document.getElementById('notifUserSearch').value.trim().toLowerCase();
-  const list = (usersData||[]).filter(u=>u.rol==='user').filter(u=>{
+  const list = (usersData||[]).filter(u=>{
     const fish = [u.familiya,u.ism,u.otasi].filter(Boolean).join(' ').toLowerCase();
     return !q || fish.includes(q);
   });

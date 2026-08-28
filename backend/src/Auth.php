@@ -20,7 +20,7 @@ final class Auth
 
         $db = Database::connection();
         $stmt = $db->prepare(
-            'SELECT u.*, s.expires_at
+            'SELECT u.*, s.expires_at, s.created_at AS session_created_at
              FROM sessions s
              JOIN users u ON u.id = s.user_id
              WHERE s.token = :token
@@ -29,7 +29,11 @@ final class Auth
         $stmt->execute(['token' => $token]);
         $row = $stmt->fetch();
 
-        if (!$row || strtotime((string) $row['expires_at']) < time()) {
+        $expired = !$row
+            || strtotime((string) $row['expires_at']) < time()
+            || self::sessionTooOld($row['session_created_at'] ?? null);
+
+        if ($expired) {
             if ($row) {
                 $del = $db->prepare('DELETE FROM sessions WHERE token = :token');
                 $del->execute(['token' => $token]);
@@ -37,15 +41,29 @@ final class Auth
             Response::error('Sessiya muddati tugagan', 'SESSION_EXPIRED', 401);
         }
 
-        // Sliding expiration: har bir muvaffaqiyatli so'rovda muddatni uzaytiramiz.
+        // Sliding expiration: har bir muvaffaqiyatli so'rovda muddatni uzaytiramiz
+        // (lekin sessionTooOld() tekshiruvi orqali umumiy amal qilish muddati baribir cheklangan).
         $ttlHours = Config::int('SESSION_TTL_HOURS', 12);
         $newExpiry = date('Y-m-d H:i:s', time() + $ttlHours * 3600);
         $upd = $db->prepare('UPDATE sessions SET expires_at = :exp WHERE token = :token');
         $upd->execute(['exp' => $newExpiry, 'token' => $token]);
 
-        unset($row['password_hash']);
+        unset($row['password_hash'], $row['session_created_at']);
         $row['token'] = $token;
         return $row;
+    }
+
+    /**
+     * Yon tomondan uzaytirilaverishi (sliding expiration) tufayli faol token
+     * cheksiz amal qilib qolmasligi uchun mutlaq umr chegarasi (masalan, 7 kun).
+     */
+    private static function sessionTooOld(?string $createdAt): bool
+    {
+        if (!$createdAt) {
+            return false;
+        }
+        $maxHours = Config::int('SESSION_ABSOLUTE_TTL_HOURS', 168);
+        return strtotime($createdAt) < time() - $maxHours * 3600;
     }
 
     /**
@@ -62,7 +80,7 @@ final class Auth
 
         $db = Database::connection();
         $stmt = $db->prepare(
-            'SELECT u.*, s.expires_at
+            'SELECT u.*, s.expires_at, s.created_at AS session_created_at
              FROM sessions s
              JOIN users u ON u.id = s.user_id
              WHERE s.token = :token
@@ -71,9 +89,10 @@ final class Auth
         $stmt->execute(['token' => $token]);
         $row = $stmt->fetch();
 
-        if (!$row || strtotime((string) $row['expires_at']) < time()) {
+        if (!$row || strtotime((string) $row['expires_at']) < time() || self::sessionTooOld($row['session_created_at'] ?? null)) {
             return null;
         }
+        unset($row['session_created_at']);
 
         unset($row['password_hash']);
         $row['token'] = $token;
@@ -100,6 +119,15 @@ final class Auth
     public static function verifyPassword(string $plain, string $hash): bool
     {
         return password_verify($plain, $hash);
+    }
+
+    /**
+     * Mavjud bo'lmagan login uchun password_verify()ni "haqiqiy" hisoblash vaqtiga
+     * yaqinlashtirish uchun ishlatiladigan statik bcrypt hash (login enumeration'dan himoya).
+     */
+    public static function dummyHash(): string
+    {
+        return '$2y$12$bNHdSHT//Ad59PBf3qFRZe7t/2ecCXn.Ey6Rdz9i7yXlXGANYWYk.';
     }
 
     public static function generateToken(): string

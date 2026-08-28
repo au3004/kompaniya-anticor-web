@@ -22,7 +22,9 @@ final class AdminController
         $ism = Validate::requiredStr($input, 'ism', 150);
         $otasi = Validate::str($input, 'otasi', 150);
         $lavozim = Validate::str($input, 'lavozim', 200);
+        $lavozimRu = Validate::str($input, 'lavozimRu', 200);
         $bolinma = Validate::str($input, 'bolinma', 200);
+        $bolinmaRu = Validate::str($input, 'bolinmaRu', 200);
         $telefon = Validate::str($input, 'telefon', 20);
         $rol = Validate::str($input, 'rol', 20);
 
@@ -35,8 +37,8 @@ final class AdminController
 
         $db = Database::connection();
         $stmt = $db->prepare(
-            'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, lavozim, bolinma, telefon, rol)
-             VALUES (:login, :hash, :familiya, :ism, :otasi, :lavozim, :bolinma, :telefon, :rol)'
+            'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol)
+             VALUES (:login, :hash, :familiya, :ism, :otasi, :lavozim, :lavozim_ru, :bolinma, :bolinma_ru, :telefon, :rol)'
         );
 
         try {
@@ -47,7 +49,9 @@ final class AdminController
                 'ism' => $ism,
                 'otasi' => $otasi !== '' ? $otasi : null,
                 'lavozim' => $lavozim !== '' ? $lavozim : null,
+                'lavozim_ru' => $lavozimRu !== '' ? $lavozimRu : null,
                 'bolinma' => $bolinma !== '' ? $bolinma : null,
+                'bolinma_ru' => $bolinmaRu !== '' ? $bolinmaRu : null,
                 'telefon' => $telefon !== '' ? $telefon : null,
                 'rol' => $rol,
             ]);

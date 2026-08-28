@@ -50,12 +50,25 @@ final class NotificationController
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
         }
 
+        // Faqat aslida shu foydalanuvchiga mo'ljallangan bildirishnomani "o'qildi" deb
+        // belgilash mumkin — boshqa birovga yo'llangan notifId'ni taxmin qilib yubormaslik uchun.
         $db = Database::connection();
         $stmt = $db->prepare(
-            'INSERT INTO notification_reads (notification_id, user_id) VALUES (:nid, :uid)
-             ON DUPLICATE KEY UPDATE read_at = read_at'
+            "INSERT INTO notification_reads (notification_id, user_id)
+             SELECT n.id, :uid FROM notifications n
+             WHERE n.id = :nid
+               AND (
+                 (n.target_type = 'department' AND n.target_value = :bolinma)
+                 OR (n.target_type = 'users' AND FIND_IN_SET(:login, n.target_value))
+               )
+             ON DUPLICATE KEY UPDATE read_at = read_at"
         );
-        $stmt->execute(['nid' => $notifId, 'uid' => $user['id']]);
+        $stmt->execute([
+            'uid' => $user['id'],
+            'nid' => $notifId,
+            'bolinma' => (string) $user['bolinma'],
+            'login' => (string) $user['login'],
+        ]);
 
         Response::success();
     }
