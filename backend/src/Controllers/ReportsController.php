@@ -69,8 +69,10 @@ final class ReportsController
         }
 
         $rows = [];
+        $rowNum = 0;
         foreach ($employees as $u) {
             $uid = (int) $u['id'];
+            $rowNum++;
             $docs = $docsByUser[$uid] ?? [];
             $attempts = $attemptsByUser[$uid] ?? [];
 
@@ -88,7 +90,7 @@ final class ReportsController
             ));
 
             $rows[] = [
-                'id' => $uid,
+                'id' => $rowNum,
                 'fish' => Util::fullName($u),
                 'telefon' => $u['telefon'],
                 'tanishganSana' => $tanishganSana,
@@ -108,12 +110,28 @@ final class ReportsController
 
         $db = Database::connection();
         $rows = $db->query(
-            "SELECT sr.id, sr.murojaat, sr.izoh, sr.created_at,
+            "SELECT sr.id, sr.murojaat, sr.created_at,
                     u.login, u.familiya, u.ism, u.otasining_ismi, u.telefon
              FROM support_requests sr
              JOIN users u ON u.id = sr.user_id
              ORDER BY sr.created_at DESC"
         )->fetchAll();
+
+        $commentsByRequest = [];
+        $commentRows = $db->query(
+            "SELECT sc.support_request_id, sc.izoh, sc.created_at,
+                    u.familiya, u.ism, u.otasining_ismi
+             FROM support_comments sc
+             JOIN users u ON u.id = sc.user_id
+             ORDER BY sc.support_request_id ASC, sc.created_at ASC, sc.id ASC"
+        )->fetchAll();
+        foreach ($commentRows as $c) {
+            $commentsByRequest[(int) $c['support_request_id']][] = [
+                'fish' => Util::fullName($c),
+                'izoh' => $c['izoh'],
+                'sana' => date('d.m.Y G:i', strtotime((string) $c['created_at'])),
+            ];
+        }
 
         $list = array_map(static fn (array $r) => [
             'id' => (int) $r['id'],
@@ -121,26 +139,37 @@ final class ReportsController
             'fish' => Util::fullName($r),
             'telefon' => $r['telefon'],
             'murojaat' => $r['murojaat'],
-            'izoh' => $r['izoh'],
+            'comments' => $commentsByRequest[(int) $r['id']] ?? [],
             'sana' => date('d.m.Y G:i', strtotime((string) $r['created_at'])),
         ], $rows);
 
         Response::success(['requests' => $list]);
     }
 
-    public static function updateSupportIzoh(array $input): void
+    public static function addSupportComment(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin', 'admin']);
+        $user = Auth::requireRole($input, ['gl-admin', 'admin']);
 
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
         }
         $izoh = Validate::str($input, 'izoh', 4000);
+        if ($izoh === '') {
+            Response::error('Izoh matni talab qilinadi', 'VALIDATION_ERROR', 422);
+        }
 
         $db = Database::connection();
-        $stmt = $db->prepare('UPDATE support_requests SET izoh = :izoh WHERE id = :id');
-        $stmt->execute(['izoh' => $izoh !== '' ? $izoh : null, 'id' => $id]);
+        $exists = $db->prepare('SELECT id FROM support_requests WHERE id = :id');
+        $exists->execute(['id' => $id]);
+        if (!$exists->fetch()) {
+            Response::error('So\'rov topilmadi', 'NOT_FOUND', 404);
+        }
+
+        $stmt = $db->prepare(
+            'INSERT INTO support_comments (support_request_id, user_id, izoh) VALUES (:rid, :uid, :izoh)'
+        );
+        $stmt->execute(['rid' => $id, 'uid' => (int) $user['id'], 'izoh' => $izoh]);
 
         Response::success();
     }

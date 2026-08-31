@@ -177,9 +177,22 @@ CREATE TABLE support_requests (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   user_id     INT NOT NULL,
   murojaat    TEXT NOT NULL,
-  izoh        TEXT,
+  izoh        TEXT,      -- eskirgan (endi ishlatilmaydi) — o'rniga support_comments jadvali
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Bitta murojaatga bir nechta xodim (gl-admin/admin) izoh qoldirishi mumkin —
+-- har bir izoh kim yozgani va qachonligi bilan alohida qator sifatida saqlanadi.
+CREATE TABLE support_comments (
+  id                  INT AUTO_INCREMENT PRIMARY KEY,
+  support_request_id  INT NOT NULL,
+  user_id             INT NOT NULL,
+  izoh                TEXT NOT NULL,
+  created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (support_request_id) REFERENCES support_requests(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_request (support_request_id)
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------

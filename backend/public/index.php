@@ -100,7 +100,7 @@ $routes = [
     'deleteEmployee' => [AdminController::class, 'deleteEmployee'],
 
     'getSupportRequests' => [ReportsController::class, 'getSupportRequests'],
-    'updateSupportIzoh' => [ReportsController::class, 'updateSupportIzoh'],
+    'addSupportComment' => [ReportsController::class, 'addSupportComment'],
 
     'getUsersReport' => [ReportsController::class, 'getUsersReport'],
     'getProgressReport' => [ReportsController::class, 'getProgressReport'],

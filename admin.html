@@ -51,6 +51,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 /* Hub cards */
 .hub-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px; margin-top:10px; }
 .hub-card{
+  position:relative;
   background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:28px;
   cursor:pointer; transition:transform .2s ease, border-color .2s ease; text-align:left;
 }
@@ -245,6 +246,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <p data-i18n="hubNotifDesc">Xodimlarga xabarnoma yuborish va hisobot</p>
       </button>
       <button class="hub-card" id="supportCard" onclick="openSection('supportView'); loadSupportRequests();" style="display:none;">
+        <span id="supportBadge" style="display:none; position:absolute; top:16px; right:16px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:11px; font-weight:700; line-height:17px; text-align:center;"></span>
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg></div>
         <h3 data-i18n="hubSupport">Yordam so'rovlari</h3>
         <p data-i18n="hubSupportDesc">Xodimlardan kelgan murojaatlar</p>
@@ -659,9 +661,34 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <span data-i18n="backBtn">Ortga</span>
       </button>
     </div>
-    <div id="supportList" style="display:flex; flex-direction:column; gap:12px;">
-      <p class="loading-row" data-i18n="loading">Yuklanmoqda...</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
+            <th data-i18n="thPhone">Telefon</th><th data-i18n="thMurojaat">Murojaat</th>
+            <th data-i18n="thSana">Sana</th>
+            <th style="width:90px;" data-i18n="thAmal">Amal</th>
+          </tr>
+        </thead>
+        <tbody id="supportTbody"><tr><td colspan="6" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
     </div>
+  </div>
+
+  <!-- Yordam so'rovi tafsiloti + izohlar tarixi -->
+  <div id="supportDetailView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubSupport">Yordam so'rovlari</div>
+        <h1 data-i18n="supportDetailTitle">Murojaat tafsiloti</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('supportView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div id="supportDetailBox"></div>
   </div>
 
   <!-- Hisobotlar (faqat gl-admin) -->
@@ -768,6 +795,9 @@ const dict = {
     repSurveyQTitle:"So'rovnoma savollari", repSurveyQDesc:"Anonim so'rovnoma savollari",
     repSurveyATitle:"So'rovnoma javoblari", repSurveyADesc:"Anonim javoblar (foydalanuvchi bilan bog'lanmagan)",
     supportIzohLabel:"Izoh", supportIzohPh:"Murojaatga izoh/javob yozing",
+    thMurojaat:"Murojaat", thSana:"Sana", supportDetailTitle:"Murojaat tafsiloti",
+    supportCommentsTitle:"Izohlar tarixi", supportNoComments:"Hozircha izoh yo'q",
+    supportAddCommentBtn:"Izoh qo'shish",
     hubNotif:"Xabarnoma yuborish", hubNotifDesc:"Xodimlarga xabarnoma yuborish va hisobot",
     notifTargetTypeLabel:"Qamrov", notifTargetUsers:"Foydalanuvchilar", notifTargetDept:"Bo'linma",
     notifUsersLabel:"Xodimlarni tanlang", notifDeptLabel:"Bo'linmani tanlang",
@@ -828,6 +858,9 @@ const dict = {
     repSurveyQTitle:"Вопросы опроса", repSurveyQDesc:"Вопросы анонимного опроса",
     repSurveyATitle:"Ответы опроса", repSurveyADesc:"Анонимные ответы (не связаны с пользователем)",
     supportIzohLabel:"Комментарий", supportIzohPh:"Напишите комментарий/ответ на обращение",
+    thMurojaat:"Обращение", thSana:"Дата", supportDetailTitle:"Детали обращения",
+    supportCommentsTitle:"История комментариев", supportNoComments:"Комментариев пока нет",
+    supportAddCommentBtn:"Добавить комментарий",
     hubNotif:"Отправить уведомление", hubNotifDesc:"Отправка уведомлений сотрудникам и отчёт",
     notifTargetTypeLabel:"Охват", notifTargetUsers:"Пользователи", notifTargetDept:"Подразделение",
     notifUsersLabel:"Выберите сотрудников", notifDeptLabel:"Выберите подразделение",
@@ -983,9 +1016,12 @@ async function exportSupportReport(){
   try{
     const data = await apiCall({ action:'getSupportRequests', token: currentUserForKpi.token });
     if(!data.success) return alert(dict[currentLang].savedErr);
-    const rows = [['ID','Login','F.I.Sh',"Telefon raqam",'Murojaat','Izoh']];
+    const rows = [['ID','Login','F.I.Sh',"Telefon raqam",'Murojaat','Izoh',"Ko'rib chiqdi"]];
     data.requests.forEach(r => {
-      rows.push([r.id, r.login, r.fish, r.telefon || '', r.murojaat, r.izoh || '']);
+      const comments = r.comments || [];
+      const izohCol = comments.map(c => c.izoh).join('\n');
+      const koribChiqdiCol = comments.map(c => c.fish).join('\n');
+      rows.push([r.id, r.login, r.fish, r.telefon || '', r.murojaat, izohCol, koribChiqdiCol]);
     });
     downloadXlsx(`support_${todayStamp()}.xlsx`, rows, 'Support');
   } catch(ex){ alert('Xatolik: ' + ex.message); }
@@ -1787,51 +1823,95 @@ function renderNotifHistory(report){
 
 /* ---------- Yordam so'rovlari (Support) ---------- */
 let supportData = null;
+let currentSupportDetailId = null;
 
 async function loadSupportRequests(){
-  const box = document.getElementById('supportList');
-  box.innerHTML = `<p class="loading-row">${dict[currentLang].loading}</p>`;
+  const tbody = document.getElementById('supportTbody');
   try{
     const data = await apiCall({ action:'getSupportRequests', token: currentUserForKpi.token });
-    if(data.success){ supportData = data.requests; renderSupportList(); }
-    else box.innerHTML = `<p class="loading-row">Xatolik</p>`;
+    if(data.success){ supportData = data.requests; renderSupportTable(); updateSupportBadge(); }
+    else if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Xatolik</td></tr>`;
   } catch(ex){
-    box.innerHTML = `<p class="loading-row">Xatolik: ${ex.message}</p>`;
+    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
   }
 }
 
-function renderSupportList(){
-  const box = document.getElementById('supportList');
+function updateSupportBadge(){
+  const badge = document.getElementById('supportBadge');
+  if(!badge || !supportData) return;
+  const unreviewed = supportData.filter(r => !r.comments || r.comments.length === 0).length;
+  if(unreviewed > 0){ badge.textContent = unreviewed > 99 ? '99+' : String(unreviewed); badge.style.display = 'flex'; badge.style.alignItems = 'center'; badge.style.justifyContent = 'center'; }
+  else badge.style.display = 'none';
+}
+
+function renderSupportTable(){
+  const tbody = document.getElementById('supportTbody');
+  if(!tbody) return;
   if(!supportData || supportData.length === 0){
-    box.innerHTML = `<p class="loading-row">${dict[currentLang].noResults}</p>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
-  box.innerHTML = supportData.map(r => `
-    <div class="notif-hist-item" style="cursor:default;">
-      <div class="h-meta"><span>${escapeHtml(r.fish)} (${escapeHtml(r.login)}) • ${escapeHtml(r.telefon || '—')}</span><span>${escapeHtml(r.sana)}</span></div>
-      <div class="h-text">${escapeHtml(r.murojaat)}</div>
-      <div class="field" style="margin-top:10px; margin-bottom:0;">
-        <label style="font-size:11px; text-transform:uppercase; color:var(--text-dim); display:block; margin-bottom:5px;">${dict[currentLang].supportIzohLabel}</label>
-        <textarea id="izoh-${r.id}" rows="2" placeholder="${dict[currentLang].supportIzohPh}">${escapeHtml(r.izoh || '')}</textarea>
-      </div>
-      <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
-        <button type="button" class="back-btn" onclick="saveSupportIzoh(${r.id})">${dict[currentLang].saveBtn}</button>
-        <span id="izohMsg-${r.id}" style="font-size:12px;"></span>
-      </div>
-    </div>
+  tbody.innerHTML = supportData.map(r => `
+    <tr>
+      <td>${r.id}</td>
+      <td title="${escapeHtml(r.fish)}">${escapeHtml(r.fish)}</td>
+      <td>${escapeHtml(r.telefon || '—')}</td>
+      <td title="${escapeHtml(r.murojaat)}">${escapeHtml(r.murojaat)}</td>
+      <td>${escapeHtml(r.sana)}</td>
+      <td><div class="row-actions">
+        <button type="button" class="icon-btn" title="${dict[currentLang].supportIzohLabel}" onclick="openSupportDetail(${r.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+      </div></td>
+    </tr>
   `).join('');
 }
 
-async function saveSupportIzoh(id){
-  const izoh = document.getElementById(`izoh-${id}`).value.trim();
-  const msg = document.getElementById(`izohMsg-${id}`);
+function openSupportDetail(id){
+  currentSupportDetailId = id;
+  openSection('supportDetailView');
+  renderSupportDetail();
+}
+
+function renderSupportDetail(){
+  const box = document.getElementById('supportDetailBox');
+  const r = supportData ? supportData.find(x => x.id === currentSupportDetailId) : null;
+  if(!box || !r) return;
+  const comments = r.comments || [];
+  const commentsHtml = comments.length ? comments.map(c => `
+    <div class="notif-hist-item" style="cursor:default;">
+      <div class="h-meta"><span>${escapeHtml(c.fish)}</span><span>${escapeHtml(c.sana)}</span></div>
+      <div class="h-text">${escapeHtml(c.izoh)}</div>
+    </div>
+  `).join('') : `<p class="loading-row">${dict[currentLang].supportNoComments}</p>`;
+
+  box.innerHTML = `
+    <div class="notif-hist-item" style="cursor:default;">
+      <div class="h-meta"><span>${escapeHtml(r.fish)} (${escapeHtml(r.login)}) • ${escapeHtml(r.telefon || '—')}</span><span>${escapeHtml(r.sana)}</span></div>
+      <div class="h-text">${escapeHtml(r.murojaat)}</div>
+    </div>
+    <h3 style="font-size:14px; margin:20px 0 10px;">${dict[currentLang].supportCommentsTitle}</h3>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">${commentsHtml}</div>
+    <div class="field" style="margin-bottom:0;">
+      <label style="font-size:11px; text-transform:uppercase; color:var(--text-dim); display:block; margin-bottom:5px;">${dict[currentLang].supportIzohLabel}</label>
+      <textarea id="newSupportComment" rows="3" placeholder="${dict[currentLang].supportIzohPh}"></textarea>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+      <button type="button" class="back-btn" onclick="saveSupportComment()">${dict[currentLang].supportAddCommentBtn}</button>
+      <span id="supportCommentMsg" style="font-size:12px;"></span>
+    </div>
+  `;
+}
+
+async function saveSupportComment(){
+  const izoh = document.getElementById('newSupportComment').value.trim();
+  const msg = document.getElementById('supportCommentMsg');
   msg.textContent = '';
+  if(!izoh) return;
   try{
-    const data = await apiCall({ action:'updateSupportIzoh', token: currentUserForKpi.token, id, izoh });
+    const data = await apiCall({ action:'addSupportComment', token: currentUserForKpi.token, id: currentSupportDetailId, izoh });
     if(data.success){
       msg.textContent = dict[currentLang].savedOk; msg.style.color = 'var(--teal)';
-      const r = supportData.find(x => x.id === id);
-      if(r) r.izoh = izoh;
+      await loadSupportRequests();
+      renderSupportDetail();
     } else {
       msg.textContent = dict[currentLang].savedErr; msg.style.color = 'var(--coral)';
     }
@@ -1869,9 +1949,10 @@ function init(){
   document.getElementById('supportCard').style.display = canSupport ? 'block' : 'none';
   document.getElementById('reportsCard').style.display = canReports ? 'block' : 'none';
 
+  currentUserForKpi = user;
   if(canAnticor) loadStats(user);
   if(canEmployees) loadUsersList(user);
-  currentUserForKpi = user;
+  if(canSupport) loadSupportRequests();
 }
 init();
 
