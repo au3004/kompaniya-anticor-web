@@ -21,6 +21,7 @@ final class AdminController
         $familiya = Validate::requiredStr($input, 'familiya', 150);
         $ism = Validate::requiredStr($input, 'ism', 150);
         $otasi = Validate::str($input, 'otasi', 150);
+        $tugilganSana = self::normalizeDate(Validate::str($input, 'tugilganSana', 10));
         $lavozim = Validate::str($input, 'lavozim', 200);
         $lavozimRu = Validate::str($input, 'lavozimRu', 200);
         $bolinma = Validate::str($input, 'bolinma', 200);
@@ -37,8 +38,8 @@ final class AdminController
 
         $db = Database::connection();
         $stmt = $db->prepare(
-            'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol)
-             VALUES (:login, :hash, :familiya, :ism, :otasi, :lavozim, :lavozim_ru, :bolinma, :bolinma_ru, :telefon, :rol)'
+            'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, tugilgan_sana, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol)
+             VALUES (:login, :hash, :familiya, :ism, :otasi, :tugilgan_sana, :lavozim, :lavozim_ru, :bolinma, :bolinma_ru, :telefon, :rol)'
         );
 
         try {
@@ -48,6 +49,7 @@ final class AdminController
                 'familiya' => $familiya,
                 'ism' => $ism,
                 'otasi' => $otasi !== '' ? $otasi : null,
+                'tugilgan_sana' => $tugilganSana,
                 'lavozim' => $lavozim !== '' ? $lavozim : null,
                 'lavozim_ru' => $lavozimRu !== '' ? $lavozimRu : null,
                 'bolinma' => $bolinma !== '' ? $bolinma : null,
@@ -71,7 +73,7 @@ final class AdminController
 
         $db = Database::connection();
         $rows = $db->query(
-            'SELECT id, login, familiya, ism, otasining_ismi, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol
+            'SELECT id, login, familiya, ism, otasining_ismi, tugilgan_sana, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol
              FROM users ORDER BY familiya ASC, ism ASC'
         )->fetchAll();
 
@@ -81,6 +83,7 @@ final class AdminController
             'familiya' => $r['familiya'],
             'ism' => $r['ism'],
             'otasi' => $r['otasining_ismi'],
+            'tugilganSana' => $r['tugilgan_sana'],
             'lavozim' => $r['lavozim'],
             'lavozimRu' => $r['lavozim_ru'],
             'bolinma' => $r['bolinma'],
@@ -104,6 +107,7 @@ final class AdminController
         $familiya = Validate::requiredStr($input, 'familiya', 150);
         $ism = Validate::requiredStr($input, 'ism', 150);
         $otasi = Validate::str($input, 'otasi', 150);
+        $tugilganSana = self::normalizeDate(Validate::str($input, 'tugilganSana', 10));
         $lavozim = Validate::str($input, 'lavozim', 200);
         $lavozimRu = Validate::str($input, 'lavozimRu', 200);
         $bolinma = Validate::str($input, 'bolinma', 200);
@@ -137,6 +141,7 @@ final class AdminController
             'familiya' => $familiya,
             'ism' => $ism,
             'otasi' => $otasi !== '' ? $otasi : null,
+            'tugilgan_sana' => $tugilganSana,
             'lavozim' => $lavozim !== '' ? $lavozim : null,
             'lavozim_ru' => $lavozimRu !== '' ? $lavozimRu : null,
             'bolinma' => $bolinma !== '' ? $bolinma : null,
@@ -146,6 +151,7 @@ final class AdminController
         ];
 
         $setSql = 'familiya = :familiya, ism = :ism, otasining_ismi = :otasi,
+                    tugilgan_sana = :tugilgan_sana,
                     lavozim = :lavozim, lavozim_ru = :lavozim_ru,
                     bolinma = :bolinma, bolinma_ru = :bolinma_ru,
                     telefon = :telefon, rol = :rol';
@@ -196,6 +202,25 @@ final class AdminController
         $stmt->execute(['id' => $id]);
 
         Response::success();
+    }
+
+    /**
+     * `<input type="date">`dan keladigan "YYYY-MM-DD" qatorini tekshiradi;
+     * noto'g'ri yoki bo'sh bo'lsa null qaytaradi (maydon ixtiyoriy).
+     */
+    private static function normalizeDate(string $value): ?string
+    {
+        if ($value === '') {
+            return null;
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return null;
+        }
+        $parts = explode('-', $value);
+        if (!checkdate((int) $parts[1], (int) $parts[2], (int) $parts[0])) {
+            return null;
+        }
+        return $value;
     }
 
     private static function glAdminCount(\PDO $db): int

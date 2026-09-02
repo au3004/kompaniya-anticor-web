@@ -58,6 +58,7 @@ $action = (string) ($input['action'] ?? '');
 /** @var array<string, array{0: class-string, 1: string}> $routes */
 $routes = [
     'login' => [AuthController::class, 'login'],
+    'requestPasswordReset' => [AuthController::class, 'requestPasswordReset'],
     'logout' => [AuthController::class, 'logout'],
     'changePassword' => [AuthController::class, 'changePassword'],
     'getProfileRu' => [AuthController::class, 'getProfileRu'],

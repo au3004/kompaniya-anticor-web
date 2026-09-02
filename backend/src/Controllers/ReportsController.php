@@ -35,6 +35,7 @@ final class ReportsController
             'familiya' => $r['familiya'],
             'ism' => $r['ism'],
             'otasi' => $r['otasining_ismi'],
+            'tugilganSana' => $r['tugilgan_sana'],
             'lavozim' => $r['lavozim'],
             'lavozimRu' => $r['lavozim_ru'],
             'bolinma' => $r['bolinma'],

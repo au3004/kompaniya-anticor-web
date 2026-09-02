@@ -64,6 +64,37 @@ final class AuthController
         ]);
     }
 
+    /**
+     * Parolni tiklash so'rovi — hali tizimga kira olmaydigan (sessiyasi yo'q)
+     * foydalanuvchi uchun. Haqiqiy avtomatik parol tiklash emas: login
+     * bazada borligini tekshiradi va topilsa, mavjud "Yordam so'rovlari"
+     * navbatiga (gl-admin/admin ko'radigan) murojaat sifatida yozib qo'yadi.
+     */
+    public static function requestPasswordReset(array $input): void
+    {
+        $login = Validate::requiredStr($input, 'login', 100);
+        $telefon = Validate::requiredStr($input, 'telefon', 20);
+
+        $db = Database::connection();
+        $stmt = $db->prepare('SELECT id FROM users WHERE login = :login LIMIT 1');
+        $stmt->execute(['login' => $login]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            Response::error(
+                "Login aniqlanmadi, iltimos tekshirib qaytadan kiriting",
+                'LOGIN_NOT_FOUND',
+                404
+            );
+        }
+
+        $murojaat = "Parolni tiklash so'rovi. Ko'rsatilgan aloqa uchun telefon raqami: {$telefon}";
+        $ins = $db->prepare('INSERT INTO support_requests (user_id, murojaat) VALUES (:user_id, :murojaat)');
+        $ins->execute(['user_id' => $user['id'], 'murojaat' => $murojaat]);
+
+        Response::success();
+    }
+
     public static function logout(array $input): void
     {
         $token = trim((string) ($input['token'] ?? ''));

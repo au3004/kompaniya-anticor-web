@@ -19,6 +19,7 @@ CREATE TABLE users (
   familiya          VARCHAR(150) NOT NULL,
   ism               VARCHAR(150) NOT NULL,
   otasining_ismi    VARCHAR(150),
+  tugilgan_sana     DATE,
   lavozim           VARCHAR(200),
   lavozim_ru        VARCHAR(200),
   bolinma           VARCHAR(200),

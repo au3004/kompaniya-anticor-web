@@ -109,6 +109,14 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; }
 .field input, .field select, .field textarea{ width:100%; padding:11px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; }
 .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--azure); }
+/* Ochilgan <select> ro'yxati (<option>lar) brauzer tomonidan alohida, sahifa
+   fonidan mustaqil oynada chiziladi — shaffof (rgba) fon shu yerda ishlamay,
+   tizim standart (oq) foniga tushib qoladi va ustiga och rangli matn
+   o'qilmay qolardi. Shu sabab select va option uchun aniq, shaffof bo'lmagan
+   fon/rang beramiz. */
+.field select{ background-color:var(--bg-deep); color-scheme:dark; }
+[data-theme="light"] .field select{ color-scheme:light; }
+.field select option{ background-color:var(--bg-deep); color:var(--text); }
 .field textarea{ resize:vertical; }
 .field-hint{ font-size:11.5px; color:var(--text-dim); margin-top:5px; }
 .field-group-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--azure); margin-bottom:10px; padding-top:6px; border-top:1px solid var(--card-border); }
@@ -343,11 +351,12 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <thead>
           <tr>
             <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
+            <th data-i18n="thTugilganSana">Tug'ilgan sana</th>
             <th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th><th data-i18n="thPhone">Telefon</th>
             <th style="width:90px;" data-i18n="thAmal">Amal</th>
           </tr>
         </thead>
-        <tbody id="empTbody"><tr><td colspan="6" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        <tbody id="empTbody"><tr><td colspan="7" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -372,6 +381,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="field"><label data-i18n="empFamiliyaLabel">Familiya</label><input type="text" id="eFamiliya" required></div>
         <div class="field"><label data-i18n="empIsmLabel">Ism</label><input type="text" id="eIsm" required></div>
         <div class="field"><label data-i18n="empOtasiLabel">Otasining ismi</label><input type="text" id="eOtasi"></div>
+        <div class="field"><label data-i18n="empTugilganSanaLabel">Tug'ilgan sana</label><input type="date" id="eTugilganSana"></div>
         <div class="field"><label data-i18n="empLavozimLabel">Lavozim (O'zbek)</label><input type="text" id="eLavozim"></div>
         <div class="field"><label data-i18n="empLavozimRuLabel">Lavozim (Rus)</label><input type="text" id="eLavozimRu"></div>
         <div class="field"><label data-i18n="empBolinmaLabel">Bo'linma (O'zbek)</label><input type="text" id="eBolinma"></div>
@@ -830,6 +840,7 @@ const dict = {
     totalSubmissionsLbl:"Jami ishtirokchilar", totalQuestionsLbl:"Savollar soni", byQuestionLbl:"Javoblar taqsimoti", avgScoreLbl:"O'rtacha ball",
     empFormAdd:"Yangi xodim qo'shish", empLoginLabel:"Login", empPassLabel:"Parol",
     empFamiliyaLabel:"Familiya", empIsmLabel:"Ism", empOtasiLabel:"Otasining ismi",
+    empTugilganSanaLabel:"Tug'ilgan sana", thTugilganSana:"Tug'ilgan sana",
     empLavozimLabel:"Lavozim (O'zbek)", empLavozimRuLabel:"Lavozim (Rus)",
     empBolinmaLabel:"Bo'linma (O'zbek)", empBolinmaRuLabel:"Bo'linma (Rus)",
     hubAddEmployee:"Yangi xodim qo'shish", hubAddEmployeeDesc:"Tizimga yangi xodim yoki administrator qo'shish",
@@ -893,6 +904,7 @@ const dict = {
     totalSubmissionsLbl:"Всего участников", totalQuestionsLbl:"Количество вопросов", byQuestionLbl:"Распределение ответов", avgScoreLbl:"Средний балл",
     empFormAdd:"Добавить нового сотрудника", empLoginLabel:"Логин", empPassLabel:"Пароль",
     empFamiliyaLabel:"Фамилия", empIsmLabel:"Имя", empOtasiLabel:"Отчество",
+    empTugilganSanaLabel:"Дата рождения", thTugilganSana:"Дата рождения",
     empLavozimLabel:"Должность (узб.)", empLavozimRuLabel:"Должность (рус.)",
     empBolinmaLabel:"Подразделение (узб.)", empBolinmaRuLabel:"Подразделение (рус.)",
     hubAddEmployee:"Добавить сотрудника", hubAddEmployeeDesc:"Добавить нового сотрудника или администратора",
@@ -963,6 +975,13 @@ function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+/* Backend "YYYY-MM-DD" (yoki bo'sh/null) qaytaradi — ko'rsatish uchun kun.oy.yil qilib beradi. */
+function formatBirthDate(v){
+  if(!v) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : v;
+}
+
 /* ---------- Hisobotlarni haqiqiy Excel (.xlsx) fayl sifatida yuklab olish ---------- */
 // SheetJS orqali — CSV'dagi vergul/nuqta-vergul ajratkich muammosisiz, ustunlar
 // Excel'da har doim to'g'ri ajralib chiqadi (mamlakat/til sozlamalaridan qat'i nazar).
@@ -988,10 +1007,10 @@ async function exportUsersReport(){
   try{
     const data = await apiCall({ action:'getUsersReport', token: currentUserForKpi.token });
     if(!data.success) return alert(dict[currentLang].savedErr);
-    const rows = [['ID','Login','Parol','Familiya','Ism',"Otasining ismi",'Lavozim',"Bo'linma",'Telefon','Lavozim RU',"Bo'linma RU",'Rol',"Hujjatlar bilan tanishgan","Test topshirgan"]];
+    const rows = [['ID','Login','Parol','Familiya','Ism',"Otasining ismi","Tug'ilgan sana",'Lavozim',"Bo'linma",'Telefon','Lavozim RU',"Bo'linma RU",'Rol',"Hujjatlar bilan tanishgan","Test topshirgan"]];
     data.users.forEach(u => {
       rows.push([
-        u.id, u.login, '', u.familiya, u.ism, u.otasi || '', u.lavozim || '', u.bolinma || '',
+        u.id, u.login, '', u.familiya, u.ism, u.otasi || '', formatBirthDate(u.tugilganSana), u.lavozim || '', u.bolinma || '',
         u.telefon || '', u.lavozimRu || '', u.bolinmaRu || '', u.rol,
         u.hujjatTanishgan ? 'Ha' : "Yo'q", u.testTopshirgan ? 'Ha' : "Yo'q"
       ]);
@@ -1125,7 +1144,7 @@ function onEmpSearch(){
 
 function renderUsersTable(){
   if(filteredUsers.length === 0){
-    document.getElementById('empTbody').innerHTML = `<tr><td colspan="6" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    document.getElementById('empTbody').innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
   const canManageEmp = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
@@ -1135,7 +1154,7 @@ function renderUsersTable(){
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
         <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
       </div>` : '—';
-    return `<tr><td>${u.id ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
+    return `<tr><td>${u.id ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
   }).join('');
 }
 
@@ -1151,6 +1170,7 @@ function startEditEmployee(id){
   document.getElementById('eFamiliya').value = u.familiya || '';
   document.getElementById('eIsm').value = u.ism || '';
   document.getElementById('eOtasi').value = u.otasi || '';
+  document.getElementById('eTugilganSana').value = u.tugilganSana || '';
   document.getElementById('eLavozim').value = u.lavozim || '';
   document.getElementById('eLavozimRu').value = u.lavozimRu || '';
   document.getElementById('eBolinma').value = u.bolinma || '';
@@ -1212,6 +1232,7 @@ async function submitEmployeeForm(e){
     familiya: document.getElementById('eFamiliya').value.trim(),
     ism: document.getElementById('eIsm').value.trim(),
     otasi: document.getElementById('eOtasi').value.trim(),
+    tugilganSana: document.getElementById('eTugilganSana').value,
     lavozim: document.getElementById('eLavozim').value.trim(),
     lavozimRu: document.getElementById('eLavozimRu').value.trim(),
     bolinma: document.getElementById('eBolinma').value.trim(),
