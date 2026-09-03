@@ -243,6 +243,12 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <h3 data-i18n="hubEmployeesMain">Xodimlar</h3>
         <p data-i18n="hubEmployeesMainDesc">Xodimlar ro'yxati va yangi xodim qo'shish</p>
       </button>
+      <button class="hub-card soon" id="conflictCard" onclick="alert(dict[currentLang].soonMsg)" style="display:none; position:relative;">
+        <span style="position:absolute; top:16px; right:16px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px; padding:3px 9px;" data-i18n="soonTag">Tez orada</span>
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></div>
+        <h3 data-i18n="hubConflict">Manfaatlar to'qnashuvi</h3>
+        <p data-i18n="hubConflictDesc">Manfaatlar to'qnashuvi bo'yicha deklaratsiyalar</p>
+      </button>
       <button class="hub-card" id="testsCard" onclick="openSection('testsView'); loadTests();" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         <h3 data-i18n="hubTests">Test savollari</h3>
@@ -927,6 +933,8 @@ const dict = {
   uz:{ brandName:"\"O'zbektelekom\" AK", eyebrow:"Admin", pageTitle:"Statistika",
     hubAnticor:"Korrupsiyaga qarshi kurashish", hubAnticorDesc:"Hujjat va test statistikasi",
     hubEmployeesMain:"Xodimlar", hubEmployeesMainDesc:"Xodimlar ro'yxati va yangi xodim qo'shish",
+    hubConflict:"Manfaatlar to'qnashuvi", hubConflictDesc:"Manfaatlar to'qnashuvi bo'yicha deklaratsiyalar",
+    soonMsg:"Bu bo'lim tez orada ishga tushiriladi",
     hubEmployees:"Xodimlar ro'yxati", hubEmployeesDesc:"Xodimlar bo'yicha umumiy ma'lumot",
     hubTests:"Test savollari", hubTestsDesc:"Test savollarini qo'shish, tahrirlash, o'chirish",
     hubDocs:"Hujjat qo'shish", hubDocsDesc:"Normativ hujjatlarni qo'shish, tahrirlash, o'chirish",
@@ -1008,6 +1016,8 @@ const dict = {
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
     hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
     hubEmployeesMain:"Сотрудники", hubEmployeesMainDesc:"Список сотрудников и добавление нового сотрудника",
+    hubConflict:"Конфликт интересов", hubConflictDesc:"Декларации о конфликте интересов",
+    soonMsg:"Этот раздел скоро будет запущен",
     hubEmployees:"Список сотрудников", hubEmployeesDesc:"Общая информация по сотрудникам",
     hubTests:"Тестовые вопросы", hubTestsDesc:"Добавление, редактирование, удаление вопросов",
     hubDocs:"Добавить документ", hubDocsDesc:"Добавление, редактирование, удаление документов",
@@ -2459,6 +2469,7 @@ function init(){
 
   document.getElementById('anticorCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('employeesCard').style.display = canEmployees ? 'block' : 'none';
+  document.getElementById('conflictCard').style.display = canEmployees ? 'block' : 'none';
   document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('surveyCard').style.display = canSurvey ? 'block' : 'none';
