@@ -115,6 +115,132 @@ final class ReportsController
         Response::success(['rows' => $rows]);
     }
 
+    public static function getTestAttemptsRaw(array $input): void
+    {
+        Auth::requireRole($input, ['gl-admin']);
+
+        $db = Database::connection();
+        $rows = $db->query(
+            "SELECT t.id, t.attempted_at, t.points, t.max_points, t.percent, t.passed,
+                    u.familiya, u.ism, u.otasining_ismi
+             FROM test_attempts t
+             JOIN users u ON u.id = t.user_id
+             ORDER BY t.id ASC"
+        )->fetchAll();
+
+        $list = array_map(static fn (array $r) => [
+            'id' => (int) $r['id'],
+            'fish' => Util::fullName($r),
+            'sana' => date('d.m.Y G:i', strtotime((string) $r['attempted_at'])),
+            'ball' => (int) $r['points'],
+            'maxBall' => (int) $r['max_points'],
+            'foiz' => (int) $r['percent'],
+            'otdi' => (bool) $r['passed'],
+        ], $rows);
+
+        Response::success(['attempts' => $list]);
+    }
+
+    public static function getDocReadsRaw(array $input): void
+    {
+        Auth::requireRole($input, ['gl-admin']);
+
+        $db = Database::connection();
+        $rows = $db->query(
+            "SELECT d.id, d.read_at, u.familiya, u.ism, u.otasining_ismi
+             FROM doc_reads d
+             JOIN users u ON u.id = d.user_id
+             ORDER BY d.id ASC"
+        )->fetchAll();
+
+        $list = array_map(static fn (array $r) => [
+            'id' => (int) $r['id'],
+            'fish' => Util::fullName($r),
+            'sana' => date('d.m.Y G:i', strtotime((string) $r['read_at'])),
+        ], $rows);
+
+        Response::success(['reads' => $list]);
+    }
+
+    public static function getSurveySubmissionsRaw(array $input): void
+    {
+        Auth::requireRole($input, ['gl-admin']);
+
+        $db = Database::connection();
+        $rows = $db->query(
+            "SELECT s.id, s.submitted_at, COUNT(a.id) AS answer_count
+             FROM survey_submissions s
+             LEFT JOIN survey_answers a ON a.submission_id = s.id
+             GROUP BY s.id
+             ORDER BY s.id ASC"
+        )->fetchAll();
+
+        $list = array_map(static fn (array $r) => [
+            'id' => (int) $r['id'],
+            'sana' => date('d.m.Y G:i', strtotime((string) $r['submitted_at'])),
+            'javoblarSoni' => (int) $r['answer_count'],
+        ], $rows);
+
+        Response::success(['submissions' => $list]);
+    }
+
+    /**
+     * Sinov/namoyish paytida yozilib qolgan statistik ma'lumotlarni (test
+     * natijalari, so'rovnoma javoblari, hujjat tanishish belgilari, xabarnomalar,
+     * yordam so'rovlari) admin tanlab o'chira olishi uchun umumiy yordamchi.
+     * Jadval nomi har doim shu faylning o'zidagi qattiq belgilangan (whitelist)
+     * qiymat, hech qachon foydalanuvchi kiritmasidan olinmaydi.
+     */
+    private static function bulkDelete(array $input, string $table): void
+    {
+        Auth::requireRole($input, ['gl-admin']);
+
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', Validate::array($input, 'ids')),
+            static fn (int $id) => $id > 0
+        )));
+        if (!$ids) {
+            Response::error('ID ro\'yxati talab qilinadi', 'VALIDATION_ERROR', 422);
+        }
+
+        $db = Database::connection();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $db->prepare("DELETE FROM {$table} WHERE id IN ({$placeholders})");
+        $stmt->execute($ids);
+
+        Response::success(['deleted' => $stmt->rowCount()]);
+    }
+
+    public static function deleteTestAttempts(array $input): void
+    {
+        self::bulkDelete($input, 'test_attempts');
+    }
+
+    public static function deleteDocReads(array $input): void
+    {
+        self::bulkDelete($input, 'doc_reads');
+    }
+
+    public static function deleteSurveySubmissions(array $input): void
+    {
+        self::bulkDelete($input, 'survey_submissions');
+    }
+
+    public static function deleteNotifications(array $input): void
+    {
+        self::bulkDelete($input, 'notifications');
+    }
+
+    public static function deleteNotificationReads(array $input): void
+    {
+        self::bulkDelete($input, 'notification_reads');
+    }
+
+    public static function deleteSupportRequests(array $input): void
+    {
+        self::bulkDelete($input, 'support_requests');
+    }
+
     private const SUPPORT_COMMENTS_DDL = 'CREATE TABLE IF NOT EXISTS support_comments (
         id                  INT AUTO_INCREMENT PRIMARY KEY,
         support_request_id  INT NOT NULL,

@@ -105,9 +105,19 @@ $routes = [
 
     'getUsersReport' => [ReportsController::class, 'getUsersReport'],
     'getProgressReport' => [ReportsController::class, 'getProgressReport'],
+    'getTestAttemptsRaw' => [ReportsController::class, 'getTestAttemptsRaw'],
+    'getDocReadsRaw' => [ReportsController::class, 'getDocReadsRaw'],
+    'getSurveySubmissionsRaw' => [ReportsController::class, 'getSurveySubmissionsRaw'],
     'getNotificationsRaw' => [ReportsController::class, 'getNotificationsRaw'],
     'getNotificationReadsRaw' => [ReportsController::class, 'getNotificationReadsRaw'],
     'getSurveyAnswersWide' => [ReportsController::class, 'getSurveyAnswersWide'],
+
+    'deleteTestAttempts' => [ReportsController::class, 'deleteTestAttempts'],
+    'deleteDocReads' => [ReportsController::class, 'deleteDocReads'],
+    'deleteSurveySubmissions' => [ReportsController::class, 'deleteSurveySubmissions'],
+    'deleteNotifications' => [ReportsController::class, 'deleteNotifications'],
+    'deleteNotificationReads' => [ReportsController::class, 'deleteNotificationReads'],
+    'deleteSupportRequests' => [ReportsController::class, 'deleteSupportRequests'],
 ];
 
 if (!isset($routes[$action])) {

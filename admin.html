@@ -130,6 +130,8 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .field-group-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--azure); margin-bottom:10px; padding-top:6px; border-top:1px solid var(--card-border); }
 .field-group-title:first-child{ border-top:none; padding-top:0; }
 .submit-btn{ padding:12px 24px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px; }
+.submit-btn.secondary{ background:var(--card); border:1px solid var(--card-border); color:var(--text); }
+.submit-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .row-actions{ display:flex; gap:6px; }
 .icon-btn{ width:30px; height:30px; border-radius:9px; border:1px solid var(--card-border); background:var(--card); color:var(--text-dim); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
 .icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
@@ -683,10 +685,16 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <span data-i18n="backBtn">Ortga</span>
       </button>
     </div>
+    <div id="supportBulkBar" style="display:none; justify-content:flex-end; margin-bottom:10px;">
+      <button type="button" class="submit-btn" id="supportDeleteBtn" style="width:auto; margin:0; padding:10px 18px; background:#dc2626;" onclick="deleteSelectedSupport()" disabled>
+        <span data-i18n="deleteSelectedBtn">Tanlanganlarni o'chirish</span> (<span id="supportSelectedCount">0</span>)
+      </button>
+    </div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
+            <th id="supportSelectAllTh" style="width:32px; display:none;"><input type="checkbox" id="supportSelectAll" onchange="toggleAllSupport()"></th>
             <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
             <th data-i18n="thPhone">Telefon</th><th data-i18n="thMurojaat">Murojaat</th>
             <th data-i18n="thSana">Sana</th>
@@ -739,16 +747,34 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSupportReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
       </div>
       <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repTestAttemptsTitle">Test natijalari</div><div class="tsub" data-i18n="repTestAttemptsDesc">Xodimlar topshirgan test natijalari — sinov/namoyish yozuvlarini o'chirish mumkin</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('testAttempts')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repDocReadsTitle">Hujjat bilan tanishish</div><div class="tsub" data-i18n="repDocReadsDesc">Xodimlar hujjatni o'qidim deb belgilagan yozuvlar — sinov/namoyish yozuvlarini o'chirish mumkin</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('docReads')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
         <div><div class="ttitle" data-i18n="repTestsTitle">Test savollari</div><div class="tsub" data-i18n="repTestsDesc">Barcha test savollari va to'g'ri javoblar</div></div>
         <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportTestQuestionsXlsx()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
       </div>
       <div class="toggle-row" style="margin-bottom:0;">
         <div><div class="ttitle" data-i18n="repNotifTitle">Xabarnomalar</div><div class="tsub" data-i18n="repNotifDesc">Yuborilgan barcha xabarnomalar</div></div>
-        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('notifications')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
       </div>
       <div class="toggle-row" style="margin-bottom:0;">
         <div><div class="ttitle" data-i18n="repNotifReadsTitle">Xabarnoma o'qilganlik</div><div class="tsub" data-i18n="repNotifReadsDesc">Kim, qachon o'qigani</div></div>
-        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationReadsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('notificationReads')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationReadsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
       </div>
       <div class="toggle-row" style="margin-bottom:0;">
         <div><div class="ttitle" data-i18n="repSurveyQTitle">So'rovnoma savollari</div><div class="tsub" data-i18n="repSurveyQDesc">Anonim so'rovnoma savollari</div></div>
@@ -756,8 +782,37 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       </div>
       <div class="toggle-row" style="margin-bottom:0;">
         <div><div class="ttitle" data-i18n="repSurveyATitle">So'rovnoma javoblari</div><div class="tsub" data-i18n="repSurveyADesc">Anonim javoblar (foydalanuvchi bilan bog'lanmagan)</div></div>
-        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSurveyAnswersWide()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('surveySubmissions')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSurveyAnswersWide()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Statistik yozuvlarni ko'rish va tanlab o'chirish (test natijalari, hujjat
+       tanishish, so'rovnoma javoblari, xabarnomalar) — faqat gl-admin -->
+  <div id="dataDeleteView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubReports">Hisobotlar</div>
+        <h1 id="ddvTitle">...</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('reportsView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+      <button type="button" class="submit-btn" id="ddvDeleteBtn" style="width:auto; margin:0; padding:10px 18px; background:#dc2626;" onclick="ddvDeleteSelected()" disabled>
+        <span data-i18n="deleteSelectedBtn">Tanlanganlarni o'chirish</span> (<span id="ddvSelectedCount">0</span>)
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="ddvHeadRow"></tr></thead>
+        <tbody id="ddvTbody"><tr><td class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -816,6 +871,12 @@ const dict = {
     repNotifReadsTitle:"Xabarnoma o'qilganlik", repNotifReadsDesc:"Kim, qachon o'qigani",
     repSurveyQTitle:"So'rovnoma savollari", repSurveyQDesc:"Anonim so'rovnoma savollari",
     repSurveyATitle:"So'rovnoma javoblari", repSurveyADesc:"Anonim javoblar (foydalanuvchi bilan bog'lanmagan)",
+    repTestAttemptsTitle:"Test natijalari", repTestAttemptsDesc:"Xodimlar topshirgan test natijalari — sinov/namoyish yozuvlarini o'chirish mumkin",
+    repDocReadsTitle:"Hujjat bilan tanishish", repDocReadsDesc:"Xodimlar hujjatni o'qidim deb belgilagan yozuvlar — sinov/namoyish yozuvlarini o'chirish mumkin",
+    viewBtn:"Ko'rish / O'chirish", deleteSelectedBtn:"Tanlanganlarni o'chirish",
+    confirmBulkDelete:"Tanlangan {n} ta yozuvni butunlay o'chirmoqchimisiz? Bu amalni orqaga qaytarib bo'lmaydi.",
+    colBall:"Ball", colFoiz:"Foiz", colNatija:"Natija", colOtdi:"O'tdi", colOtmadi:"O'tmadi",
+    colJavoblarSoni:"Javoblar soni", colMatn:"Matn", colYuboruvchi:"Yuboruvchi", colXabarId:"Xabar ID", colOqilganSana:"O'qilgan sana",
     supportIzohLabel:"Izoh", supportIzohPh:"Murojaatga izoh/javob yozing",
     thMurojaat:"Murojaat", thSana:"Sana", supportDetailTitle:"Murojaat tafsiloti",
     supportCommentsTitle:"Izohlar tarixi", supportNoComments:"Hozircha izoh yo'q",
@@ -880,6 +941,12 @@ const dict = {
     repNotifReadsTitle:"Прочтение уведомлений", repNotifReadsDesc:"Кто и когда прочитал",
     repSurveyQTitle:"Вопросы опроса", repSurveyQDesc:"Вопросы анонимного опроса",
     repSurveyATitle:"Ответы опроса", repSurveyADesc:"Анонимные ответы (не связаны с пользователем)",
+    repTestAttemptsTitle:"Результаты теста", repTestAttemptsDesc:"Результаты теста сотрудников — тестовые/демо-записи можно удалить",
+    repDocReadsTitle:"Ознакомление с документами", repDocReadsDesc:"Отметки об ознакомлении с документом — тестовые/демо-записи можно удалить",
+    viewBtn:"Просмотр / Удаление", deleteSelectedBtn:"Удалить выбранные",
+    confirmBulkDelete:"Удалить выбранные {n} записей навсегда? Это действие нельзя отменить.",
+    colBall:"Баллы", colFoiz:"Процент", colNatija:"Результат", colOtdi:"Прошёл", colOtmadi:"Не прошёл",
+    colJavoblarSoni:"Кол-во ответов", colMatn:"Текст", colYuboruvchi:"Отправитель", colXabarId:"ID уведомления", colOqilganSana:"Дата прочтения",
     supportIzohLabel:"Комментарий", supportIzohPh:"Напишите комментарий/ответ на обращение",
     thMurojaat:"Обращение", thSana:"Дата", supportDetailTitle:"Детали обращения",
     supportCommentsTitle:"История комментариев", supportNoComments:"Комментариев пока нет",
@@ -1120,6 +1187,151 @@ async function exportSurveyAnswersWide(){
       rows.push([s.id, s.sana, ...s.answers]);
     });
     downloadXlsx(`anonim_sorovnoma_javoblari_${todayStamp()}.xlsx`, rows, 'Javoblar');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+/* ---------- Statistik yozuvlarni ko'rish va tanlab o'chirish (Hisobotlar) ----------
+   Sinov/namoyish paytida yozilib qolgan test natijalari, hujjat tanishish
+   belgilari, so'rovnoma javoblari va xabarnomalarni admin checkbox bilan
+   tanlab o'chira olishi uchun umumiy (bir nechta turga xizmat qiluvchi) ko'rinish. */
+const DDV_CONFIGS = {
+  testAttempts: {
+    titleKey: 'repTestAttemptsTitle',
+    fetchAction: 'getTestAttemptsRaw',
+    dataKey: 'attempts',
+    deleteAction: 'deleteTestAttempts',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'fish', labelKey:'thFish' },
+      { key:'sana', labelKey:'thSana' },
+      { key:'ball', labelKey:'colBall', fmt:r => `${r.ball}/${r.maxBall}` },
+      { key:'foiz', labelKey:'colFoiz', fmt:r => `${r.foiz}%` },
+      { key:'otdi', labelKey:'colNatija', fmt:r => r.otdi ? dict[currentLang].colOtdi : dict[currentLang].colOtmadi },
+    ],
+  },
+  docReads: {
+    titleKey: 'repDocReadsTitle',
+    fetchAction: 'getDocReadsRaw',
+    dataKey: 'reads',
+    deleteAction: 'deleteDocReads',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'fish', labelKey:'thFish' },
+      { key:'sana', labelKey:'thSana' },
+    ],
+  },
+  surveySubmissions: {
+    titleKey: 'repSurveyATitle',
+    fetchAction: 'getSurveySubmissionsRaw',
+    dataKey: 'submissions',
+    deleteAction: 'deleteSurveySubmissions',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'sana', labelKey:'thSana' },
+      { key:'javoblarSoni', labelKey:'colJavoblarSoni' },
+    ],
+  },
+  notifications: {
+    titleKey: 'repNotifTitle',
+    fetchAction: 'getNotificationsRaw',
+    dataKey: 'notifications',
+    deleteAction: 'deleteNotifications',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'text', labelKey:'colMatn', fmt:r => (r.text||'').length > 80 ? r.text.slice(0,80)+'…' : r.text },
+      { key:'senderFish', labelKey:'colYuboruvchi' },
+      { key:'sana', labelKey:'thSana' },
+    ],
+  },
+  notificationReads: {
+    titleKey: 'repNotifReadsTitle',
+    fetchAction: 'getNotificationReadsRaw',
+    dataKey: 'reads',
+    deleteAction: 'deleteNotificationReads',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'notificationId', labelKey:'colXabarId' },
+      { key:'fish', labelKey:'thFish' },
+      { key:'sana', labelKey:'colOqilganSana' },
+    ],
+  },
+};
+
+let ddvType = null;
+let ddvData = [];
+let ddvSelected = new Set();
+
+async function openDataDeleteView(type){
+  ddvType = type;
+  ddvSelected = new Set();
+  document.getElementById('ddvTitle').textContent = dict[currentLang][DDV_CONFIGS[type].titleKey];
+  openSection('dataDeleteView');
+  await ddvReload();
+}
+
+async function ddvReload(){
+  const cfg = DDV_CONFIGS[ddvType];
+  const tbody = document.getElementById('ddvTbody');
+  tbody.innerHTML = `<tr><td class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr>`;
+  try{
+    const data = await apiCall({ action: cfg.fetchAction, token: currentUserForKpi.token });
+    if(!data.success){ tbody.innerHTML = `<tr><td class="loading-row">Xatolik</td></tr>`; return; }
+    ddvData = data[cfg.dataKey] || [];
+    ddvRender();
+  } catch(ex){
+    tbody.innerHTML = `<tr><td class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
+  }
+}
+
+function ddvRender(){
+  const cfg = DDV_CONFIGS[ddvType];
+  const headRow = document.getElementById('ddvHeadRow');
+  headRow.innerHTML = `<th style="width:32px;"><input type="checkbox" id="ddvSelectAll" onchange="ddvToggleAll()"></th>` +
+    cfg.columns.map(c => `<th>${escapeHtml(dict[currentLang][c.labelKey] || c.labelKey)}</th>`).join('');
+  const tbody = document.getElementById('ddvTbody');
+  if(!ddvData.length){
+    tbody.innerHTML = `<tr><td colspan="${cfg.columns.length+1}" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    ddvUpdateFooter();
+    return;
+  }
+  tbody.innerHTML = ddvData.map(r => `
+    <tr>
+      <td><input type="checkbox" ${ddvSelected.has(r.id)?'checked':''} onchange="ddvToggleOne(${r.id}, this.checked)"></td>
+      ${cfg.columns.map(c => `<td>${escapeHtml(String(c.fmt ? c.fmt(r) : (r[c.key] ?? '')))}</td>`).join('')}
+    </tr>
+  `).join('');
+  ddvUpdateFooter();
+}
+
+function ddvToggleOne(id, checked){
+  if(checked) ddvSelected.add(id); else ddvSelected.delete(id);
+  ddvUpdateFooter();
+}
+
+function ddvToggleAll(){
+  const checked = document.getElementById('ddvSelectAll').checked;
+  ddvSelected = new Set(checked ? ddvData.map(r => r.id) : []);
+  ddvRender();
+}
+
+function ddvUpdateFooter(){
+  const countEl = document.getElementById('ddvSelectedCount');
+  if(countEl) countEl.textContent = ddvSelected.size;
+  const btn = document.getElementById('ddvDeleteBtn');
+  if(btn) btn.disabled = ddvSelected.size === 0;
+  const selectAll = document.getElementById('ddvSelectAll');
+  if(selectAll) selectAll.checked = ddvData.length > 0 && ddvSelected.size === ddvData.length;
+}
+
+async function ddvDeleteSelected(){
+  if(!ddvSelected.size) return;
+  if(!confirm(dict[currentLang].confirmBulkDelete.replace('{n}', ddvSelected.size))) return;
+  const cfg = DDV_CONFIGS[ddvType];
+  try{
+    const data = await apiCall({ action: cfg.deleteAction, token: currentUserForKpi.token, ids: Array.from(ddvSelected) });
+    if(!data.success){ alert(dict[currentLang].savedErr); return; }
+    ddvSelected = new Set();
+    await ddvReload();
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
@@ -1876,12 +2088,13 @@ function renderNotifHistory(report){
 /* ---------- Yordam so'rovlari (Support) ---------- */
 let supportData = null;
 let currentSupportDetailId = null;
+let supportSelected = new Set();
 
 async function loadSupportRequests(){
   const tbody = document.getElementById('supportTbody');
   try{
     const data = await apiCall({ action:'getSupportRequests', token: currentUserForKpi.token });
-    if(data.success){ supportData = data.requests; renderSupportTable(); updateSupportBadge(); }
+    if(data.success){ supportData = data.requests; supportSelected = new Set(); renderSupportTable(); updateSupportBadge(); }
     else if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Xatolik</td></tr>`;
   } catch(ex){
     if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
@@ -1896,15 +2109,54 @@ function updateSupportBadge(){
   else badge.style.display = 'none';
 }
 
+function toggleSupportRow(id, checked){
+  if(checked) supportSelected.add(id); else supportSelected.delete(id);
+  updateSupportBulkBar();
+}
+
+function toggleAllSupport(){
+  const checked = document.getElementById('supportSelectAll').checked;
+  supportSelected = new Set(checked && supportData ? supportData.map(r => r.id) : []);
+  renderSupportTable();
+}
+
+function updateSupportBulkBar(){
+  const isGlAdmin = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
+  const bar = document.getElementById('supportBulkBar');
+  const th = document.getElementById('supportSelectAllTh');
+  if(bar) bar.style.display = isGlAdmin ? 'flex' : 'none';
+  if(th) th.style.display = isGlAdmin ? 'table-cell' : 'none';
+  const countEl = document.getElementById('supportSelectedCount');
+  if(countEl) countEl.textContent = supportSelected.size;
+  const btn = document.getElementById('supportDeleteBtn');
+  if(btn) btn.disabled = supportSelected.size === 0;
+  const selectAll = document.getElementById('supportSelectAll');
+  if(selectAll) selectAll.checked = !!(supportData && supportData.length && supportSelected.size === supportData.length);
+}
+
+async function deleteSelectedSupport(){
+  if(!supportSelected.size) return;
+  if(!confirm(dict[currentLang].confirmBulkDelete.replace('{n}', supportSelected.size))) return;
+  try{
+    const data = await apiCall({ action:'deleteSupportRequests', token: currentUserForKpi.token, ids: Array.from(supportSelected) });
+    if(!data.success){ alert(dict[currentLang].savedErr); return; }
+    supportSelected = new Set();
+    await loadSupportRequests();
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
 function renderSupportTable(){
   const tbody = document.getElementById('supportTbody');
   if(!tbody) return;
+  const isGlAdmin = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
+  updateSupportBulkBar();
   if(!supportData || supportData.length === 0){
-    tbody.innerHTML = `<tr><td colspan="6" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
   tbody.innerHTML = supportData.map(r => `
     <tr>
+      ${isGlAdmin ? `<td><input type="checkbox" ${supportSelected.has(r.id)?'checked':''} onchange="toggleSupportRow(${r.id}, this.checked)"></td>` : ''}
       <td>${r.id}</td>
       <td title="${escapeHtml(r.fish)}">${escapeHtml(r.fish)}</td>
       <td>${escapeHtml(r.telefon || '—')}</td>
