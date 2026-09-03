@@ -378,7 +378,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
       </button>
       <form onsubmit="return changePassword(event)">
         <div class="field"><label data-i18n="oldPassLabel">Eski parol</label><input type="password" id="oldPass" required></div>
-        <div class="field"><label data-i18n="newPassLabel">Yangi parol</label><input type="password" id="newPass" required></div>
+        <div class="field"><label data-i18n="newPassLabel">Yangi parol</label><input type="password" id="newPass" required minlength="8"><div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="passwordPolicyHint">Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)</div></div>
         <div class="field"><label data-i18n="confirmPassLabel">Yangi parolni tasdiqlash</label><input type="password" id="confirmPass" required></div>
         <button class="modal-submit" type="submit" data-i18n="saveBtn">Saqlash</button>
         <div class="modal-msg" id="passMsg"></div>
@@ -426,7 +426,7 @@ async function apiCall(payload){
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(API_BASE_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', body, credentials:'same-origin' });
       const text = await res.text();
       try{
         const parsed = JSON.parse(text);
@@ -466,6 +466,8 @@ const dict = {
     saveBtn:"Saqlash", fishLabel:"F.I.Sh", posLabel:"Lavozim", deptLabel:"Bo'linma", phoneLabel:"Telefon",
     menuLogout:"Chiqish", changePassMenu:"Parolni almashtirish", backLabel:"Orqaga",
     yes:"Ha", no:"Yo'q", mismatchErr:"Yangi parollar mos kelmadi", oldWrongErr:"Eski parol noto'g'ri",
+    weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
+    passwordPolicyHint:"Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)",
     savedOk:"Parol muvaffaqiyatli o'zgartirildi", checking:"Tekshirilmoqda...",
     phonePh:"Telefon raqamingiz", pointsLabel:"ball",
     helpMenu:"Yordam", supportPh:"Iltimos, savolingiz yoki xatoni izohlab bering", sendBtn:"Yuborish",
@@ -489,6 +491,8 @@ const dict = {
     saveBtn:"Сохранить", fishLabel:"ФИО", posLabel:"Должность", deptLabel:"Подразделение", phoneLabel:"Телефон",
     menuLogout:"Выйти", changePassMenu:"Изменить пароль", backLabel:"Назад",
     yes:"Да", no:"Нет", mismatchErr:"Новые пароли не совпадают", oldWrongErr:"Старый пароль неверен",
+    weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
+    passwordPolicyHint:"Минимум 8 символов: заглавная, строчная буква, цифра и спецсимвол (например !@#$%)",
     savedOk:"Пароль успешно изменён", checking:"Проверка...",
     phonePh:"Ваш номер телефона", pointsLabel:"баллов",
     helpMenu:"Помощь", supportPh:"Пожалуйста, поясните свой вопрос или опишите ошибку.", sendBtn:"Отправить",
@@ -675,7 +679,7 @@ function logout(){
   if(token){
     // Sessiyani serverda ham bekor qilishga urinamiz, lekin natijani kutmaymiz
     // (foydalanuvchi darhol login sahifasiga o'tishi kerak)
-    fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }) }).catch(()=>{});
+    fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{});
   }
   window.location.href = 'login.html';
 }
@@ -858,6 +862,8 @@ async function changePassword(e){
     if(data.success){
       msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
       document.getElementById('oldPass').value = document.getElementById('newPass').value = document.getElementById('confirmPass').value = '';
+    } else if(data.code === 'WEAK_PASSWORD'){
+      msg.textContent = dict[currentLang].weakPasswordErr; msg.classList.add('err');
     } else {
       msg.textContent = dict[currentLang].oldWrongErr; msg.classList.add('err');
     }
@@ -957,7 +963,7 @@ window.addEventListener('pageshow', function(event){
   function doIdleLogout(){
     const token = currentUser && currentUser.token;
     try{ sessionStorage.removeItem('km_user'); }catch(e){}
-    if(token){ fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }) }).catch(()=>{}); }
+    if(token){ fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{}); }
     window.location.href = 'login.html';
   }
   function resetIdleTimer(){

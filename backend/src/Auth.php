@@ -7,13 +7,53 @@ use PDO;
 
 final class Auth
 {
+    public const COOKIE_NAME = 'session_token';
+
     /**
-     * Requires a valid, non-expired session token in $input['token'].
+     * Sessiya tokeni endi javob tanasida (JSON) qaytarilmaydi va JS'dan
+     * o'qilmaydi — faqat HttpOnly cookie orqali saqlanadi, shu bilan XSS
+     * orqali token o'g'irlanishining oldi olinadi. $input parametri endi
+     * ishlatilmaydi (eski frontend chaqiruvlari bilan moslik uchun saqlangan).
+     */
+    private static function tokenFromCookie(): string
+    {
+        return trim((string) ($_COOKIE[self::COOKIE_NAME] ?? ''));
+    }
+
+    public static function setSessionCookie(string $token): void
+    {
+        $secure = Config::get('FORCE_HTTPS', 'false') === 'true';
+        $absoluteHours = Config::int('SESSION_ABSOLUTE_TTL_HOURS', 168);
+        setcookie(self::COOKIE_NAME, $token, [
+            'expires' => time() + $absoluteHours * 3600,
+            'path' => '/',
+            'domain' => '',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+    }
+
+    public static function clearSessionCookie(): void
+    {
+        $secure = Config::get('FORCE_HTTPS', 'false') === 'true';
+        setcookie(self::COOKIE_NAME, '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'domain' => '',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+    }
+
+    /**
+     * Requires a valid, non-expired session — token HttpOnly cookie'dan olinadi.
      * Returns the joined user row. Exits with SESSION_EXPIRED on failure.
      */
     public static function requireUser(array $input): array
     {
-        $token = trim((string) ($input['token'] ?? ''));
+        $token = self::tokenFromCookie();
         if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
             Response::error('Sessiya topilmadi', 'SESSION_EXPIRED', 401);
         }
@@ -74,7 +114,7 @@ final class Auth
      */
     public static function optionalUser(array $input): ?array
     {
-        $token = trim((string) ($input['token'] ?? ''));
+        $token = self::tokenFromCookie();
         if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
             return null;
         }
@@ -151,10 +191,14 @@ final class Auth
         return strtotime((string) $row['locked_until']) > time();
     }
 
-    public static function registerFailedAttempt(string $login): void
+    /**
+     * $maxAttempts qiymati chaqiruvchi tomonidan beriladi — login mavjud
+     * bo'lmasa (LOGIN_UNKNOWN_MAX_ATTEMPTS, standart 3) va login mavjud lekin
+     * parol noto'g'ri bo'lsa (PASSWORD_MAX_ATTEMPTS, standart 5) turlicha.
+     */
+    public static function registerFailedAttempt(string $login, int $maxAttempts): void
     {
         $db = Database::connection();
-        $maxAttempts = Config::int('LOGIN_MAX_ATTEMPTS', 5);
         $lockMinutes = Config::int('LOGIN_LOCK_MINUTES', 15);
 
         $stmt = $db->prepare('SELECT fail_count FROM login_attempts WHERE login = :login LIMIT 1');

@@ -31,8 +31,8 @@ final class AdminController
         $telefon = Validate::str($input, 'telefon', 20);
         $rol = Validate::str($input, 'rol', 20);
 
-        if (mb_strlen($parol) < 6) {
-            Response::error("Parol kamida 6 belgidan iborat bo'lishi kerak", 'WEAK_PASSWORD', 422);
+        if (!Validate::isStrongPassword($parol)) {
+            Response::error(Validate::WEAK_PASSWORD_MESSAGE, 'WEAK_PASSWORD', 422);
         }
         if (!in_array($rol, ['user', 'admin', 'gl-admin'], true)) {
             $rol = 'user';
@@ -77,24 +77,33 @@ final class AdminController
         $db = Database::connection();
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
         $rows = $db->query(
-            'SELECT id, login, familiya, ism, otasining_ismi, tugilgan_sana, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol
-             FROM users ORDER BY id ASC'
+            'SELECT u.id, u.login, u.familiya, u.ism, u.otasining_ismi, u.tugilgan_sana, u.lavozim, u.lavozim_ru,
+                    u.bolinma, u.bolinma_ru, u.telefon, u.rol, la.locked_until
+             FROM users u
+             LEFT JOIN login_attempts la ON la.login = u.login
+             ORDER BY u.id ASC'
         )->fetchAll();
 
-        $users = array_map(static fn (array $r) => [
-            'id' => (int) $r['id'],
-            'login' => $r['login'],
-            'familiya' => $r['familiya'],
-            'ism' => $r['ism'],
-            'otasi' => $r['otasining_ismi'],
-            'tugilganSana' => $r['tugilgan_sana'],
-            'lavozim' => $r['lavozim'],
-            'lavozimRu' => $r['lavozim_ru'],
-            'bolinma' => $r['bolinma'],
-            'bolinmaRu' => $r['bolinma_ru'],
-            'telefon' => $r['telefon'],
-            'rol' => $r['rol'],
-        ], $rows);
+        $users = array_map(static function (array $r) {
+            $lockedUntil = $r['locked_until'] ?? null;
+            $locked = $lockedUntil && strtotime((string) $lockedUntil) > time();
+            return [
+                'id' => (int) $r['id'],
+                'login' => $r['login'],
+                'familiya' => $r['familiya'],
+                'ism' => $r['ism'],
+                'otasi' => $r['otasining_ismi'],
+                'tugilganSana' => $r['tugilgan_sana'],
+                'lavozim' => $r['lavozim'],
+                'lavozimRu' => $r['lavozim_ru'],
+                'bolinma' => $r['bolinma'],
+                'bolinmaRu' => $r['bolinma_ru'],
+                'telefon' => $r['telefon'],
+                'rol' => $r['rol'],
+                'locked' => $locked,
+                'lockedUntil' => $locked ? $lockedUntil : null,
+            ];
+        }, $rows);
 
         Response::success(['users' => $users]);
     }
@@ -123,8 +132,8 @@ final class AdminController
         if (!in_array($rol, ['user', 'admin', 'gl-admin'], true)) {
             $rol = 'user';
         }
-        if ($parol !== '' && mb_strlen($parol) < 6) {
-            Response::error("Parol kamida 6 belgidan iborat bo'lishi kerak", 'WEAK_PASSWORD', 422);
+        if ($parol !== '' && !Validate::isStrongPassword($parol)) {
+            Response::error(Validate::WEAK_PASSWORD_MESSAGE, 'WEAK_PASSWORD', 422);
         }
 
         $db = Database::connection();
@@ -205,6 +214,20 @@ final class AdminController
 
         $stmt = $db->prepare('DELETE FROM users WHERE id = :id');
         $stmt->execute(['id' => $id]);
+
+        Response::success();
+    }
+
+    /**
+     * Login urinishlari ko'p noto'g'ri bo'lgani uchun avtomatik bloklangan
+     * xodimni gl-admin/admin darhol (15 daqiqa kutmasdan) blokdan chiqaradi.
+     */
+    public static function unlockLogin(array $input): void
+    {
+        Auth::requireRole($input, ['gl-admin', 'admin']);
+
+        $login = Validate::requiredStr($input, 'login', 100);
+        Auth::resetAttempts($login);
 
         Response::success();
     }

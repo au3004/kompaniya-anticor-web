@@ -48,4 +48,18 @@ final class Validate
         $value = $input[$key] ?? [];
         return is_array($value) ? $value : [];
     }
+
+    public const WEAK_PASSWORD_MESSAGE = "Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak";
+
+    /**
+     * Kamida 8 belgi, kamida bitta katta harf, kichik harf, raqam va maxsus belgi.
+     */
+    public static function isStrongPassword(string $password): bool
+    {
+        return mb_strlen($password) >= 8
+            && preg_match('/[A-Z]/', $password) === 1
+            && preg_match('/[a-z]/', $password) === 1
+            && preg_match('/[0-9]/', $password) === 1
+            && preg_match('/[^A-Za-z0-9]/', $password) === 1;
+    }
 }

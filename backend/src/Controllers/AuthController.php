@@ -36,7 +36,12 @@ final class AuthController
         $passwordOk = Auth::verifyPassword($parol, $hashToCheck);
 
         if (!$user || !$passwordOk) {
-            Auth::registerFailedAttempt($login);
+            // Login mavjud bo'lmasa qattiqroq (tezroq bloklaydigan) chegara, mavjud
+            // bo'lib parol xato bo'lsa birozroq yumshoqroq chegara qo'llaniladi.
+            $maxAttempts = $user
+                ? Config::int('PASSWORD_MAX_ATTEMPTS', 5)
+                : Config::int('LOGIN_UNKNOWN_MAX_ATTEMPTS', 3);
+            Auth::registerFailedAttempt($login, $maxAttempts);
             Response::error("Login yoki parol noto'g'ri", 'INVALID_CREDENTIALS');
         }
 
@@ -51,8 +56,14 @@ final class AuthController
         );
         $ins->execute(['token' => $token, 'user_id' => $user['id'], 'expires_at' => $expiresAt]);
 
+        // Haqiqiy token endi JS o'qiy olmaydigan HttpOnly cookie'da saqlanadi (XSS orqali
+        // o'g'irlanishining oldini olish uchun) — javob tanasida faqat "kirilgan" belgisi
+        // (haqiqiy bo'lmagan qiymat) qaytariladi, frontend eski "token bor/yo'q" tekshiruvlari
+        // uchun buni ishlataveradi, lekin bu qiymatning o'zi hech qanday amalga ruxsat bermaydi.
+        Auth::setSessionCookie($token);
+
         Response::success([
-            'token' => $token,
+            'token' => true,
             'familiya' => $user['familiya'],
             'ism' => $user['ism'],
             'otasi' => $user['otasining_ismi'],
@@ -97,12 +108,13 @@ final class AuthController
 
     public static function logout(array $input): void
     {
-        $token = trim((string) ($input['token'] ?? ''));
+        $token = trim((string) ($_COOKIE[Auth::COOKIE_NAME] ?? ''));
         if ($token !== '' && preg_match('/^[a-f0-9]{64}$/', $token)) {
             $db = Database::connection();
             $stmt = $db->prepare('DELETE FROM sessions WHERE token = :token');
             $stmt->execute(['token' => $token]);
         }
+        Auth::clearSessionCookie();
         Response::success();
     }
 
@@ -112,8 +124,8 @@ final class AuthController
         $oldPass = Validate::requiredStr($input, 'eskiParol', 255);
         $newPass = Validate::requiredStr($input, 'yangiParol', 255);
 
-        if (mb_strlen($newPass) < 6) {
-            Response::error('Yangi parol kamida 6 belgidan iborat bo\'lishi kerak', 'WEAK_PASSWORD', 422);
+        if (!Validate::isStrongPassword($newPass)) {
+            Response::error(Validate::WEAK_PASSWORD_MESSAGE, 'WEAK_PASSWORD', 422);
         }
 
         $db = Database::connection();

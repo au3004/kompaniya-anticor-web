@@ -392,7 +392,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
           <input type="text" id="eLogin" required autocomplete="off" oninput="checkLoginTaken()" onblur="checkLoginTaken()">
           <div class="field-warning" id="eLoginWarning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg><span id="eLoginWarningText" data-i18n="loginTakenErr">Ushbu login band, iltimos qayta kiriting</span></div>
         </div>
-        <div class="field"><label id="eParolLabel" data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password"><div class="field-hint" id="eParolHint" style="display:none; font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="empPassEditHint">Bo'sh qoldirsangiz, parol o'zgarmaydi</div></div>
+        <div class="field"><label id="eParolLabel" data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password" minlength="8"><div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="passwordPolicyHint">Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)</div><div class="field-hint" id="eParolHint" style="display:none; font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="empPassEditHint">Bo'sh qoldirsangiz, parol o'zgarmaydi</div></div>
         <div class="field"><label data-i18n="empFamiliyaLabel">Familiya</label><input type="text" id="eFamiliya" required></div>
         <div class="field"><label data-i18n="empIsmLabel">Ism</label><input type="text" id="eIsm" required></div>
         <div class="field"><label data-i18n="empOtasiLabel">Otasining ismi</label><input type="text" id="eOtasi"></div>
@@ -830,7 +830,7 @@ async function apiCall(payload){
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(API_BASE_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', body, credentials:'same-origin' });
       const text = await res.text();
       try{
         const parsed = JSON.parse(text);
@@ -926,7 +926,9 @@ const dict = {
     cannotDeleteSelfErr:"O'zingizni o'chira olmaysiz", lastGlAdminErr:"Tizimda kamida bitta bosh administrator qolishi shart",
     roleUser:"Xodim", roleAdmin:"Admin", roleGlAdmin:"Bosh admin",
     empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Ushbu login band, iltimos qayta kiriting",
-    weakPasswordErr:"Parol kamida 6 belgidan iborat bo'lishi kerak" },
+    weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
+    passwordPolicyHint:"Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)",
+    lockedBadge:"Bloklangan", lockedUntilLabel:"Blok tugash vaqti", unlockBtn:"Blokdan chiqarish" },
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
     hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
     hubEmployeesMain:"Сотрудники", hubEmployeesMainDesc:"Список сотрудников и добавление нового сотрудника",
@@ -998,7 +1000,9 @@ const dict = {
     cannotDeleteSelfErr:"Вы не можете удалить себя", lastGlAdminErr:"В системе должен остаться хотя бы один главный администратор",
     roleUser:"Сотрудник", roleAdmin:"Админ", roleGlAdmin:"Гл. админ",
     empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, пожалуйста, введите другой",
-    weakPasswordErr:"Пароль должен содержать не менее 6 символов" }
+    weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
+    passwordPolicyHint:"Минимум 8 символов: заглавная, строчная буква, цифра и спецсимвол (например !@#$%)",
+    lockedBadge:"Заблокирован", lockedUntilLabel:"Блокировка до", unlockBtn:"Разблокировать" }
 };
 function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
@@ -1417,13 +1421,16 @@ function renderUsersTable(){
     return;
   }
   const canManageEmp = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
+  const canUnlock = currentUserForKpi && (currentUserForKpi.rol === 'gl-admin' || currentUserForKpi.rol === 'admin');
   document.getElementById('empTbody').innerHTML = filteredUsers.map((u, i) => {
     const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
-    const actions = canManageEmp ? `<div class="row-actions">
+    const lockedBadge = u.locked ? `<span class="badge no" style="margin-left:6px;" title="${dict[currentLang].lockedUntilLabel}: ${escapeHtml(u.lockedUntil||'')}">${dict[currentLang].lockedBadge}</span>` : '';
+    const unlockBtn = (u.locked && canUnlock) ? `<button type="button" class="icon-btn" title="${dict[currentLang].unlockBtn}" onclick="unlockEmployeeRow('${escapeHtml(u.login)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button>` : '';
+    const editDeleteBtns = canManageEmp ? `
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
-      </div>` : '—';
-    return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
+        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>` : '';
+    const actions = (unlockBtn || editDeleteBtns) ? `<div class="row-actions">${unlockBtn}${editDeleteBtns}</div>` : '—';
+    return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}${lockedBadge}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
   }).join('');
 }
 
@@ -1477,6 +1484,17 @@ async function deleteEmployeeRow(id){
       alert(dict[currentLang].cannotDeleteSelfErr);
     } else if(data.code === 'LAST_GL_ADMIN'){
       alert(dict[currentLang].lastGlAdminErr);
+    } else {
+      alert(dict[currentLang].savedErr);
+    }
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function unlockEmployeeRow(login){
+  try{
+    const data = await apiCall({ action:'unlockLogin', token: currentUserForKpi.token, login });
+    if(data.success){
+      loadUsersList(currentUserForKpi);
     } else {
       alert(dict[currentLang].savedErr);
     }
@@ -2354,7 +2372,7 @@ window.addEventListener('pageshow', function(event){
     const cur = getCurrentUser();
     const token = cur && cur.token;
     try{ sessionStorage.removeItem('km_user'); }catch(e){}
-    if(token){ fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }) }).catch(()=>{}); }
+    if(token){ fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{}); }
     window.location.href = 'login.html';
   }
   function resetIdleTimer(){

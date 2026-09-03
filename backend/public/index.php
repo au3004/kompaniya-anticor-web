@@ -99,6 +99,7 @@ $routes = [
     'addEmployee' => [AdminController::class, 'addEmployee'],
     'editEmployee' => [AdminController::class, 'editEmployee'],
     'deleteEmployee' => [AdminController::class, 'deleteEmployee'],
+    'unlockLogin' => [AdminController::class, 'unlockLogin'],
 
     'getSupportRequests' => [ReportsController::class, 'getSupportRequests'],
     'addSupportComment' => [ReportsController::class, 'addSupportComment'],

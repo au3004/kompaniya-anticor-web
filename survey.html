@@ -169,7 +169,7 @@ async function apiCall(payload){
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(API_BASE_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', body, credentials:'same-origin' });
       const text = await res.text();
       try{ return JSON.parse(text); }
       catch(parseErr){
