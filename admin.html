@@ -5,6 +5,9 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>O'zbektelekom AK — Statistika</title>
+<!-- Hisobotlarni haqiqiy Excel (.xlsx) fayl sifatida yuklab olish uchun (CSV'dagi
+     vergul/nuqta-vergul ajratkich muammosisiz — ustunlar har doim to'g'ri ajraladi). -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root{
@@ -48,6 +51,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 /* Hub cards */
 .hub-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px; margin-top:10px; }
 .hub-card{
+  position:relative;
   background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:28px;
   cursor:pointer; transition:transform .2s ease, border-color .2s ease; text-align:left;
 }
@@ -67,7 +71,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .stat-card.coral .num{ color:var(--coral); }
 .stat-card.amber .num{ color:var(--amber); }
 
-.search-row{ margin-bottom:16px; }
+.search-row{ margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .search-row input{
   width:100%; max-width:340px; padding:11px 14px; background:var(--input-bg); border:1px solid var(--input-border);
   border-radius:11px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none;
@@ -105,11 +109,29 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; }
 .field input, .field select, .field textarea{ width:100%; padding:11px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; }
 .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--azure); }
+/* Ochilgan <select> ro'yxati (<option>lar) brauzer tomonidan alohida, sahifa
+   fonidan mustaqil oynada chiziladi — shaffof (rgba) fon shu yerda ishlamay,
+   tizim standart (oq) foniga tushib qoladi va ustiga och rangli matn
+   o'qilmay qolardi. Shu sabab select va option uchun aniq, shaffof bo'lmagan
+   fon/rang beramiz. */
+.field select{ background-color:var(--bg-deep); color-scheme:dark; }
+[data-theme="light"] .field select{ color-scheme:light; }
+.field select option{ background-color:var(--bg-deep); color:var(--text); }
 .field textarea{ resize:vertical; }
 .field-hint{ font-size:11.5px; color:var(--text-dim); margin-top:5px; }
+.field-warning{
+  display:none; align-items:center; gap:8px;
+  background:rgba(255,176,32,0.12); border:1px solid rgba(255,176,32,0.4);
+  color:var(--amber); font-size:12.5px; font-weight:500;
+  padding:8px 11px; border-radius:9px; margin-top:6px;
+}
+.field-warning.show{ display:flex; }
+.field-warning svg{ flex-shrink:0; width:15px; height:15px; }
 .field-group-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--azure); margin-bottom:10px; padding-top:6px; border-top:1px solid var(--card-border); }
 .field-group-title:first-child{ border-top:none; padding-top:0; }
 .submit-btn{ padding:12px 24px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px; }
+.submit-btn.secondary{ background:var(--card); border:1px solid var(--card-border); color:var(--text); }
+.submit-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .row-actions{ display:flex; gap:6px; }
 .icon-btn{ width:30px; height:30px; border-radius:9px; border:1px solid var(--card-border); background:var(--card); color:var(--text-dim); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
 .icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
@@ -216,10 +238,16 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <h3 data-i18n="hubAnticor">Korrupsiyaga qarshi kurashish</h3>
         <p data-i18n="hubAnticorDesc">Hujjat va test statistikasi</p>
       </button>
-      <button class="hub-card" id="employeesCard" onclick="openSection('employeesView'); if(usersData){ filteredUsers=usersData; renderUsersTable(); }" style="display:none;">
+      <button class="hub-card" id="employeesCard" onclick="openEmployeesEntry()" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <h3 data-i18n="hubEmployees">Xodimlar</h3>
-        <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
+        <h3 data-i18n="hubEmployeesMain">Xodimlar</h3>
+        <p data-i18n="hubEmployeesMainDesc">Xodimlar ro'yxati va yangi xodim qo'shish</p>
+      </button>
+      <button class="hub-card soon" id="conflictCard" onclick="alert(dict[currentLang].soonMsg)" style="display:none; position:relative;">
+        <span style="position:absolute; top:16px; right:16px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px; padding:3px 9px;" data-i18n="soonTag">Tez orada</span>
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></div>
+        <h3 data-i18n="hubConflict">Manfaatlar to'qnashuvi</h3>
+        <p data-i18n="hubConflictDesc">Manfaatlar to'qnashuvi bo'yicha deklaratsiyalar</p>
       </button>
       <button class="hub-card" id="testsCard" onclick="openSection('testsView'); loadTests();" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
@@ -240,6 +268,27 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
         <h3 data-i18n="hubNotif">Xabarnoma yuborish</h3>
         <p data-i18n="hubNotifDesc">Xodimlarga xabarnoma yuborish va hisobot</p>
+      </button>
+      <button class="hub-card" id="supportCard" onclick="openSection('supportView'); loadSupportRequests();" style="display:none;">
+        <span id="supportBadge" style="display:none; position:absolute; top:16px; right:16px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:11px; font-weight:700; line-height:17px; text-align:center;"></span>
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg></div>
+        <h3 data-i18n="hubSupport">Yordam so'rovlari</h3>
+        <p data-i18n="hubSupportDesc">Xodimlardan kelgan murojaatlar</p>
+      </button>
+      <button class="hub-card" id="reportsCard" onclick="openSection('reportsView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg></div>
+        <h3 data-i18n="hubReports">Hisobotlar</h3>
+        <p data-i18n="hubReportsDesc">Barcha ma'lumotlarni Excel fayl sifatida yuklab olish</p>
+      </button>
+      <button class="hub-card" id="backupCard" onclick="openSection('backupView'); loadBackups();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+        <h3 data-i18n="hubBackup">Zaxira nusxa</h3>
+        <p data-i18n="hubBackupDesc">Baza va rasmlarning zaxira nusxasini olish va yuklab olish</p>
+      </button>
+      <button class="hub-card" id="errorLogCard" onclick="openSection('errorLogView'); loadErrorLog();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+        <h3 data-i18n="hubErrorLog">Tizim jurnali</h3>
+        <p data-i18n="hubErrorLogDesc">Server tomonida yuzaga kelgan xatoliklar tarixi</p>
       </button>
     </div>
     <div class="denied" id="noAccessMsg" style="display:none;" data-i18n="denied">Sizda bu sahifaga kirish huquqi yo'q</div>
@@ -264,6 +313,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 
     <div class="search-row">
       <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()">
+      <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="exportComplianceReport()"><span data-i18n="complianceReportBtn">Bajarilmaganlar hisoboti</span></button>
     </div>
 
     <div class="table-wrap">
@@ -279,14 +329,41 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
     </div>
   </div>
 
-  <!-- Xodimlar ro'yxati (gl-admin) -->
+  <!-- Xodimlar: ichki hub (ro'yxat / yangi qo'shish) -->
+  <div id="employeesHubView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubEmployeesMain">Xodimlar</div>
+        <h1 data-i18n="hubEmployeesMain">Xodimlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="hub-grid">
+      <button class="hub-card" onclick="openSection('employeesView'); if(usersData){ filteredUsers=usersData; renderUsersTable(); }">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3 data-i18n="hubEmployees">Xodimlar ro'yxati</h3>
+        <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
+      </button>
+      <button class="hub-card" id="addEmployeeSubCard" onclick="cancelEmployeeEdit(); openSection('addEmployeeView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
+        <h3 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h3>
+        <p data-i18n="hubAddEmployeeDesc">Tizimga yangi xodim yoki administrator qo'shish</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- Xodimlar ro'yxati -->
   <div id="employeesView" style="display:none;">
     <div class="page-head">
       <div>
-        <div class="eyebrow" data-i18n="hubEmployees">Xodimlar</div>
-        <h1 data-i18n="hubEmployees">Xodimlar</h1>
+        <div class="eyebrow" data-i18n="hubEmployees">Xodimlar ro'yxati</div>
+        <h1 data-i18n="hubEmployees">Xodimlar ro'yxati</h1>
       </div>
-      <button class="back-btn" onclick="openSection('hubView')">
+      <button class="back-btn" onclick="openSection('employeesHubView')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
         <span data-i18n="backBtn">Ortga</span>
       </button>
@@ -301,11 +378,58 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <thead>
           <tr>
             <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
+            <th data-i18n="thTugilganSana">Tug'ilgan sana</th>
             <th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th><th data-i18n="thPhone">Telefon</th>
+            <th style="width:90px;" data-i18n="thAmal">Amal</th>
           </tr>
         </thead>
-        <tbody id="empTbody"><tr><td colspan="5" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        <tbody id="empTbody"><tr><td colspan="7" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Yangi xodim qo'shish / tahrirlash (faqat gl-admin) -->
+  <div id="addEmployeeView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" id="empFormEyebrow" data-i18n="hubAddEmployee">Yangi xodim qo'shish</div>
+        <h1 id="empFormTitle" data-i18n="hubAddEmployee">Yangi xodim qo'shish</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('employeesHubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="form-card" style="max-width:640px;">
+      <form onsubmit="return submitEmployeeForm(event)">
+        <div class="field">
+          <label data-i18n="empLoginLabel">Login</label>
+          <input type="text" id="eLogin" required autocomplete="off" oninput="checkLoginTaken()" onblur="checkLoginTaken()">
+          <div class="field-warning" id="eLoginWarning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg><span id="eLoginWarningText" data-i18n="loginTakenErr">Ushbu login band, iltimos qayta kiriting</span></div>
+        </div>
+        <div class="field"><label id="eParolLabel" data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password" minlength="8"><div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="passwordPolicyHint">Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)</div><div class="field-hint" id="eParolHint" style="display:none; font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="empPassEditHint">Bo'sh qoldirsangiz, parol o'zgarmaydi</div></div>
+        <div class="field"><label data-i18n="empFamiliyaLabel">Familiya</label><input type="text" id="eFamiliya" required></div>
+        <div class="field"><label data-i18n="empIsmLabel">Ism</label><input type="text" id="eIsm" required></div>
+        <div class="field"><label data-i18n="empOtasiLabel">Otasining ismi</label><input type="text" id="eOtasi"></div>
+        <div class="field"><label data-i18n="empTugilganSanaLabel">Tug'ilgan sana</label><input type="date" id="eTugilganSana"></div>
+        <div class="field"><label data-i18n="empLavozimLabel">Lavozim (O'zbek)</label><input type="text" id="eLavozim"></div>
+        <div class="field"><label data-i18n="empLavozimRuLabel">Lavozim (Rus)</label><input type="text" id="eLavozimRu"></div>
+        <div class="field"><label data-i18n="empBolinmaLabel">Bo'linma (O'zbek)</label><input type="text" id="eBolinma"></div>
+        <div class="field"><label data-i18n="empBolinmaRuLabel">Bo'linma (Rus)</label><input type="text" id="eBolinmaRu"></div>
+        <div class="field"><label data-i18n="thPhone">Telefon</label><input type="text" id="eTelefon"></div>
+        <div class="field">
+          <label data-i18n="thRol">Rol</label>
+          <select id="eRol">
+            <option value="user" data-i18n="roleUser">Xodim</option>
+            <option value="admin" data-i18n="roleAdmin">Admin</option>
+            <option value="gl-admin" data-i18n="roleGlAdmin">Bosh admin</option>
+          </select>
+        </div>
+        <button class="submit-btn" type="submit" id="empSubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <button type="button" class="back-btn" id="empCancelBtn" onclick="cancelEmployeeEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
+        <div class="msg" id="empFormMsg"></div>
+      </form>
     </div>
   </div>
 
@@ -565,20 +689,223 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
     </div>
   </div>
+
+  <!-- Yordam so'rovlari (gl-admin + admin) -->
+  <div id="supportView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubSupport">Yordam so'rovlari</div>
+        <h1 data-i18n="hubSupport">Yordam so'rovlari</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div id="supportBulkBar" style="display:none; justify-content:flex-end; margin-bottom:10px;">
+      <button type="button" class="submit-btn" id="supportDeleteBtn" style="width:auto; margin:0; padding:10px 18px; background:#dc2626;" onclick="deleteSelectedSupport()" disabled>
+        <span data-i18n="deleteSelectedBtn">Tanlanganlarni o'chirish</span> (<span id="supportSelectedCount">0</span>)
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th id="supportSelectAllTh" style="width:32px; display:none;"><input type="checkbox" id="supportSelectAll" onchange="toggleAllSupport()"></th>
+            <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
+            <th data-i18n="thPhone">Telefon</th><th data-i18n="thMurojaat">Murojaat</th>
+            <th data-i18n="thSana">Sana</th>
+            <th style="width:90px;" data-i18n="thAmal">Amal</th>
+          </tr>
+        </thead>
+        <tbody id="supportTbody"><tr><td colspan="6" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Yordam so'rovi tafsiloti + izohlar tarixi -->
+  <div id="supportDetailView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubSupport">Yordam so'rovlari</div>
+        <h1 data-i18n="supportDetailTitle">Murojaat tafsiloti</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('supportView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div id="supportDetailBox"></div>
+  </div>
+
+  <!-- Hisobotlar (faqat gl-admin) -->
+  <div id="reportsView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubReports">Hisobotlar</div>
+        <h1 data-i18n="hubReports">Hisobotlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;" id="reportsList">
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repUsersTitle">Xodimlar (Users)</div><div class="tsub" data-i18n="repUsersDesc">To'liq xodimlar ro'yxati, rol, aloqa ma'lumotlari</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportUsersReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repProgressTitle">Progress</div><div class="tsub" data-i18n="repProgressDesc">Hujjat bilan tanishish va test topshirish tarixi</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportProgressReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repSupportTitle">Support</div><div class="tsub" data-i18n="repSupportDesc">Xodimlardan kelgan murojaatlar va izohlar</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSupportReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repTestAttemptsTitle">Test natijalari</div><div class="tsub" data-i18n="repTestAttemptsDesc">Xodimlar topshirgan test natijalari — sinov/namoyish yozuvlarini o'chirish mumkin</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('testAttempts')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repDocReadsTitle">Hujjat bilan tanishish</div><div class="tsub" data-i18n="repDocReadsDesc">Xodimlar hujjatni o'qidim deb belgilagan yozuvlar — sinov/namoyish yozuvlarini o'chirish mumkin</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('docReads')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repTestsTitle">Test savollari</div><div class="tsub" data-i18n="repTestsDesc">Barcha test savollari va to'g'ri javoblar</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportTestQuestionsXlsx()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repNotifTitle">Xabarnomalar</div><div class="tsub" data-i18n="repNotifDesc">Yuborilgan barcha xabarnomalar</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('notifications')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repNotifReadsTitle">Xabarnoma o'qilganlik</div><div class="tsub" data-i18n="repNotifReadsDesc">Kim, qachon o'qigani</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('notificationReads')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationReadsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repSurveyQTitle">So'rovnoma savollari</div><div class="tsub" data-i18n="repSurveyQDesc">Anonim so'rovnoma savollari</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSurveyQuestionsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repSurveyATitle">So'rovnoma javoblari</div><div class="tsub" data-i18n="repSurveyADesc">Anonim javoblar (foydalanuvchi bilan bog'lanmagan)</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('surveySubmissions')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSurveyAnswersWide()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistik yozuvlarni ko'rish va tanlab o'chirish (test natijalari, hujjat
+       tanishish, so'rovnoma javoblari, xabarnomalar) — faqat gl-admin -->
+  <div id="dataDeleteView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubReports">Hisobotlar</div>
+        <h1 id="ddvTitle">...</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('reportsView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+      <button type="button" class="submit-btn" id="ddvDeleteBtn" style="width:auto; margin:0; padding:10px 18px; background:#dc2626;" onclick="ddvDeleteSelected()" disabled>
+        <span data-i18n="deleteSelectedBtn">Tanlanganlarni o'chirish</span> (<span id="ddvSelectedCount">0</span>)
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="ddvHeadRow"></tr></thead>
+        <tbody id="ddvTbody"><tr><td class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Zaxira nusxa (faqat gl-admin) -->
+  <div id="backupView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubBackup">Zaxira nusxa</div>
+        <h1 data-i18n="hubBackup">Zaxira nusxa</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <p class="tsub" style="margin-bottom:14px;" data-i18n="backupDesc">Baza (MySQL) va profil rasmlarining to'liq nusxasi. Kunlik avtomatik zaxira uchun backend/scripts/backup.php faylini Task Scheduler/cron orqali sozlang (backend/README.md).</p>
+    <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
+      <button type="button" class="submit-btn" id="backupCreateBtn" onclick="createBackupNow()" style="width:auto; margin:0; padding:10px 18px;">
+        <span data-i18n="backupCreateBtn">Hozir zaxira nusxa olish</span>
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="backupColName">Sana / vaqt</th>
+            <th data-i18n="backupColSize">Hajmi</th>
+            <th style="width:120px;" data-i18n="thAmal">Amal</th>
+          </tr>
+        </thead>
+        <tbody id="backupTbody"><tr><td colspan="3" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tizim jurnali / xatoliklar tarixi (faqat gl-admin) -->
+  <div id="errorLogView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubErrorLog">Tizim jurnali</div>
+        <h1 data-i18n="hubErrorLog">Tizim jurnali</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <p class="tsub" style="margin-bottom:14px;" data-i18n="errorLogDesc">So'nggi 200 ta server xatoligi (eng yangisi birinchi). 90 kundan eski yozuvlar avtomatik o'chiriladi.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:150px;" data-i18n="thSana">Sana</th>
+            <th style="width:150px;" data-i18n="errorLogColAction">Amal</th>
+            <th data-i18n="errorLogColMessage">Xabar</th>
+          </tr>
+        </thead>
+        <tbody id="errorLogTbody"><tr><td colspan="3" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026";
+// PHP backend'ning ochiq API manzili (backend/public/index.php) — sahifa qayerdan
+// ochilgan bo'lsa (localhost, mahalliy tarmoq IP'si, ngrok, haqiqiy domen), o'sha
+// joyning o'ziga nisbatan avtomatik hisoblanadi, qo'lda o'zgartirish shart emas.
+const API_BASE_URL = new URL('backend/public/index.php', window.location.href).href;
 
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+// Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
   const body = JSON.stringify(payload);
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', body, credentials:'same-origin' });
       const text = await res.text();
       try{
         const parsed = JSON.parse(text);
@@ -605,10 +932,36 @@ let currentLang = localStorage.getItem('km_lang') || 'uz';
 const dict = {
   uz:{ brandName:"\"O'zbektelekom\" AK", eyebrow:"Admin", pageTitle:"Statistika",
     hubAnticor:"Korrupsiyaga qarshi kurashish", hubAnticorDesc:"Hujjat va test statistikasi",
-    hubEmployees:"Xodimlar", hubEmployeesDesc:"Xodimlar bo'yicha umumiy ma'lumot",
+    hubEmployeesMain:"Xodimlar", hubEmployeesMainDesc:"Xodimlar ro'yxati va yangi xodim qo'shish",
+    hubConflict:"Manfaatlar to'qnashuvi", hubConflictDesc:"Manfaatlar to'qnashuvi bo'yicha deklaratsiyalar",
+    soonMsg:"Bu bo'lim tez orada ishga tushiriladi",
+    hubEmployees:"Xodimlar ro'yxati", hubEmployeesDesc:"Xodimlar bo'yicha umumiy ma'lumot",
     hubTests:"Test savollari", hubTestsDesc:"Test savollarini qo'shish, tahrirlash, o'chirish",
     hubDocs:"Hujjat qo'shish", hubDocsDesc:"Normativ hujjatlarni qo'shish, tahrirlash, o'chirish",
-    soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish",
+    soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish", downloadBtn:"Hisobotni yuklab olish",
+    xlsxLibErr:"Excel fayl yaratish kutubxonasi yuklanmadi. Internet ulanishini tekshirib, sahifani qayta yuklang.",
+    hubSupport:"Yordam so'rovlari", hubSupportDesc:"Xodimlardan kelgan murojaatlar",
+    hubReports:"Hisobotlar", hubReportsDesc:"Barcha ma'lumotlarni Excel fayl sifatida yuklab olish",
+    repUsersTitle:"Xodimlar (Users)", repUsersDesc:"To'liq xodimlar ro'yxati, rol, aloqa ma'lumotlari",
+    repProgressTitle:"Progress", repProgressDesc:"Hujjat bilan tanishish va test topshirish tarixi",
+    repSupportTitle:"Support", repSupportDesc:"Xodimlardan kelgan murojaatlar va izohlar",
+    repTestsTitle:"Test savollari", repTestsDesc:"Barcha test savollari va to'g'ri javoblar",
+    repNotifTitle:"Xabarnomalar", repNotifDesc:"Yuborilgan barcha xabarnomalar",
+    repNotifReadsTitle:"Xabarnoma o'qilganlik", repNotifReadsDesc:"Kim, qachon o'qigani",
+    repSurveyQTitle:"So'rovnoma savollari", repSurveyQDesc:"Anonim so'rovnoma savollari",
+    repSurveyATitle:"So'rovnoma javoblari", repSurveyADesc:"Anonim javoblar (foydalanuvchi bilan bog'lanmagan)",
+    repTestAttemptsTitle:"Test natijalari", repTestAttemptsDesc:"Xodimlar topshirgan test natijalari — sinov/namoyish yozuvlarini o'chirish mumkin",
+    repDocReadsTitle:"Hujjat bilan tanishish", repDocReadsDesc:"Xodimlar hujjatni o'qidim deb belgilagan yozuvlar — sinov/namoyish yozuvlarini o'chirish mumkin",
+    viewBtn:"Ko'rish / O'chirish", deleteSelectedBtn:"Tanlanganlarni o'chirish",
+    confirmBulkDelete:"Tanlangan {n} ta yozuvni butunlay o'chirmoqchimisiz? Bu amalni orqaga qaytarib bo'lmaydi.",
+    colBall:"Ball", colFoiz:"Foiz", colNatija:"Natija", colOtdi:"O'tdi", colOtmadi:"O'tmadi",
+    colJavoblarSoni:"Javoblar soni", colMatn:"Matn", colYuboruvchi:"Yuboruvchi", colXabarId:"Xabar ID", colOqilganSana:"O'qilgan sana",
+    complianceReportBtn:"Bajarilmaganlar hisoboti",
+    complianceBothSheet:"Ikkalasi ham bajarilgan", complianceNoDocSheet:"Hujjat bilan tanishmagan", complianceNoTestSheet:"Test topshirmagan",
+    supportIzohLabel:"Izoh", supportIzohPh:"Murojaatga izoh/javob yozing",
+    thMurojaat:"Murojaat", thSana:"Sana", supportDetailTitle:"Murojaat tafsiloti",
+    supportCommentsTitle:"Izohlar tarixi", supportNoComments:"Hozircha izoh yo'q",
+    supportAddCommentBtn:"Izoh qo'shish",
     hubNotif:"Xabarnoma yuborish", hubNotifDesc:"Xodimlarga xabarnoma yuborish va hisobot",
     notifTargetTypeLabel:"Qamrov", notifTargetUsers:"Foydalanuvchilar", notifTargetDept:"Bo'linma",
     notifUsersLabel:"Xodimlarni tanlang", notifDeptLabel:"Bo'linmani tanlang",
@@ -638,13 +991,60 @@ const dict = {
     testActiveLabel:"Test holati", surveyActiveLabel:"So'rovnoma holati", activeOn:"Faol — xodimlar ko'ra oladi", activeOff:"Faol emas — 'yakunlangan' ko'rinadi",
     resultsEmpty:"Hozircha javoblar yo'q", totalResponsesLbl:"ta javob",
     qTuri:"Savol turi", qTuriTanlov:"Tanlov (A, B, C, D)", qTuriYulduz:"Yulduzcha bilan baholash", qTuriMatn:"Erkin javob (matn)", qStars:"Yulduzlar soni",
-    totalSubmissionsLbl:"Jami ishtirokchilar", totalQuestionsLbl:"Savollar soni", byQuestionLbl:"Javoblar taqsimoti", avgScoreLbl:"O'rtacha ball" },
+    totalSubmissionsLbl:"Jami ishtirokchilar", totalQuestionsLbl:"Savollar soni", byQuestionLbl:"Javoblar taqsimoti", avgScoreLbl:"O'rtacha ball",
+    empFormAdd:"Yangi xodim qo'shish", empLoginLabel:"Login", empPassLabel:"Parol",
+    empFamiliyaLabel:"Familiya", empIsmLabel:"Ism", empOtasiLabel:"Otasining ismi",
+    empTugilganSanaLabel:"Tug'ilgan sana", thTugilganSana:"Tug'ilgan sana",
+    empLavozimLabel:"Lavozim (O'zbek)", empLavozimRuLabel:"Lavozim (Rus)",
+    empBolinmaLabel:"Bo'linma (O'zbek)", empBolinmaRuLabel:"Bo'linma (Rus)",
+    hubAddEmployee:"Yangi xodim qo'shish", hubAddEmployeeDesc:"Tizimga yangi xodim yoki administrator qo'shish",
+    empFormEdit:"Xodimni tahrirlash", empPassEditHint:"Bo'sh qoldirsangiz, parol o'zgarmaydi",
+    confirmDeleteEmployee:"Ushbu xodimni butunlay o'chirmoqchimisiz? Uning barcha tarixi (test, hujjat, so'rovnoma) ham o'chadi.",
+    cannotDeleteSelfErr:"O'zingizni o'chira olmaysiz", lastGlAdminErr:"Tizimda kamida bitta bosh administrator qolishi shart",
+    roleUser:"Xodim", roleAdmin:"Admin", roleGlAdmin:"Bosh admin",
+    empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Ushbu login band, iltimos qayta kiriting",
+    weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
+    passwordPolicyHint:"Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)",
+    lockedBadge:"Bloklangan", lockedUntilLabel:"Blok tugash vaqti", unlockBtn:"Blokdan chiqarish",
+    hubBackup:"Zaxira nusxa", hubBackupDesc:"Baza va rasmlarning zaxira nusxasini olish va yuklab olish",
+    backupDesc:"Baza (MySQL) va profil rasmlarining to'liq nusxasi. Kunlik avtomatik zaxira uchun backend/scripts/backup.php faylini Task Scheduler/cron orqali sozlang (backend/README.md).",
+    backupCreateBtn:"Hozir zaxira nusxa olish", backupCreating:"Zaxira olinmoqda...",
+    backupColName:"Sana / vaqt", backupColSize:"Hajmi", backupDownloadBtn:"Yuklab olish",
+    hubErrorLog:"Tizim jurnali", hubErrorLogDesc:"Server tomonida yuzaga kelgan xatoliklar tarixi",
+    errorLogDesc:"So'nggi 200 ta server xatoligi (eng yangisi birinchi). 90 kundan eski yozuvlar avtomatik o'chiriladi.",
+    errorLogColAction:"Amal", errorLogColMessage:"Xabar" },
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
     hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
-    hubEmployees:"Сотрудники", hubEmployeesDesc:"Общая информация по сотрудникам",
+    hubEmployeesMain:"Сотрудники", hubEmployeesMainDesc:"Список сотрудников и добавление нового сотрудника",
+    hubConflict:"Конфликт интересов", hubConflictDesc:"Декларации о конфликте интересов",
+    soonMsg:"Этот раздел скоро будет запущен",
+    hubEmployees:"Список сотрудников", hubEmployeesDesc:"Общая информация по сотрудникам",
     hubTests:"Тестовые вопросы", hubTestsDesc:"Добавление, редактирование, удаление вопросов",
     hubDocs:"Добавить документ", hubDocsDesc:"Добавление, редактирование, удаление документов",
-    soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена",
+    soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена", downloadBtn:"Скачать отчёт",
+    xlsxLibErr:"Библиотека для создания Excel-файла не загрузилась. Проверьте интернет-соединение и обновите страницу.",
+    hubSupport:"Обращения", hubSupportDesc:"Обращения от сотрудников",
+    hubReports:"Отчёты", hubReportsDesc:"Скачать все данные в формате Excel",
+    repUsersTitle:"Сотрудники (Users)", repUsersDesc:"Полный список сотрудников, роль, контакты",
+    repProgressTitle:"Progress", repProgressDesc:"История ознакомления с документами и прохождения теста",
+    repSupportTitle:"Support", repSupportDesc:"Обращения сотрудников и комментарии",
+    repTestsTitle:"Тестовые вопросы", repTestsDesc:"Все вопросы теста и правильные ответы",
+    repNotifTitle:"Уведомления", repNotifDesc:"Все отправленные уведомления",
+    repNotifReadsTitle:"Прочтение уведомлений", repNotifReadsDesc:"Кто и когда прочитал",
+    repSurveyQTitle:"Вопросы опроса", repSurveyQDesc:"Вопросы анонимного опроса",
+    repSurveyATitle:"Ответы опроса", repSurveyADesc:"Анонимные ответы (не связаны с пользователем)",
+    repTestAttemptsTitle:"Результаты теста", repTestAttemptsDesc:"Результаты теста сотрудников — тестовые/демо-записи можно удалить",
+    repDocReadsTitle:"Ознакомление с документами", repDocReadsDesc:"Отметки об ознакомлении с документом — тестовые/демо-записи можно удалить",
+    viewBtn:"Просмотр / Удаление", deleteSelectedBtn:"Удалить выбранные",
+    confirmBulkDelete:"Удалить выбранные {n} записей навсегда? Это действие нельзя отменить.",
+    colBall:"Баллы", colFoiz:"Процент", colNatija:"Результат", colOtdi:"Прошёл", colOtmadi:"Не прошёл",
+    colJavoblarSoni:"Кол-во ответов", colMatn:"Текст", colYuboruvchi:"Отправитель", colXabarId:"ID уведомления", colOqilganSana:"Дата прочтения",
+    complianceReportBtn:"Отчёт по невыполнению",
+    complianceBothSheet:"Оба выполнены", complianceNoDocSheet:"Не ознакомлен с документом", complianceNoTestSheet:"Не прошёл тест",
+    supportIzohLabel:"Комментарий", supportIzohPh:"Напишите комментарий/ответ на обращение",
+    thMurojaat:"Обращение", thSana:"Дата", supportDetailTitle:"Детали обращения",
+    supportCommentsTitle:"История комментариев", supportNoComments:"Комментариев пока нет",
+    supportAddCommentBtn:"Добавить комментарий",
     hubNotif:"Отправить уведомление", hubNotifDesc:"Отправка уведомлений сотрудникам и отчёт",
     notifTargetTypeLabel:"Охват", notifTargetUsers:"Пользователи", notifTargetDept:"Подразделение",
     notifUsersLabel:"Выберите сотрудников", notifDeptLabel:"Выберите подразделение",
@@ -674,7 +1074,28 @@ const dict = {
     testActiveLabel:"Статус теста", surveyActiveLabel:"Статус опроса", activeOn:"Активен — сотрудники видят", activeOff:"Не активен — показывается 'завершён'",
     resultsEmpty:"Пока нет ответов", totalResponsesLbl:"ответ(ов)",
     qTuri:"Тип вопроса", qTuriTanlov:"Выбор (A, B, C, D)", qTuriYulduz:"Оценка звёздами", qTuriMatn:"Свободный ответ (текст)", qStars:"Количество звёзд",
-    totalSubmissionsLbl:"Всего участников", totalQuestionsLbl:"Количество вопросов", byQuestionLbl:"Распределение ответов", avgScoreLbl:"Средний балл" }
+    totalSubmissionsLbl:"Всего участников", totalQuestionsLbl:"Количество вопросов", byQuestionLbl:"Распределение ответов", avgScoreLbl:"Средний балл",
+    empFormAdd:"Добавить нового сотрудника", empLoginLabel:"Логин", empPassLabel:"Пароль",
+    empFamiliyaLabel:"Фамилия", empIsmLabel:"Имя", empOtasiLabel:"Отчество",
+    empTugilganSanaLabel:"Дата рождения", thTugilganSana:"Дата рождения",
+    empLavozimLabel:"Должность (узб.)", empLavozimRuLabel:"Должность (рус.)",
+    empBolinmaLabel:"Подразделение (узб.)", empBolinmaRuLabel:"Подразделение (рус.)",
+    hubAddEmployee:"Добавить сотрудника", hubAddEmployeeDesc:"Добавить нового сотрудника или администратора",
+    empFormEdit:"Редактировать сотрудника", empPassEditHint:"Если оставить пустым, пароль не изменится",
+    confirmDeleteEmployee:"Удалить этого сотрудника навсегда? Вся его история (тест, документы, уведомления) также будет удалена.",
+    cannotDeleteSelfErr:"Вы не можете удалить себя", lastGlAdminErr:"В системе должен остаться хотя бы один главный администратор",
+    roleUser:"Сотрудник", roleAdmin:"Админ", roleGlAdmin:"Гл. админ",
+    empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, пожалуйста, введите другой",
+    weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
+    passwordPolicyHint:"Минимум 8 символов: заглавная, строчная буква, цифра и спецсимвол (например !@#$%)",
+    lockedBadge:"Заблокирован", lockedUntilLabel:"Блокировка до", unlockBtn:"Разблокировать",
+    hubBackup:"Резервная копия", hubBackupDesc:"Создание и скачивание резервной копии базы и фото",
+    backupDesc:"Полная копия базы MySQL и фотографий профилей. Для ежедневного автоматического резервного копирования настройте backend/scripts/backup.php через Планировщик задач/cron (backend/README.md).",
+    backupCreateBtn:"Создать резервную копию сейчас", backupCreating:"Создание копии...",
+    backupColName:"Дата / время", backupColSize:"Размер", backupDownloadBtn:"Скачать",
+    hubErrorLog:"Системный журнал", hubErrorLogDesc:"История ошибок на стороне сервера",
+    errorLogDesc:"Последние 200 ошибок сервера (сначала новые). Записи старше 90 дней удаляются автоматически.",
+    errorLogColAction:"Действие", errorLogColMessage:"Сообщение" }
 };
 function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
@@ -706,6 +1127,8 @@ let docsData = null;
 let editingDocId = null;
 let surveyData = null;
 let editingSurveyId = null;
+let editingEmployeeId = null;
+let surveyResultsData = null;
 
 function openSection(id){
   document.querySelectorAll('#mainContent > div').forEach(d => d.style.display = 'none');
@@ -734,6 +1157,394 @@ function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+/* Backend "YYYY-MM-DD" (yoki bo'sh/null) qaytaradi — ko'rsatish uchun kun.oy.yil qilib beradi. */
+function formatBirthDate(v){
+  if(!v) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : v;
+}
+
+/* ---------- Hisobotlarni haqiqiy Excel (.xlsx) fayl sifatida yuklab olish ---------- */
+// SheetJS orqali — CSV'dagi vergul/nuqta-vergul ajratkich muammosisiz, ustunlar
+// Excel'da har doim to'g'ri ajralib chiqadi (mamlakat/til sozlamalaridan qat'i nazar).
+function downloadXlsx(filename, rows, sheetName){
+  if(typeof XLSX === 'undefined'){
+    alert(dict[currentLang].xlsxLibErr);
+    return;
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, (sheetName || 'Hisobot').slice(0, 31));
+  XLSX.writeFile(wb, filename);
+}
+// Bir nechta varaqli (masalan "bajargan / bajarmagan" ro'yxatlari alohida
+// list qilib) Excel fayl yaratadi. sheets: [{name, rows}, ...]
+function downloadXlsxMulti(filename, sheets){
+  if(typeof XLSX === 'undefined'){
+    alert(dict[currentLang].xlsxLibErr);
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+  sheets.forEach(sh => {
+    const ws = XLSX.utils.aoa_to_sheet(sh.rows);
+    XLSX.utils.book_append_sheet(wb, ws, (sh.name || 'Varaq').slice(0, 31));
+  });
+  XLSX.writeFile(wb, filename);
+}
+function todayStamp(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// Har bir hisobot o'zi kerakli ma'lumotni serverdan (qayta) so'raydi — shu sabab
+// "Hisobotlar" bo'limiga boshqa sahifalarga kirmasdan to'g'ridan-to'g'ri kirilsa ham ishlaydi.
+
+async function exportUsersReport(){
+  try{
+    const data = await apiCall({ action:'getUsersReport', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','Login','Parol','Familiya','Ism',"Otasining ismi","Tug'ilgan sana",'Lavozim',"Bo'linma",'Telefon','Lavozim RU',"Bo'linma RU",'Rol',"Hujjatlar bilan tanishgan","Test topshirgan"]];
+    data.users.forEach(u => {
+      rows.push([
+        u.id, u.login, '', u.familiya, u.ism, u.otasi || '', formatBirthDate(u.tugilganSana), u.lavozim || '', u.bolinma || '',
+        u.telefon || '', u.lavozimRu || '', u.bolinmaRu || '', u.rol,
+        u.hujjatTanishgan ? 'Ha' : "Yo'q", u.testTopshirgan ? 'Ha' : "Yo'q"
+      ]);
+    });
+    downloadXlsx(`users_${todayStamp()}.xlsx`, rows, 'Users');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportProgressReport(){
+  try{
+    const data = await apiCall({ action:'getProgressReport', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','F.I.Sh','Telefon',"Tanishgan sana","Qayta tanishgan",'Test','Natija',"Qayta topshirish"]];
+    data.rows.forEach(r => {
+      rows.push([r.id, r.fish, r.telefon || '', r.tanishganSana, r.qaytaTanishgan, r.test, r.natija, r.qaytaTopshirish]);
+    });
+    downloadXlsx(`progress_${todayStamp()}.xlsx`, rows, 'Progress');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+// Korrupsiyaga qarshi kurashish sahifasida allaqachon yuklangan statsData'dan
+// foydalanib, hujjat/test bo'yicha bajargan va bajarmaganlarni solishtiradi —
+// alohida so'rov yubormasdan, ekranda ko'rinayotgan aynan shu ma'lumot asosida.
+function exportComplianceReport(){
+  if(!statsData || !statsData.employees || !statsData.employees.length){
+    alert(dict[currentLang].savedErr);
+    return;
+  }
+  const header = ['F.I.Sh','Lavozim',"Bo'linma",'Telefon'];
+  const bothHeader = [...header, 'Hujjat sanasi', 'Test natijasi'];
+  const toRow = e => [e.fish, e.lavozim || '', e.bolinma || '', e.telefon || ''];
+
+  const bothDone = statsData.employees.filter(e => e.hujjatSana && e.testTaken);
+  const noDoc = statsData.employees.filter(e => !e.hujjatSana);
+  const noTest = statsData.employees.filter(e => !e.testTaken);
+
+  const sheets = [
+    { name: dict[currentLang].complianceBothSheet, rows: [bothHeader, ...bothDone.map(e => [
+      ...toRow(e), e.hujjatSana, e.testTaken ? `${e.testPoints} — ${e.testPercent}%${e.passed ? '' : ' ('+dict[currentLang].colOtmadi+')'}` : ''
+    ])] },
+    { name: dict[currentLang].complianceNoDocSheet, rows: [header, ...noDoc.map(toRow)] },
+    { name: dict[currentLang].complianceNoTestSheet, rows: [header, ...noTest.map(toRow)] },
+  ];
+  downloadXlsxMulti(`muvofiqlik_${todayStamp()}.xlsx`, sheets);
+}
+
+async function exportSupportReport(){
+  try{
+    const data = await apiCall({ action:'getSupportRequests', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','Login','F.I.Sh',"Telefon raqam",'Murojaat','Izoh',"Ko'rib chiqdi"]];
+    data.requests.forEach(r => {
+      const comments = r.comments || [];
+      const izohCol = comments.map(c => c.izoh).join('\n');
+      const koribChiqdiCol = comments.map(c => c.fish).join('\n');
+      rows.push([r.id, r.login, r.fish, r.telefon || '', r.murojaat, izohCol, koribChiqdiCol]);
+    });
+    downloadXlsx(`support_${todayStamp()}.xlsx`, rows, 'Support');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportTestQuestionsXlsx(){
+  try{
+    const data = await apiCall({ action:'getTestQuestions', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','Savol','Variant A','Variant B','Variant C','Variant D',"To'g'ri javob",'Вопрос','Ответ А','Ответ Б','Ответ В','Ответ Г','Правильный ответ']];
+    data.questions.forEach((q, i) => {
+      rows.push([
+        i + 1, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.uz.correct || '',
+        q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '', q.ru.correct || ''
+      ]);
+    });
+    downloadXlsx(`tests_${todayStamp()}.xlsx`, rows, 'Tests');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportNotificationsReport(){
+  try{
+    const data = await apiCall({ action:'getNotificationsRaw', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID',"Yuboruvchi login","Yuboruvchi F.I.Sh",'Sana','Matn',"Qamrov turi","Qamrov qiymati"]];
+    data.notifications.forEach(n => {
+      rows.push([n.id, n.senderLogin, n.senderFish, n.sana, n.text, n.targetType, n.targetValue]);
+    });
+    downloadXlsx(`xabarnoma_${todayStamp()}.xlsx`, rows, 'Xabarnoma');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportNotificationReadsReport(){
+  try{
+    const data = await apiCall({ action:'getNotificationReadsRaw', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID',"Xabarnoma ID",'Login','F.I.Sh',"O'qilgan sana"]];
+    data.reads.forEach(r => {
+      rows.push([r.id, r.notificationId, r.login, r.fish, r.sana]);
+    });
+    downloadXlsx(`xabarnoma_oqildi_${todayStamp()}.xlsx`, rows, "Xabarnoma o'qildi");
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportSurveyQuestionsReport(){
+  try{
+    const data = await apiCall({ action:'getSurveyQuestions', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','Savol','Variant A','Variant B','Variant C','Variant D','Turi',"Yulduzchalar soni",'Вопрос','Ответ А','Ответ Б','Ответ В','Ответ Г']];
+    data.questions.forEach((q, i) => {
+      rows.push([i + 1, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.turi, q.stars, q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '']);
+    });
+    downloadXlsx(`anonim_sorovnoma_${todayStamp()}.xlsx`, rows, "So'rovnoma");
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportSurveyAnswersWide(){
+  try{
+    const data = await apiCall({ action:'getSurveyAnswersWide', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const header = ['ID','Sana', ...(data.questions || [])];
+    const rows = [header];
+    data.submissions.forEach(s => {
+      rows.push([s.id, s.sana, ...s.answers]);
+    });
+    downloadXlsx(`anonim_sorovnoma_javoblari_${todayStamp()}.xlsx`, rows, 'Javoblar');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+/* ---------- Statistik yozuvlarni ko'rish va tanlab o'chirish (Hisobotlar) ----------
+   Sinov/namoyish paytida yozilib qolgan test natijalari, hujjat tanishish
+   belgilari, so'rovnoma javoblari va xabarnomalarni admin checkbox bilan
+   tanlab o'chira olishi uchun umumiy (bir nechta turga xizmat qiluvchi) ko'rinish. */
+const DDV_CONFIGS = {
+  testAttempts: {
+    titleKey: 'repTestAttemptsTitle',
+    fetchAction: 'getTestAttemptsRaw',
+    dataKey: 'attempts',
+    deleteAction: 'deleteTestAttempts',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'fish', labelKey:'thFish' },
+      { key:'sana', labelKey:'thSana' },
+      { key:'ball', labelKey:'colBall', fmt:r => `${r.ball}/${r.maxBall}` },
+      { key:'foiz', labelKey:'colFoiz', fmt:r => `${r.foiz}%` },
+      { key:'otdi', labelKey:'colNatija', fmt:r => r.otdi ? dict[currentLang].colOtdi : dict[currentLang].colOtmadi },
+    ],
+  },
+  docReads: {
+    titleKey: 'repDocReadsTitle',
+    fetchAction: 'getDocReadsRaw',
+    dataKey: 'reads',
+    deleteAction: 'deleteDocReads',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'fish', labelKey:'thFish' },
+      { key:'sana', labelKey:'thSana' },
+    ],
+  },
+  surveySubmissions: {
+    titleKey: 'repSurveyATitle',
+    fetchAction: 'getSurveySubmissionsRaw',
+    dataKey: 'submissions',
+    deleteAction: 'deleteSurveySubmissions',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'sana', labelKey:'thSana' },
+      { key:'javoblarSoni', labelKey:'colJavoblarSoni' },
+    ],
+  },
+  notifications: {
+    titleKey: 'repNotifTitle',
+    fetchAction: 'getNotificationsRaw',
+    dataKey: 'notifications',
+    deleteAction: 'deleteNotifications',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'text', labelKey:'colMatn', fmt:r => (r.text||'').length > 80 ? r.text.slice(0,80)+'…' : r.text },
+      { key:'senderFish', labelKey:'colYuboruvchi' },
+      { key:'sana', labelKey:'thSana' },
+    ],
+  },
+  notificationReads: {
+    titleKey: 'repNotifReadsTitle',
+    fetchAction: 'getNotificationReadsRaw',
+    dataKey: 'reads',
+    deleteAction: 'deleteNotificationReads',
+    columns: [
+      { key:'id', labelKey:'thId' },
+      { key:'notificationId', labelKey:'colXabarId' },
+      { key:'fish', labelKey:'thFish' },
+      { key:'sana', labelKey:'colOqilganSana' },
+    ],
+  },
+};
+
+let ddvType = null;
+let ddvData = [];
+let ddvSelected = new Set();
+
+async function openDataDeleteView(type){
+  ddvType = type;
+  ddvSelected = new Set();
+  document.getElementById('ddvTitle').textContent = dict[currentLang][DDV_CONFIGS[type].titleKey];
+  openSection('dataDeleteView');
+  await ddvReload();
+}
+
+async function ddvReload(){
+  const cfg = DDV_CONFIGS[ddvType];
+  const tbody = document.getElementById('ddvTbody');
+  tbody.innerHTML = `<tr><td class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr>`;
+  try{
+    const data = await apiCall({ action: cfg.fetchAction, token: currentUserForKpi.token });
+    if(!data.success){ tbody.innerHTML = `<tr><td class="loading-row">Xatolik</td></tr>`; return; }
+    ddvData = data[cfg.dataKey] || [];
+    ddvRender();
+  } catch(ex){
+    tbody.innerHTML = `<tr><td class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
+  }
+}
+
+function ddvRender(){
+  const cfg = DDV_CONFIGS[ddvType];
+  const headRow = document.getElementById('ddvHeadRow');
+  headRow.innerHTML = `<th style="width:32px;"><input type="checkbox" id="ddvSelectAll" onchange="ddvToggleAll()"></th>` +
+    cfg.columns.map(c => `<th>${escapeHtml(dict[currentLang][c.labelKey] || c.labelKey)}</th>`).join('');
+  const tbody = document.getElementById('ddvTbody');
+  if(!ddvData.length){
+    tbody.innerHTML = `<tr><td colspan="${cfg.columns.length+1}" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    ddvUpdateFooter();
+    return;
+  }
+  tbody.innerHTML = ddvData.map(r => `
+    <tr>
+      <td><input type="checkbox" ${ddvSelected.has(r.id)?'checked':''} onchange="ddvToggleOne(${r.id}, this.checked)"></td>
+      ${cfg.columns.map(c => `<td>${escapeHtml(String(c.fmt ? c.fmt(r) : (r[c.key] ?? '')))}</td>`).join('')}
+    </tr>
+  `).join('');
+  ddvUpdateFooter();
+}
+
+function ddvToggleOne(id, checked){
+  if(checked) ddvSelected.add(id); else ddvSelected.delete(id);
+  ddvUpdateFooter();
+}
+
+function ddvToggleAll(){
+  const checked = document.getElementById('ddvSelectAll').checked;
+  ddvSelected = new Set(checked ? ddvData.map(r => r.id) : []);
+  ddvRender();
+}
+
+function ddvUpdateFooter(){
+  const countEl = document.getElementById('ddvSelectedCount');
+  if(countEl) countEl.textContent = ddvSelected.size;
+  const btn = document.getElementById('ddvDeleteBtn');
+  if(btn) btn.disabled = ddvSelected.size === 0;
+  const selectAll = document.getElementById('ddvSelectAll');
+  if(selectAll) selectAll.checked = ddvData.length > 0 && ddvSelected.size === ddvData.length;
+}
+
+async function ddvDeleteSelected(){
+  if(!ddvSelected.size) return;
+  if(!confirm(dict[currentLang].confirmBulkDelete.replace('{n}', ddvSelected.size))) return;
+  const cfg = DDV_CONFIGS[ddvType];
+  try{
+    const data = await apiCall({ action: cfg.deleteAction, token: currentUserForKpi.token, ids: Array.from(ddvSelected) });
+    if(!data.success){ alert(dict[currentLang].savedErr); return; }
+    ddvSelected = new Set();
+    await ddvReload();
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+/* ---------- Zaxira nusxa (Backup) ---------- */
+function formatBytes(bytes){
+  if(!bytes) return '0 KB';
+  const units = ['B','KB','MB','GB'];
+  let i = 0; let n = bytes;
+  while(n >= 1024 && i < units.length - 1){ n /= 1024; i++; }
+  return `${n.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+}
+
+async function loadBackups(){
+  const tbody = document.getElementById('backupTbody');
+  try{
+    const data = await apiCall({ action:'listBackups', token: currentUserForKpi.token });
+    if(!data.success){ tbody.innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik</td></tr>`; return; }
+    if(!data.backups.length){
+      tbody.innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.backups.map(b => `
+      <tr>
+        <td>${escapeHtml(b.createdAt)}</td>
+        <td>${formatBytes(b.sizeBytes)}</td>
+        <td><a class="icon-btn" style="text-decoration:none;" title="${dict[currentLang].backupDownloadBtn}" href="${API_BASE_URL.replace('backend/public/index.php','backend/public/backup-download.php')}?name=${encodeURIComponent(b.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></a></td>
+      </tr>
+    `).join('');
+  } catch(ex){
+    tbody.innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
+  }
+}
+
+async function createBackupNow(){
+  const btn = document.getElementById('backupCreateBtn');
+  btn.disabled = true;
+  const originalText = btn.innerHTML;
+  btn.innerHTML = `<span>${dict[currentLang].backupCreating}</span>`;
+  try{
+    const data = await apiCall({ action:'createBackup', token: currentUserForKpi.token });
+    if(data.success){
+      await loadBackups();
+    } else {
+      alert(dict[currentLang].savedErr + (data.message ? ('\n' + data.message) : ''));
+    }
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+  btn.disabled = false;
+  btn.innerHTML = originalText;
+}
+
+async function loadErrorLog(){
+  const tbody = document.getElementById('errorLogTbody');
+  try{
+    const data = await apiCall({ action:'getErrorLog', token: currentUserForKpi.token });
+    if(!data.success){ tbody.innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik</td></tr>`; return; }
+    if(!data.entries.length){
+      tbody.innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.entries.map(e => `
+      <tr>
+        <td>${escapeHtml(e.sana)}</td>
+        <td>${escapeHtml(e.action || '—')}</td>
+        <td style="white-space:normal;">${escapeHtml(e.message)}</td>
+      </tr>
+    `).join('');
+  } catch(ex){
+    tbody.innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
+  }
+}
+
 function renderTable(){
   if(filteredEmployees.length === 0){
     document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
@@ -754,7 +1565,11 @@ function renderAll(){
   if(usersData) onEmpSearch();
 }
 
-/* ---------- Xodimlar (gl-admin) ---------- */
+/* ---------- Xodimlar ---------- */
+function openEmployeesEntry(){
+  openSection('employeesHubView');
+}
+
 function onEmpSearch(){
   const q = document.getElementById('empSearchInput').value.trim().toLowerCase();
   filteredUsers = !q ? usersData : usersData.filter(u => (u.familiya+' '+u.ism+' '+(u.otasi||'')).toLowerCase().includes(q) || u.login.toLowerCase().includes(q));
@@ -763,28 +1578,160 @@ function onEmpSearch(){
 
 function renderUsersTable(){
   if(filteredUsers.length === 0){
-    document.getElementById('empTbody').innerHTML = `<tr><td colspan="5" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    document.getElementById('empTbody').innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
+  const canManageEmp = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
+  const canUnlock = currentUserForKpi && (currentUserForKpi.rol === 'gl-admin' || currentUserForKpi.rol === 'admin');
   document.getElementById('empTbody').innerHTML = filteredUsers.map((u, i) => {
     const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
-    return `<tr><td>${u.id ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td></tr>`;
+    const lockedBadge = u.locked ? `<span class="badge no" style="margin-left:6px;" title="${dict[currentLang].lockedUntilLabel}: ${escapeHtml(u.lockedUntil||'')}">${dict[currentLang].lockedBadge}</span>` : '';
+    const unlockBtn = (u.locked && canUnlock) ? `<button type="button" class="icon-btn" title="${dict[currentLang].unlockBtn}" onclick="unlockEmployeeRow('${escapeHtml(u.login)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button>` : '';
+    const editDeleteBtns = canManageEmp ? `
+        <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>` : '';
+    const actions = (unlockBtn || editDeleteBtns) ? `<div class="row-actions">${unlockBtn}${editDeleteBtns}</div>` : '—';
+    return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}${lockedBadge}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
   }).join('');
+}
+
+function startEditEmployee(id){
+  const u = usersData.find(x => String(x.id) === String(id));
+  if(!u) return;
+  editingEmployeeId = id;
+  document.getElementById('eLogin').value = u.login || '';
+  document.getElementById('eLogin').disabled = true;
+  document.getElementById('eParol').required = false;
+  document.getElementById('eParol').value = '';
+  document.getElementById('eParolHint').style.display = 'block';
+  document.getElementById('eFamiliya').value = u.familiya || '';
+  document.getElementById('eIsm').value = u.ism || '';
+  document.getElementById('eOtasi').value = u.otasi || '';
+  document.getElementById('eTugilganSana').value = u.tugilganSana || '';
+  document.getElementById('eLavozim').value = u.lavozim || '';
+  document.getElementById('eLavozimRu').value = u.lavozimRu || '';
+  document.getElementById('eBolinma').value = u.bolinma || '';
+  document.getElementById('eBolinmaRu').value = u.bolinmaRu || '';
+  document.getElementById('eTelefon').value = u.telefon || '';
+  document.getElementById('eRol').value = u.rol || 'user';
+  document.getElementById('empFormEyebrow').textContent = dict[currentLang].empFormEdit;
+  document.getElementById('empFormTitle').textContent = dict[currentLang].empFormEdit;
+  document.getElementById('empCancelBtn').style.display = 'inline-flex';
+  document.getElementById('empFormMsg').className = 'msg';
+  document.getElementById('eLoginWarning').classList.remove('show');
+  openSection('addEmployeeView');
+}
+
+function cancelEmployeeEdit(){
+  editingEmployeeId = null;
+  document.getElementById('eLogin').disabled = false;
+  document.getElementById('eParol').required = true;
+  document.getElementById('eParolHint').style.display = 'none';
+  document.getElementById('empFormEyebrow').textContent = dict[currentLang].hubAddEmployee;
+  document.getElementById('empFormTitle').textContent = dict[currentLang].hubAddEmployee;
+  document.getElementById('empCancelBtn').style.display = 'none';
+  document.querySelector('#addEmployeeView form').reset();
+  document.getElementById('empFormMsg').className = 'msg';
+  document.getElementById('eLoginWarning').classList.remove('show');
+}
+
+async function deleteEmployeeRow(id){
+  if(!confirm(dict[currentLang].confirmDeleteEmployee)) return;
+  try{
+    const data = await apiCall({ action:'deleteEmployee', token: currentUserForKpi.token, id });
+    if(data.success){
+      loadUsersList(currentUserForKpi);
+    } else if(data.code === 'CANNOT_DELETE_SELF'){
+      alert(dict[currentLang].cannotDeleteSelfErr);
+    } else if(data.code === 'LAST_GL_ADMIN'){
+      alert(dict[currentLang].lastGlAdminErr);
+    } else {
+      alert(dict[currentLang].savedErr);
+    }
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function unlockEmployeeRow(login){
+  try{
+    const data = await apiCall({ action:'unlockLogin', token: currentUserForKpi.token, login });
+    if(data.success){
+      loadUsersList(currentUserForKpi);
+    } else {
+      alert(dict[currentLang].savedErr);
+    }
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
 async function loadUsersList(user){
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getUsersList', token: user.token });
+    const data = await apiCall({ action:'getUsersList', token: user.token });
     if(data.success){
-      usersData = data.users;
+      // Backend id bo'yicha (yaratilgan tartibida) qaytaradi — ko'rsatiladigan "ID" ustuni
+      // shu tartibdagi joriy pozitsiya (1,2,3...): xodim o'chirilsa, qolganlar avtomatik
+      // siljib, bo'shliq qolmaydi. Haqiqiy baza id'si (u.id) tahrirlash/o'chirish uchun ishlatiladi.
+      usersData = data.users.map((u, i) => ({ ...u, displayId: i + 1 }));
       if(document.getElementById('employeesView').style.display !== 'none') { filteredUsers = usersData; renderUsersTable(); }
     }
   } catch(ex){}
 }
 
+/* Login maydoni tagida jonli (real vaqtda) "band" ogohlantirishi — usersData
+   allaqachon xotirada yuklangani uchun serverga so'rov yubormasdan tekshiradi.
+   Tahrirlash rejimida (login maydoni disabled) hech qachon ko'rsatilmaydi. */
+function checkLoginTaken(){
+  const warning = document.getElementById('eLoginWarning');
+  const input = document.getElementById('eLogin');
+  if(editingEmployeeId || input.disabled){ warning.classList.remove('show'); return false; }
+  const login = input.value.trim().toLowerCase();
+  const taken = login !== '' && (usersData || []).some(u => (u.login || '').toLowerCase() === login);
+  warning.classList.toggle('show', taken);
+  return taken;
+}
+
+async function submitEmployeeForm(e){
+  e.preventDefault();
+  const msg = document.getElementById('empFormMsg'); msg.className = 'msg';
+  if(checkLoginTaken()){ return false; }
+  const payload = {
+    action: editingEmployeeId ? 'editEmployee' : 'addEmployee', token: currentUserForKpi.token,
+    login: document.getElementById('eLogin').value.trim(),
+    parol: document.getElementById('eParol').value,
+    familiya: document.getElementById('eFamiliya').value.trim(),
+    ism: document.getElementById('eIsm').value.trim(),
+    otasi: document.getElementById('eOtasi').value.trim(),
+    tugilganSana: document.getElementById('eTugilganSana').value,
+    lavozim: document.getElementById('eLavozim').value.trim(),
+    lavozimRu: document.getElementById('eLavozimRu').value.trim(),
+    bolinma: document.getElementById('eBolinma').value.trim(),
+    bolinmaRu: document.getElementById('eBolinmaRu').value.trim(),
+    telefon: document.getElementById('eTelefon').value.trim(),
+    rol: document.getElementById('eRol').value
+  };
+  if(editingEmployeeId) payload.id = editingEmployeeId;
+  const btn = document.getElementById('empSubmitBtn'); btn.disabled = true;
+  try{
+    const data = await apiCall(payload);
+    btn.disabled = false;
+    if(data.success){
+      cancelEmployeeEdit();
+      msg.textContent = dict[currentLang].empSavedOk; msg.classList.add('ok');
+      loadUsersList(currentUserForKpi);
+    } else if(data.code === 'LOGIN_TAKEN'){
+      document.getElementById('eLoginWarning').classList.add('show');
+    } else if(data.code === 'WEAK_PASSWORD'){
+      msg.textContent = dict[currentLang].weakPasswordErr; msg.classList.add('err');
+    } else if(data.code === 'LAST_GL_ADMIN'){
+      msg.textContent = dict[currentLang].lastGlAdminErr; msg.classList.add('err');
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
+    }
+  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
 async function loadStats(user){
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getStats', token: user.token });
+    const data = await apiCall({ action:'getStats', token: user.token });
     if(!data.success) return;
     statsData = data;
     renderAll();
@@ -809,7 +1756,7 @@ function refreshCorrectSelects(){
 async function loadTests(){
   document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getTestQuestions', token: currentUserForKpi.token });
+    const data = await apiCall({ action:'getTestQuestions', token: currentUserForKpi.token });
     if(data.success){
       testsData = data.questions; renderTestsTable();
       document.getElementById('testActiveToggle').checked = data.active;
@@ -824,7 +1771,7 @@ async function onTestActiveToggle(){
   const cb = document.getElementById('testActiveToggle');
   const desired = cb.checked;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'setTestActive', token: currentUserForKpi.token, active: desired });
+    const data = await apiCall({ action:'setTestActive', token: currentUserForKpi.token, active: desired });
     if(data.success){
       document.getElementById('testActiveSub').textContent = desired ? dict[currentLang].activeOn : dict[currentLang].activeOff;
     } else {
@@ -842,9 +1789,9 @@ function renderTestsTable(){
     document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
-  document.getElementById('testsTbody').innerHTML = testsData.map(q => `
+  document.getElementById('testsTbody').innerHTML = testsData.map((q, i) => `
     <tr>
-      <td>${escapeHtml(q.id)}</td>
+      <td>${i + 1}</td>
       <td style="white-space:normal;">${escapeHtml(q.uz.savol)}</td>
       <td><div class="row-actions">
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditTest('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
@@ -886,7 +1833,7 @@ async function submitTestForm(e){
   e.preventDefault();
   const msg = document.getElementById('testFormMsg'); msg.className = 'msg';
   const payload = {
-    secret: APP_SECRET, token: currentUserForKpi.token,
+    token: currentUserForKpi.token,
     action: editingTestId ? 'editTestQuestion' : 'addTestQuestion',
     savol: document.getElementById('tSavol').value, a: document.getElementById('tA').value, b: document.getElementById('tB').value,
     c: document.getElementById('tC').value, d: document.getElementById('tD').value, correct: document.getElementById('tCorrect').value,
@@ -912,7 +1859,7 @@ async function submitTestForm(e){
 async function deleteTestRow(id){
   if(!confirm(dict[currentLang].confirmDeleteTest)) return;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'deleteTestQuestion', token: currentUserForKpi.token, id });
+    const data = await apiCall({ action:'deleteTestQuestion', token: currentUserForKpi.token, id });
     if(data.success) loadTests();
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
@@ -921,7 +1868,7 @@ async function deleteTestRow(id){
 async function loadDocs(){
   document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getDocuments', token: currentUserForKpi.token });
+    const data = await apiCall({ action:'getDocuments', token: currentUserForKpi.token });
     if(data.success){ docsData = data.docs; renderDocsTable(); }
   } catch(ex){
     document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
@@ -933,9 +1880,9 @@ function renderDocsTable(){
     document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
-  document.getElementById('docsTbody').innerHTML = docsData.map(d => `
+  document.getElementById('docsTbody').innerHTML = docsData.map((d, i) => `
     <tr>
-      <td>${escapeHtml(d.id)}</td>
+      <td>${i + 1}</td>
       <td style="white-space:normal;">${escapeHtml(d.uz)}</td>
       <td><div class="row-actions">
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditDoc('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
@@ -967,7 +1914,7 @@ async function submitDocForm(e){
   e.preventDefault();
   const msg = document.getElementById('docFormMsg'); msg.className = 'msg';
   const payload = {
-    secret: APP_SECRET, token: currentUserForKpi.token,
+    token: currentUserForKpi.token,
     action: editingDocId ? 'editDocument' : 'addDocument',
     uz: document.getElementById('dUz').value, ru: document.getElementById('dRu').value, url: document.getElementById('dUrl').value
   };
@@ -990,7 +1937,7 @@ async function submitDocForm(e){
 async function deleteDocRow(id){
   if(!confirm(dict[currentLang].confirmDeleteDoc)) return;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'deleteDocument', token: currentUserForKpi.token, id });
+    const data = await apiCall({ action:'deleteDocument', token: currentUserForKpi.token, id });
     if(data.success) loadDocs();
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
@@ -1013,7 +1960,7 @@ function backFromSurveyResults(){
 
 async function loadSurveyStatusOnly(){
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyQuestions', token: currentUserForKpi.token });
+    const data = await apiCall({ action:'getSurveyQuestions', token: currentUserForKpi.token });
     if(data.success){
       surveyData = data.questions;
       document.getElementById('surveyActiveToggle').checked = data.active;
@@ -1026,7 +1973,7 @@ async function onSurveyActiveToggle(){
   const cb = document.getElementById('surveyActiveToggle');
   const desired = cb.checked;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'setSurveyActive', token: currentUserForKpi.token, active: desired });
+    const data = await apiCall({ action:'setSurveyActive', token: currentUserForKpi.token, active: desired });
     if(data.success){
       document.getElementById('surveyActiveSub').textContent = desired ? dict[currentLang].activeOn : dict[currentLang].activeOff;
     } else {
@@ -1042,7 +1989,7 @@ async function onSurveyActiveToggle(){
 async function loadSurveyQuestions(){
   document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyQuestions', token: currentUserForKpi.token });
+    const data = await apiCall({ action:'getSurveyQuestions', token: currentUserForKpi.token });
     if(data.success){
       surveyData = data.questions; renderSurveyTable();
       document.getElementById('surveyActiveToggle').checked = data.active;
@@ -1080,9 +2027,9 @@ function renderSurveyTable(){
     document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="4" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
-  document.getElementById('surveyTbody').innerHTML = surveyData.map(q => `
+  document.getElementById('surveyTbody').innerHTML = surveyData.map((q, i) => `
     <tr>
-      <td>${escapeHtml(q.id)}</td>
+      <td>${i + 1}</td>
       <td title="${surveyTypeLabel(q.turi)}">${surveyTypeIcon(q.turi)}</td>
       <td style="white-space:normal;">${escapeHtml(q.uz.savol)}</td>
       <td><div class="row-actions">
@@ -1126,7 +2073,7 @@ async function submitSurveyForm(e){
   e.preventDefault();
   const msg = document.getElementById('surveyFormMsg'); msg.className = 'msg';
   const payload = {
-    secret: APP_SECRET, token: currentUserForKpi.token,
+    token: currentUserForKpi.token,
     action: editingSurveyId ? 'editSurveyQuestion' : 'addSurveyQuestion',
     turi: document.getElementById('sTuri').value, stars: document.getElementById('sStars').value,
     savol: document.getElementById('sSavol').value, a: document.getElementById('sA').value, b: document.getElementById('sB').value,
@@ -1153,7 +2100,7 @@ async function submitSurveyForm(e){
 async function deleteSurveyRow(id){
   if(!confirm(dict[currentLang].confirmDeleteSurvey)) return;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'deleteSurveyQuestion', token: currentUserForKpi.token, id });
+    const data = await apiCall({ action:'deleteSurveyQuestion', token: currentUserForKpi.token, id });
     if(data.success) loadSurveyQuestions();
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
@@ -1210,8 +2157,9 @@ async function loadSurveyResults(){
   const box = document.getElementById('surveyResultsBox');
   box.innerHTML = `<p class="loading-row">${dict[currentLang].loading}</p>`;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyResults', token: currentUserForKpi.token });
+    const data = await apiCall({ action:'getSurveyResults', token: currentUserForKpi.token });
     if(!data.success){ box.innerHTML = `<p class="loading-row">Xatolik</p>`; return; }
+    surveyResultsData = data;
     if(!data.report || data.report.length === 0){ box.innerHTML = `<p class="loading-row">${dict[currentLang].noResults}</p>`; return; }
 
     const summaryHtml = `<div class="survey-summary-row">
@@ -1279,14 +2227,14 @@ function onNotifTargetTypeChange(){
   document.getElementById('notifUsersField').style.display = type === 'users' ? 'block' : 'none';
   document.getElementById('notifDeptField').style.display = type === 'department' ? 'block' : 'none';
   if(type === 'department' && document.getElementById('notifDeptSelect').options.length === 0){
-    const depts = [...new Set((usersData||[]).filter(u=>u.rol==='user').map(u=>u.bolinma).filter(Boolean))];
+    const depts = [...new Set((usersData||[]).map(u=>u.bolinma).filter(Boolean))];
     document.getElementById('notifDeptSelect').innerHTML = depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
   }
 }
 
 function renderNotifUserList(){
   const q = document.getElementById('notifUserSearch').value.trim().toLowerCase();
-  const list = (usersData||[]).filter(u=>u.rol==='user').filter(u=>{
+  const list = (usersData||[]).filter(u=>{
     const fish = [u.familiya,u.ism,u.otasi].filter(Boolean).join(' ').toLowerCase();
     return !q || fish.includes(q);
   });
@@ -1306,7 +2254,7 @@ async function submitNotification(e){
   const msg = document.getElementById('notifSendMsg'); msg.className = 'msg';
   const type = document.getElementById('notifTargetType').value;
   const text = document.getElementById('notifText').value.trim();
-  const payload = { secret: APP_SECRET, action:'sendNotification', token: currentUserForKpi.token, targetType: type, text };
+  const payload = { action:'sendNotification', token: currentUserForKpi.token, targetType: type, text };
   if(type === 'department'){
     payload.department = document.getElementById('notifDeptSelect').value;
     if(!payload.department){ msg.textContent = dict[currentLang].notifNoTarget; msg.classList.add('err'); return false; }
@@ -1336,7 +2284,7 @@ async function loadNotifHistory(){
   if(notifHistoryLoaded) return;
   notifHistoryLoaded = true;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getNotificationReport', token: currentUserForKpi.token });
+    const data = await apiCall({ action:'getNotificationReport', token: currentUserForKpi.token });
     if(data.success) renderNotifHistory(data.report);
   } catch(ex){
     document.getElementById('notifHistoryList').innerHTML = `<p style="color:var(--coral); font-size:13px;">Xatolik: ${ex.message}</p>`;
@@ -1361,6 +2309,145 @@ function renderNotifHistory(report){
   }).join('');
 }
 
+/* ---------- Yordam so'rovlari (Support) ---------- */
+let supportData = null;
+let currentSupportDetailId = null;
+let supportSelected = new Set();
+
+async function loadSupportRequests(){
+  const tbody = document.getElementById('supportTbody');
+  try{
+    const data = await apiCall({ action:'getSupportRequests', token: currentUserForKpi.token });
+    if(data.success){ supportData = data.requests; supportSelected = new Set(); renderSupportTable(); updateSupportBadge(); }
+    else if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Xatolik</td></tr>`;
+  } catch(ex){
+    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
+  }
+}
+
+function updateSupportBadge(){
+  const badge = document.getElementById('supportBadge');
+  if(!badge || !supportData) return;
+  const unreviewed = supportData.filter(r => !r.comments || r.comments.length === 0).length;
+  if(unreviewed > 0){ badge.textContent = unreviewed > 99 ? '99+' : String(unreviewed); badge.style.display = 'flex'; badge.style.alignItems = 'center'; badge.style.justifyContent = 'center'; }
+  else badge.style.display = 'none';
+}
+
+function toggleSupportRow(id, checked){
+  if(checked) supportSelected.add(id); else supportSelected.delete(id);
+  updateSupportBulkBar();
+}
+
+function toggleAllSupport(){
+  const checked = document.getElementById('supportSelectAll').checked;
+  supportSelected = new Set(checked && supportData ? supportData.map(r => r.id) : []);
+  renderSupportTable();
+}
+
+function updateSupportBulkBar(){
+  const isGlAdmin = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
+  const bar = document.getElementById('supportBulkBar');
+  const th = document.getElementById('supportSelectAllTh');
+  if(bar) bar.style.display = isGlAdmin ? 'flex' : 'none';
+  if(th) th.style.display = isGlAdmin ? 'table-cell' : 'none';
+  const countEl = document.getElementById('supportSelectedCount');
+  if(countEl) countEl.textContent = supportSelected.size;
+  const btn = document.getElementById('supportDeleteBtn');
+  if(btn) btn.disabled = supportSelected.size === 0;
+  const selectAll = document.getElementById('supportSelectAll');
+  if(selectAll) selectAll.checked = !!(supportData && supportData.length && supportSelected.size === supportData.length);
+}
+
+async function deleteSelectedSupport(){
+  if(!supportSelected.size) return;
+  if(!confirm(dict[currentLang].confirmBulkDelete.replace('{n}', supportSelected.size))) return;
+  try{
+    const data = await apiCall({ action:'deleteSupportRequests', token: currentUserForKpi.token, ids: Array.from(supportSelected) });
+    if(!data.success){ alert(dict[currentLang].savedErr); return; }
+    supportSelected = new Set();
+    await loadSupportRequests();
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+function renderSupportTable(){
+  const tbody = document.getElementById('supportTbody');
+  if(!tbody) return;
+  const isGlAdmin = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
+  updateSupportBulkBar();
+  if(!supportData || supportData.length === 0){
+    tbody.innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = supportData.map(r => `
+    <tr>
+      ${isGlAdmin ? `<td><input type="checkbox" ${supportSelected.has(r.id)?'checked':''} onchange="toggleSupportRow(${r.id}, this.checked)"></td>` : ''}
+      <td>${r.id}</td>
+      <td title="${escapeHtml(r.fish)}">${escapeHtml(r.fish)}</td>
+      <td>${escapeHtml(r.telefon || '—')}</td>
+      <td title="${escapeHtml(r.murojaat)}">${escapeHtml(r.murojaat)}</td>
+      <td>${escapeHtml(r.sana)}</td>
+      <td><div class="row-actions">
+        <button type="button" class="icon-btn" title="${dict[currentLang].supportIzohLabel}" onclick="openSupportDetail(${r.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+function openSupportDetail(id){
+  currentSupportDetailId = id;
+  openSection('supportDetailView');
+  renderSupportDetail();
+}
+
+function renderSupportDetail(){
+  const box = document.getElementById('supportDetailBox');
+  const r = supportData ? supportData.find(x => x.id === currentSupportDetailId) : null;
+  if(!box || !r) return;
+  const comments = r.comments || [];
+  const commentsHtml = comments.length ? comments.map(c => `
+    <div class="notif-hist-item" style="cursor:default;">
+      <div class="h-meta"><span>${escapeHtml(c.fish)}</span><span>${escapeHtml(c.sana)}</span></div>
+      <div class="h-text">${escapeHtml(c.izoh)}</div>
+    </div>
+  `).join('') : `<p class="loading-row">${dict[currentLang].supportNoComments}</p>`;
+
+  box.innerHTML = `
+    <div class="notif-hist-item" style="cursor:default;">
+      <div class="h-meta"><span>${escapeHtml(r.fish)} (${escapeHtml(r.login)}) • ${escapeHtml(r.telefon || '—')}</span><span>${escapeHtml(r.sana)}</span></div>
+      <div class="h-text">${escapeHtml(r.murojaat)}</div>
+    </div>
+    <h3 style="font-size:14px; margin:20px 0 10px;">${dict[currentLang].supportCommentsTitle}</h3>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">${commentsHtml}</div>
+    <div class="field" style="margin-bottom:0;">
+      <label style="font-size:11px; text-transform:uppercase; color:var(--text-dim); display:block; margin-bottom:5px;">${dict[currentLang].supportIzohLabel}</label>
+      <textarea id="newSupportComment" rows="3" placeholder="${dict[currentLang].supportIzohPh}"></textarea>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+      <button type="button" class="back-btn" onclick="saveSupportComment()">${dict[currentLang].supportAddCommentBtn}</button>
+      <span id="supportCommentMsg" style="font-size:12px;"></span>
+    </div>
+  `;
+}
+
+async function saveSupportComment(){
+  const izoh = document.getElementById('newSupportComment').value.trim();
+  const msg = document.getElementById('supportCommentMsg');
+  msg.textContent = '';
+  if(!izoh) return;
+  try{
+    const data = await apiCall({ action:'addSupportComment', token: currentUserForKpi.token, id: currentSupportDetailId, izoh });
+    if(data.success){
+      msg.textContent = dict[currentLang].savedOk; msg.style.color = 'var(--teal)';
+      await loadSupportRequests();
+      renderSupportDetail();
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.style.color = 'var(--coral)';
+    }
+  } catch(ex){
+    msg.textContent = 'Xatolik: ' + ex.message; msg.style.color = 'var(--coral)';
+  }
+}
+
 function init(){
   const user = getCurrentUser();
   if(!user || !user.token){ window.location.href = 'login.html'; return; }
@@ -1371,8 +2458,10 @@ function init(){
   const canManage = rol === 'gl-admin'; // Test savollari, Hujjat qo'shish — faqat gl-admin
   const canSurvey = rol === 'gl-admin' || rol === 'admin'; // Anonim so'rovnoma (ichki huquqlar rolga qarab farqlanadi)
   const canNotifSend = rol === 'gl-admin' || rol === 'admin';
+  const canSupport = rol === 'gl-admin' || rol === 'admin';
+  const canReports = rol === 'gl-admin'; // Hisobotlar — tashkilot bo'yicha to'liq ma'lumot, faqat gl-admin
 
-  if(!canAnticor && !canEmployees && !canManage && !canSurvey && !canNotifSend){
+  if(!canAnticor && !canEmployees && !canManage && !canSurvey && !canNotifSend && !canSupport && !canReports){
     document.querySelector('.hub-grid').style.display = 'none';
     document.getElementById('noAccessMsg').style.display = 'block';
     return;
@@ -1380,14 +2469,21 @@ function init(){
 
   document.getElementById('anticorCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('employeesCard').style.display = canEmployees ? 'block' : 'none';
+  document.getElementById('conflictCard').style.display = canEmployees ? 'block' : 'none';
   document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('surveyCard').style.display = canSurvey ? 'block' : 'none';
   document.getElementById('notifSendCard').style.display = canNotifSend ? 'block' : 'none';
+  document.getElementById('addEmployeeSubCard').style.display = canManage ? 'block' : 'none';
+  document.getElementById('supportCard').style.display = canSupport ? 'block' : 'none';
+  document.getElementById('reportsCard').style.display = canReports ? 'block' : 'none';
+  document.getElementById('backupCard').style.display = canReports ? 'block' : 'none';
+  document.getElementById('errorLogCard').style.display = canReports ? 'block' : 'none';
 
+  currentUserForKpi = user;
   if(canAnticor) loadStats(user);
   if(canEmployees) loadUsersList(user);
-  currentUserForKpi = user;
+  if(canSupport) loadSupportRequests();
 }
 init();
 
@@ -1429,6 +2525,29 @@ window.addEventListener('pageshow', function(event){
     if (!u || !u.token) { window.location.href = 'login.html'; }
   }
 });
+
+// XAVFSIZLIK: 30 daqiqa harakatsizlikdan so'ng avtomat chiqish.
+(function initIdleLogout(){
+  const u = getCurrentUser();
+  if(!u || !u.token) return;
+  const IDLE_LIMIT_MS = 30 * 60 * 1000;
+  let idleTimer = null;
+  function doIdleLogout(){
+    const cur = getCurrentUser();
+    const token = cur && cur.token;
+    try{ sessionStorage.removeItem('km_user'); }catch(e){}
+    if(token){ fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{}); }
+    window.location.href = 'login.html';
+  }
+  function resetIdleTimer(){
+    if(idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(doIdleLogout, IDLE_LIMIT_MS);
+  }
+  ['mousedown','mousemove','keydown','wheel','touchstart','click'].forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive:true });
+  });
+  resetIdleTimer();
+})();
 </script>
 </body>
 </html>

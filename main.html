@@ -104,6 +104,9 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .hero .hero-actions a:hover{ transform:translateY(-2px); }
 .hero .hero-actions a.primary{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; box-shadow:0 10px 25px -10px rgba(0,163,224,0.55); }
 .hero .hero-actions a.secondary{ border:1px solid var(--card-border); color:var(--text); background:var(--card); }
+.hero .hero-actions a.soon{ opacity:.6; position:relative; cursor:pointer; }
+.hero .hero-actions a.soon:hover{ transform:none; }
+.hero .hero-actions a.soon .soon-badge{ position:absolute; top:-9px; right:-9px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px; padding:2px 7px; }
 @keyframes rise{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
 
 /* ===== Status check card ===== */
@@ -263,6 +266,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
     <a href="docs.html" class="primary" data-i18n="docsBtn">Hujjatlar bilan tanishish</a>
     <a href="test.html" class="secondary" data-i18n="testBtn">Testni topshirish</a>
     <a href="survey.html" class="secondary" data-i18n="surveyBtn">Anonim so'rovnoma</a>
+    <a href="javascript:void(0)" class="secondary soon" onclick="alert(dict[currentLang].soonMsg)"><span data-i18n="declarationBtn">Deklaratsiya to'ldirish</span><span class="soon-badge" data-i18n="soonTag">Tez orada</span></a>
   </div>
 </div>
 
@@ -284,7 +288,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
         <span class="badge" id="docBadge">—</span>
       </div>
       <div class="status-item">
-        <span data-i18n="testLabel">Testdan o'tgan</span>
+        <span data-i18n="testLabel">Test natijasi</span>
         <span class="badge" id="testBadge">—</span>
       </div>
     </div>
@@ -314,6 +318,20 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
         </span>
       </button>
+      <button class="settings-menu-item" onclick="showSettingsView('totpSettingsView'); loadTotpStatus();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span data-i18n="totpMenu">Ikki bosqichli tasdiqlash</span>
+        <span class="chev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
+      <button class="settings-menu-item" onclick="showSettingsView('sessionsView'); loadMySessions();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+        <span data-i18n="sessionsMenu">Faol sessiyalar</span>
+        <span class="chev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
       <button class="settings-menu-item" onclick="showSettingsView('supportView')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
         <span data-i18n="helpMenu">Yordam</span>
@@ -335,6 +353,54 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
         <button class="modal-submit" type="submit" data-i18n="sendBtn">Yuborish</button>
         <div class="modal-msg" id="supportMsg"></div>
       </form>
+    </div>
+
+    <div id="totpSettingsView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <p class="loading-row" id="totpStatusLoading" data-i18n="loading">Yuklanmoqda...</p>
+
+      <div id="totpDisabledBox" style="display:none;">
+        <p class="field-hint" style="font-size:12.5px; color:var(--text-dim); margin-bottom:14px;" data-i18n="totpDisabledDesc">Hozircha o'chirilgan. Yoqish uchun tugmani bosing.</p>
+        <button class="modal-submit" type="button" onclick="startTotpSetup()" data-i18n="totpEnableBtn">Yoqish</button>
+      </div>
+
+      <div id="totpSetupBox" style="display:none;">
+        <p class="field-hint" style="font-size:12.5px; color:var(--text-dim); margin-bottom:10px;" data-i18n="totpSetupDesc">Avtentifikator ilovangizga (Google Authenticator, Authy va h.k.) "Kalitni qo'lda kiritish" orqali quyidagi kalitni kiriting:</p>
+        <div id="totpSecretDisplay" style="font-family:monospace; font-size:15px; letter-spacing:1px; padding:12px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; text-align:center; margin-bottom:14px; word-break:break-all;"></div>
+        <form onsubmit="return confirmTotpSetup(event)">
+          <div class="field">
+            <label data-i18n="totpCodeLabel">Tasdiqlash kodi</label>
+            <input type="text" id="totpSetupCodeInput" inputmode="numeric" maxlength="6" placeholder="000000" required>
+          </div>
+          <button class="modal-submit" type="submit" data-i18n="totpConfirmBtn">Tasdiqlash</button>
+          <div class="modal-msg" id="totpSetupMsg"></div>
+        </form>
+      </div>
+
+      <div id="totpEnabledBox" style="display:none;">
+        <p class="field-hint" style="font-size:12.5px; color:var(--teal); margin-bottom:14px;" data-i18n="totpEnabledDesc">✓ Ikki bosqichli tasdiqlash yoqilgan. O'chirish uchun joriy parolingizni kiriting.</p>
+        <form onsubmit="return disableTotp(event)">
+          <div class="field">
+            <label data-i18n="totpDisablePassLabel">Joriy parol</label>
+            <input type="password" id="totpDisablePassInput" required>
+          </div>
+          <button class="modal-submit" type="submit" style="background:var(--coral);" data-i18n="totpDisableBtn">O'chirish</button>
+          <div class="modal-msg" id="totpDisableMsg"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="sessionsView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <div id="sessionsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;"></div>
+      <button class="settings-back" type="button" onclick="revokeOtherSessionsNow()" data-i18n="revokeOthersBtn">Boshqa barcha qurilmalardan chiqish</button>
+      <div class="modal-msg" id="sessionsMsg"></div>
     </div>
 
     <div id="photoView" style="display:none;">
@@ -378,7 +444,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
       </button>
       <form onsubmit="return changePassword(event)">
         <div class="field"><label data-i18n="oldPassLabel">Eski parol</label><input type="password" id="oldPass" required></div>
-        <div class="field"><label data-i18n="newPassLabel">Yangi parol</label><input type="password" id="newPass" required></div>
+        <div class="field"><label data-i18n="newPassLabel">Yangi parol</label><input type="password" id="newPass" required minlength="8"><div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="passwordPolicyHint">Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)</div></div>
         <div class="field"><label data-i18n="confirmPassLabel">Yangi parolni tasdiqlash</label><input type="password" id="confirmPass" required></div>
         <button class="modal-submit" type="submit" data-i18n="saveBtn">Saqlash</button>
         <div class="modal-msg" id="passMsg"></div>
@@ -415,17 +481,18 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 </div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+// PHP backend'ning ochiq API manzili (backend/public/index.php) — sahifa qayerdan
+// ochilgan bo'lsa (localhost, mahalliy tarmoq IP'si, ngrok, haqiqiy domen), o'sha
+// joyning o'ziga nisbatan avtomatik hisoblanadi, qo'lda o'zgartirish shart emas.
+const API_BASE_URL = new URL('backend/public/index.php', window.location.href).href;
 
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+// Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
   const body = JSON.stringify(payload);
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', body, credentials:'same-origin' });
       const text = await res.text();
       try{
         const parsed = JSON.parse(text);
@@ -458,20 +525,32 @@ const dict = {
     heroDesc:"Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.",
     statusTitle:"Holatingizni tekshiring", statusSub:"Telefon raqamingizni kiriting",
     docsBtn:"Hujjatlar bilan tanishish", testBtn:"Testni topshirish", surveyBtn:"Anonim so'rovnoma",
+    declarationBtn:"Deklaratsiya to'ldirish", soonTag:"Tez orada", soonMsg:"Bu bo'lim tez orada ishga tushiriladi",
     checkBtn:"Tekshirish", statusErrText:"Bu raqam topilmadi", notYourNumber:"Ushbu raqam sizga tegishli emas",
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
-    docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Testdan o'tgan",
+    docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Test natijasi",
     oldPassLabel:"Eski parol", newPassLabel:"Yangi parol", confirmPassLabel:"Yangi parolni tasdiqlash",
     saveBtn:"Saqlash", fishLabel:"F.I.Sh", posLabel:"Lavozim", deptLabel:"Bo'linma", phoneLabel:"Telefon",
     menuLogout:"Chiqish", changePassMenu:"Parolni almashtirish", backLabel:"Orqaga",
     yes:"Ha", no:"Yo'q", mismatchErr:"Yangi parollar mos kelmadi", oldWrongErr:"Eski parol noto'g'ri",
+    weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
+    passwordPolicyHint:"Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)",
     savedOk:"Parol muvaffaqiyatli o'zgartirildi", checking:"Tekshirilmoqda...",
     phonePh:"Telefon raqamingiz", pointsLabel:"ball",
     helpMenu:"Yordam", supportPh:"Iltimos, savolingiz yoki xatoni izohlab bering", sendBtn:"Yuborish",
     supportSentOk:"Murojaatingiz qabul qilindi, rahmat!", savingErr:"Xatolik yuz berdi, qayta urinib ko'ring",
     changePhotoMenu:"Rasmni o'zgartirish", photoUrlLabel:"Rasm tanlang",
     photoHint:"Qurilmangizdan rasm tanlang (JPG, PNG).",
-    photoSavedOk:"Rasm muvaffaqiyatli saqlandi", photoEmptyErr:"Rasm tanlang", photoReadErr:"Rasmni o'qib bo'lmadi, boshqa faylni tanlang"
+    photoSavedOk:"Rasm muvaffaqiyatli saqlandi", photoEmptyErr:"Rasm tanlang", photoReadErr:"Rasmni o'qib bo'lmadi, boshqa faylni tanlang",
+    totpMenu:"Ikki bosqichli tasdiqlash", totpEnableBtn:"Yoqish", totpConfirmBtn:"Tasdiqlash", totpDisableBtn:"O'chirish",
+    totpDisabledDesc:"Hozircha o'chirilgan. Yoqish uchun tugmani bosing.",
+    totpSetupDesc:"Avtentifikator ilovangizga (Google Authenticator, Authy va h.k.) \"Kalitni qo'lda kiritish\" orqali quyidagi kalitni kiriting:",
+    totpEnabledDesc:"✓ Ikki bosqichli tasdiqlash yoqilgan. O'chirish uchun joriy parolingizni kiriting.",
+    totpDisablePassLabel:"Joriy parol", totpCodeLabel:"Tasdiqlash kodi", totpInvalidErr:"Kod noto'g'ri, qaytadan urinib ko'ring",
+    sessionsMenu:"Faol sessiyalar", currentSessionLabel:"Joriy sessiya (bu qurilma)", sessionLabel:"Boshqa qurilma",
+    revokeBtn:"Chiqarish", revokeOthersBtn:"Boshqa barcha qurilmalardan chiqish",
+    totpEnabledOk:"Ikki bosqichli tasdiqlash yoqildi ✓", totpDisabledOk:"Ikki bosqichli tasdiqlash o'chirildi ✓",
+    sessionsRevokedOk:"Boshqa qurilmalardan muvaffaqiyatli chiqarildi ✓"
   },
   ru:{
     brandName:"АО «Узтелеком»",
@@ -481,20 +560,32 @@ const dict = {
     heroDesc:"Образовательная программа для сотрудников — ознакомьтесь с нормативными документами и проверьте свои знания.",
     statusTitle:"Проверьте свой статус", statusSub:"Введите номер телефона",
     docsBtn:"Ознакомиться с документами", testBtn:"Пройти тест", surveyBtn:"Анонимный опрос",
+    declarationBtn:"Заполнить декларацию", soonTag:"Скоро", soonMsg:"Этот раздел скоро будет запущен",
     checkBtn:"Проверить", statusErrText:"Номер не найден", notYourNumber:"Этот номер вам не принадлежит",
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
-    docLabel:"Ознакомлен с внутренними документами", testLabel:"Тест пройден",
+    docLabel:"Ознакомлен с внутренними документами", testLabel:"Результат теста",
     oldPassLabel:"Старый пароль", newPassLabel:"Новый пароль", confirmPassLabel:"Подтвердите новый пароль",
     saveBtn:"Сохранить", fishLabel:"ФИО", posLabel:"Должность", deptLabel:"Подразделение", phoneLabel:"Телефон",
     menuLogout:"Выйти", changePassMenu:"Изменить пароль", backLabel:"Назад",
     yes:"Да", no:"Нет", mismatchErr:"Новые пароли не совпадают", oldWrongErr:"Старый пароль неверен",
+    weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
+    passwordPolicyHint:"Минимум 8 символов: заглавная, строчная буква, цифра и спецсимвол (например !@#$%)",
     savedOk:"Пароль успешно изменён", checking:"Проверка...",
     phonePh:"Ваш номер телефона", pointsLabel:"баллов",
     helpMenu:"Помощь", supportPh:"Пожалуйста, поясните свой вопрос или опишите ошибку.", sendBtn:"Отправить",
     supportSentOk:"Ваше обращение принято, спасибо!", savingErr:"Произошла ошибка, попробуйте снова",
     changePhotoMenu:"Изменить фото", photoUrlLabel:"Выберите фото",
     photoHint:"Выберите фото с вашего устройства (JPG, PNG).",
-    photoSavedOk:"Фото успешно сохранено", photoEmptyErr:"Выберите фото", photoReadErr:"Не удалось прочитать фото, выберите другой файл"
+    photoSavedOk:"Фото успешно сохранено", photoEmptyErr:"Выберите фото", photoReadErr:"Не удалось прочитать фото, выберите другой файл",
+    totpMenu:"Двухфакторная аутентификация", totpEnableBtn:"Включить", totpConfirmBtn:"Подтвердить", totpDisableBtn:"Отключить",
+    totpDisabledDesc:"Пока отключено. Нажмите кнопку, чтобы включить.",
+    totpSetupDesc:"В приложении-аутентификаторе (Google Authenticator, Authy и т.д.) через \"Ввести код вручную\" введите этот ключ:",
+    totpEnabledDesc:"✓ Двухфакторная аутентификация включена. Для отключения введите текущий пароль.",
+    totpDisablePassLabel:"Текущий пароль", totpCodeLabel:"Код подтверждения", totpInvalidErr:"Неверный код, попробуйте снова",
+    sessionsMenu:"Активные сессии", currentSessionLabel:"Текущая сессия (это устройство)", sessionLabel:"Другое устройство",
+    revokeBtn:"Выйти", revokeOthersBtn:"Выйти со всех других устройств",
+    totpEnabledOk:"Двухфакторная аутентификация включена ✓", totpDisabledOk:"Двухфакторная аутентификация отключена ✓",
+    sessionsRevokedOk:"Успешно выполнен выход с других устройств ✓"
   }
 };
 let currentLang = localStorage.getItem('km_lang') || 'uz';
@@ -550,7 +641,7 @@ async function renderInfoLang(){
   if(currentLang === 'ru' && !currentUser.lavozimRu && !currentUser._ruFetched){
     currentUser._ruFetched = true; // qayta-qayta so'rov yubormaslik uchun
     try{
-      const data = await apiCall({ secret: APP_SECRET, action:'getProfileRu', token: currentUser.token });
+      const data = await apiCall({ action:'getProfileRu', token: currentUser.token });
       if(data.success){
         currentUser.lavozimRu = data.lavozim_ru;
         currentUser.bolinmaRu = data.bolinma_ru;
@@ -602,7 +693,7 @@ function updateNotifBadge(){
 async function loadNotifBadge(){
   if(!currentUser) return;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getMyNotifications', token: currentUser.token });
+    const data = await apiCall({ action:'getMyNotifications', token: currentUser.token });
     if(data.success){
       notifCache = data.notifications;
       updateNotifBadge();
@@ -631,14 +722,14 @@ async function openNotifPanel(){
     document.getElementById('notifList').innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].loading}</p>`;
   }
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getMyNotifications', token: currentUser.token });
+    const data = await apiCall({ action:'getMyNotifications', token: currentUser.token });
     if(data.success){
       notifCache = data.notifications;
       renderNotifList();
       // Ochilgan barcha o'qilmagan xabarnomalarni "o'qildi" deb belgilaymiz
       const unread = notifCache.filter(n => !n.read);
       for(const n of unread){
-        apiCall({ secret: APP_SECRET, action:'markNotificationRead', token: currentUser.token, notifId: n.id }).catch(()=>{});
+        apiCall({ action:'markNotificationRead', token: currentUser.token, notifId: n.id }).catch(()=>{});
         n.read = true;
       }
       updateNotifBadge();
@@ -653,6 +744,8 @@ function showSettingsView(viewId){
   document.getElementById('photoView').style.display = viewId === 'photoView' ? 'block' : 'none';
   document.getElementById('passwordView').style.display = viewId === 'passwordView' ? 'block' : 'none';
   document.getElementById('supportView').style.display = viewId === 'supportView' ? 'block' : 'none';
+  document.getElementById('totpSettingsView').style.display = viewId === 'totpSettingsView' ? 'block' : 'none';
+  document.getElementById('sessionsView').style.display = viewId === 'sessionsView' ? 'block' : 'none';
   document.getElementById('passMsg').className = 'modal-msg';
   document.getElementById('supportMsg').className = 'modal-msg';
   document.getElementById('photoMsg').className = 'modal-msg';
@@ -674,9 +767,113 @@ function logout(){
   if(token){
     // Sessiyani serverda ham bekor qilishga urinamiz, lekin natijani kutmaymiz
     // (foydalanuvchi darhol login sahifasiga o'tishi kerak)
-    fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify({ secret: APP_SECRET, action:'logout', token }) }).catch(()=>{});
+    fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{});
   }
   window.location.href = 'login.html';
+}
+
+/* ---------- Ikki bosqichli tasdiqlash (2FA) ---------- */
+let pendingTotpSecret = null;
+
+async function loadTotpStatus(){
+  document.getElementById('totpStatusLoading').style.display = 'block';
+  document.getElementById('totpDisabledBox').style.display = 'none';
+  document.getElementById('totpSetupBox').style.display = 'none';
+  document.getElementById('totpEnabledBox').style.display = 'none';
+  try{
+    const data = await apiCall({ action:'totpStatus', token: currentUser.token });
+    document.getElementById('totpStatusLoading').style.display = 'none';
+    if(data.success && data.enabled){
+      document.getElementById('totpEnabledBox').style.display = 'block';
+    } else {
+      document.getElementById('totpDisabledBox').style.display = 'block';
+    }
+  } catch(ex){
+    document.getElementById('totpStatusLoading').textContent = 'Xatolik: ' + ex.message;
+  }
+}
+
+async function startTotpSetup(){
+  try{
+    const data = await apiCall({ action:'totpSetupStart', token: currentUser.token });
+    if(!data.success) return;
+    pendingTotpSecret = data.secret;
+    document.getElementById('totpSecretDisplay').textContent = data.secret.match(/.{1,4}/g).join(' ');
+    document.getElementById('totpSetupCodeInput').value = '';
+    document.getElementById('totpDisabledBox').style.display = 'none';
+    document.getElementById('totpSetupBox').style.display = 'block';
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function confirmTotpSetup(e){
+  e.preventDefault();
+  const code = document.getElementById('totpSetupCodeInput').value.trim();
+  const msg = document.getElementById('totpSetupMsg'); msg.className = 'modal-msg';
+  try{
+    const data = await apiCall({ action:'totpSetupConfirm', token: currentUser.token, secret: pendingTotpSecret, code });
+    if(data.success){
+      msg.textContent = dict[currentLang].totpEnabledOk; msg.classList.add('ok');
+      setTimeout(loadTotpStatus, 700);
+    } else {
+      msg.textContent = dict[currentLang].totpInvalidErr; msg.classList.add('err');
+    }
+  } catch(ex){ msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+async function disableTotp(e){
+  e.preventDefault();
+  const parol = document.getElementById('totpDisablePassInput').value;
+  const msg = document.getElementById('totpDisableMsg'); msg.className = 'modal-msg';
+  try{
+    const data = await apiCall({ action:'totpDisable', token: currentUser.token, parol });
+    if(data.success){
+      document.getElementById('totpDisablePassInput').value = '';
+      msg.textContent = dict[currentLang].totpDisabledOk; msg.classList.add('ok');
+      setTimeout(loadTotpStatus, 700);
+    } else {
+      msg.textContent = dict[currentLang].oldWrongErr; msg.classList.add('err');
+    }
+  } catch(ex){ msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+/* ---------- Faol sessiyalar ---------- */
+async function loadMySessions(){
+  const box = document.getElementById('sessionsList');
+  box.innerHTML = `<p class="loading-row">${dict[currentLang].checking}</p>`;
+  try{
+    const data = await apiCall({ action:'getMySessions', token: currentUser.token });
+    if(!data.success || !data.sessions.length){ box.innerHTML = ''; return; }
+    box.innerHTML = data.sessions.map(s => `
+      <div class="notif-hist-item" style="cursor:default; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div>
+          <div class="h-meta"><span>${s.isCurrent ? dict[currentLang].currentSessionLabel : dict[currentLang].sessionLabel}</span></div>
+          <div class="h-text" style="font-size:12px;">${escapeHtml(s.createdAt)} — ${escapeHtml(s.expiresAt)}</div>
+        </div>
+        ${s.isCurrent ? '' : `<button type="button" class="icon-btn danger" title="${dict[currentLang].revokeBtn}" onclick="revokeSessionRow('${s.idHash}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`}
+      </div>
+    `).join('');
+  } catch(ex){
+    box.innerHTML = `<p class="loading-row">Xatolik: ${escapeHtml(ex.message)}</p>`;
+  }
+}
+async function revokeSessionRow(idHash){
+  try{
+    const data = await apiCall({ action:'revokeSession', token: currentUser.token, idHash });
+    if(data.success) loadMySessions();
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function revokeOtherSessionsNow(){
+  const msg = document.getElementById('sessionsMsg'); msg.className = 'modal-msg';
+  try{
+    const data = await apiCall({ action:'revokeOtherSessions', token: currentUser.token });
+    if(data.success){
+      msg.textContent = dict[currentLang].sessionsRevokedOk; msg.classList.add('ok');
+      loadMySessions();
+    }
+  } catch(ex){ msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
 }
 
 /* ---------- Yordam / Support ---------- */
@@ -689,7 +886,7 @@ async function submitSupport(e){
   if(!text) return false;
   btn.disabled = true;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'submitSupport', token: currentUser.token, murojaat: text });
+    const data = await apiCall({ action:'submitSupport', token: currentUser.token, murojaat: text });
     btn.disabled = false;
     if(data.success){
       msg.textContent = dict[currentLang].supportSentOk; msg.classList.add('ok');
@@ -823,7 +1020,7 @@ async function submitPhoto(e){
   const btn = document.getElementById('photoSubmitBtn');
   btn.disabled = true;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'updateProfilePhoto', token: currentUser.token, rasm: pendingPhotoDataUrl });
+    const data = await apiCall({ action:'updateProfilePhoto', token: currentUser.token, rasm: pendingPhotoDataUrl });
     btn.disabled = false;
     if(data.success){
       msg.textContent = dict[currentLang].photoSavedOk; msg.classList.add('ok');
@@ -853,10 +1050,12 @@ async function changePassword(e){
   if(newP !== confP){ msg.textContent = dict[currentLang].mismatchErr; msg.classList.add('err'); return false; }
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'changePassword', token: currentUser.token, eskiParol: oldP, yangiParol: newP });
+    const data = await apiCall({ action:'changePassword', token: currentUser.token, eskiParol: oldP, yangiParol: newP });
     if(data.success){
       msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
       document.getElementById('oldPass').value = document.getElementById('newPass').value = document.getElementById('confirmPass').value = '';
+    } else if(data.code === 'WEAK_PASSWORD'){
+      msg.textContent = dict[currentLang].weakPasswordErr; msg.classList.add('err');
     } else {
       msg.textContent = dict[currentLang].oldWrongErr; msg.classList.add('err');
     }
@@ -880,7 +1079,7 @@ async function checkStatus(){
   btn.textContent = dict[currentLang].checking;
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'checkStatus', token: currentUser.token, telefon: phone });
+    const data = await apiCall({ action:'checkStatus', token: currentUser.token, telefon: phone });
     btn.disabled = false; btn.textContent = prevText;
 
     if(data.success){
@@ -945,6 +1144,29 @@ window.addEventListener('pageshow', function(event){
     if (!u || !u.token) { window.location.href = 'login.html'; }
   }
 });
+
+// XAVFSIZLIK: 30 daqiqa harakatsizlikdan so'ng avtomat chiqish (server ham
+// mustaqil ravishda shu muddatdan so'ng sessiyani tugatadi — bu shunchaki
+// foydalanuvchini darhol login sahifasiga qaytarish uchun mijoz tomonidagi qulaylik).
+(function initIdleLogout(){
+  if(!currentUser || !currentUser.token) return;
+  const IDLE_LIMIT_MS = 30 * 60 * 1000;
+  let idleTimer = null;
+  function doIdleLogout(){
+    const token = currentUser && currentUser.token;
+    try{ sessionStorage.removeItem('km_user'); }catch(e){}
+    if(token){ fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{}); }
+    window.location.href = 'login.html';
+  }
+  function resetIdleTimer(){
+    if(idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(doIdleLogout, IDLE_LIMIT_MS);
+  }
+  ['mousedown','mousemove','keydown','wheel','touchstart','click'].forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive:true });
+  });
+  resetIdleTimer();
+})();
 </script>
 </body>
 </html>

@@ -146,17 +146,18 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 </div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+// PHP backend'ning ochiq API manzili (backend/public/index.php) — sahifa qayerdan
+// ochilgan bo'lsa (localhost, mahalliy tarmoq IP'si, ngrok, haqiqiy domen), o'sha
+// joyning o'ziga nisbatan avtomatik hisoblanadi, qo'lda o'zgartirish shart emas.
+const API_BASE_URL = new URL('backend/public/index.php', window.location.href).href;
 
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+// Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
   const body = JSON.stringify(payload);
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', body, credentials:'same-origin' });
       const text = await res.text();
       try{
         const parsed = JSON.parse(text);
@@ -254,7 +255,7 @@ function renderDocs(){
 
 async function loadDocs(){
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getDocuments' });
+    const data = await apiCall({ action:'getDocuments' });
     allDocs = data.success ? data.docs : [];
   } catch(ex){ allDocs = []; }
   renderDocs();
@@ -276,7 +277,7 @@ async function confirmRead(){
   btn.disabled = true;
   const docsToSend = Array.from(openedIdx).map(i => ({ id: allDocs[i].id, uz: allDocs[i].uz }));
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'markDocRead', token, docs: docsToSend });
+    const data = await apiCall({ action:'markDocRead', token, docs: docsToSend });
     if(data.success){
       msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
       document.getElementById('nextBtns').style.display = 'flex';
@@ -298,6 +299,28 @@ window.addEventListener('pageshow', function(event){
     if (!u || !u.token) { window.location.href = 'login.html'; }
   }
 });
+
+// XAVFSIZLIK: 30 daqiqa harakatsizlikdan so'ng avtomat chiqish (faqat tizimga
+// kirgan foydalanuvchi uchun — sessiyasiz sahifani ko'rishga bu ta'sir qilmaydi).
+(function initIdleLogout(){
+  if(!getToken()) return;
+  const IDLE_LIMIT_MS = 30 * 60 * 1000;
+  let idleTimer = null;
+  function doIdleLogout(){
+    const token = getToken();
+    try{ sessionStorage.removeItem('km_user'); }catch(e){}
+    if(token){ fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{}); }
+    window.location.href = 'login.html';
+  }
+  function resetIdleTimer(){
+    if(idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(doIdleLogout, IDLE_LIMIT_MS);
+  }
+  ['mousedown','mousemove','keydown','wheel','touchstart','click'].forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive:true });
+  });
+  resetIdleTimer();
+})();
 </script>
 </body>
 </html>

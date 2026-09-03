@@ -178,6 +178,40 @@ canvas#net{
   75%{transform:translateX(5px);}
 }
 
+.success-msg{
+  display:none; align-items:center; gap:8px;
+  background:rgba(0,217,192,0.12);
+  border:1px solid rgba(0,217,192,0.35);
+  color:var(--teal);
+  font-size:13px; font-weight:500;
+  padding:10px 12px; border-radius:10px; margin-bottom:16px;
+}
+.success-msg.show{ display:flex; }
+
+.field-eye-wrap{ position:relative; }
+.eye-toggle{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  width:28px; height:28px; border:none; background:transparent; cursor:pointer;
+  color:var(--text-dim); display:flex; align-items:center; justify-content:center; padding:0;
+  transition:color .2s ease;
+}
+.eye-toggle:hover{ color:var(--text); }
+.eye-toggle svg{ width:18px; height:18px; }
+
+.secondary-btn{
+  width:100%; padding:13px; margin-top:10px;
+  border:1px solid var(--input-border); border-radius:11px; cursor:pointer;
+  background:transparent; color:var(--text); font-family:'Inter'; font-weight:700; font-size:14.5px;
+  letter-spacing:.2px; transition:border-color .2s ease;
+}
+.secondary-btn:hover{ border-color:var(--azure); }
+
+.link-row{ text-align:center; margin-top:16px; }
+.link-row a{
+  color:var(--azure); font-size:12.5px; font-weight:600; text-decoration:none; cursor:pointer;
+}
+.link-row a:hover{ text-decoration:underline; }
+
 .foot{
   margin-top:26px; text-align:center;
   font-size:11.5px; color:var(--text-dim);
@@ -206,22 +240,68 @@ canvas#net{
 
 <div class="wrap">
   <div class="card">
-    <h1 data-i18n="loginTitle">Tizimga kirish</h1>
-    <p class="sub" data-i18n="loginSub">Ish akkountingiz orqali davom eting</p>
+    <div id="loginView">
+      <h1 data-i18n="loginTitle">Tizimga kirish</h1>
 
-    <div class="error-msg" id="errorBox">⚠ <span id="errorText" data-i18n="errText">Login yoki parol noto'g'ri kiritilgan</span></div>
+      <div class="error-msg" id="errorBox">⚠ <span id="errorText" data-i18n="errText">Login yoki parol noto'g'ri kiritilgan</span></div>
 
-    <form id="loginForm" onsubmit="return handleLogin(event)">
-      <div class="field">
-        <label data-i18n="loginLabel">Login</label>
-        <input type="text" id="loginInput" autocomplete="username" required>
-      </div>
-      <div class="field">
-        <label data-i18n="passLabel">Parol</label>
-        <input type="password" id="passInput" autocomplete="current-password" required placeholder="••••••••">
-      </div>
-      <button class="submit-btn" type="submit" id="submitBtn" data-i18n="submitBtn">Kirish</button>
-    </form>
+      <form id="loginForm" onsubmit="return handleLogin(event)">
+        <div class="field">
+          <label data-i18n="loginLabel">Login</label>
+          <input type="text" id="loginInput" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label data-i18n="passLabel">Parol</label>
+          <div class="field-eye-wrap">
+            <input type="password" id="passInput" autocomplete="current-password" required placeholder="••••••••" style="padding-right:42px;">
+            <button type="button" class="eye-toggle" id="passEyeBtn" onclick="togglePasswordVisibility()" aria-label="Parolni ko'rsatish/yashirish"></button>
+          </div>
+        </div>
+        <button class="submit-btn" type="submit" id="submitBtn" data-i18n="submitBtn">Kirish</button>
+        <button type="button" class="secondary-btn" id="registerBtn" onclick="showRegisterStub()" data-i18n="registerBtn">Ro'yxatdan o'tish</button>
+      </form>
+
+      <div class="link-row"><a onclick="showForgotForm()" data-i18n="forgotLink">Parolni unutdim</a></div>
+    </div>
+
+    <div id="forgotView" style="display:none;">
+      <h1 data-i18n="forgotTitle">Parolni tiklash</h1>
+      <p class="sub" data-i18n="forgotSub">Login va telefon raqamingizni kiriting</p>
+
+      <div class="error-msg" id="forgotErrorBox">⚠ <span id="forgotErrorText"></span></div>
+      <div class="success-msg" id="forgotSuccessBox">✓ <span id="forgotSuccessText"></span></div>
+
+      <form id="forgotForm" onsubmit="return handleForgotPassword(event)">
+        <div class="field">
+          <label data-i18n="loginLabel">Login</label>
+          <input type="text" id="forgotLoginInput" required>
+        </div>
+        <div class="field">
+          <label data-i18n="phoneLabel">Telefon raqam</label>
+          <input type="text" id="forgotPhoneInput" required placeholder="+998 XX XXX XX XX">
+        </div>
+        <button class="submit-btn" type="submit" id="forgotSubmitBtn" data-i18n="forgotSubmitBtn">Yuborish</button>
+      </form>
+
+      <div class="link-row"><a onclick="showLoginForm()" data-i18n="backToLoginLink">Kirishga qaytish</a></div>
+    </div>
+
+    <div id="totpView" style="display:none;">
+      <h1 data-i18n="totpTitle">Ikki bosqichli tasdiqlash</h1>
+      <p class="sub" data-i18n="totpSub">Avtentifikator ilovasidagi 6 xonali kodni kiriting</p>
+
+      <div class="error-msg" id="totpErrorBox">⚠ <span id="totpErrorText"></span></div>
+
+      <form id="totpForm" onsubmit="return handleTotpVerify(event)">
+        <div class="field">
+          <label data-i18n="totpCodeLabel">Tasdiqlash kodi</label>
+          <input type="text" id="totpCodeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
+        </div>
+        <button class="submit-btn" type="submit" id="totpSubmitBtn" data-i18n="submitBtn">Kirish</button>
+      </form>
+
+      <div class="link-row"><a onclick="showLoginForm()" data-i18n="backToLoginLink">Kirishga qaytish</a></div>
+    </div>
 
     <div class="foot" data-i18n="footText">© «O'zbektelekom» AK — Ichki portal</div>
   </div>
@@ -233,26 +313,52 @@ const dict = {
   uz:{
     brandName:"\"O'zbektelekom\" AK",
     loginTitle:"Tizimga kirish",
-    loginSub:"Ish akkountingiz orqali davom eting",
     loginLabel:"Login",
     passLabel:"Parol",
     submitBtn:"Kirish",
+    registerBtn:"Ro'yxatdan o'tish",
+    registerStubMsg:"Bu funksiya tez orada ishga tushiriladi",
+    forgotLink:"Parolni unutdim",
+    forgotTitle:"Parolni tiklash",
+    forgotSub:"Login va telefon raqamingizni kiriting",
+    phoneLabel:"Telefon raqam",
+    forgotSubmitBtn:"Yuborish",
+    backToLoginLink:"Kirishga qaytish",
+    forgotLoginNotFound:"Login aniqlanmadi, iltimos tekshirib qaytadan kiriting",
+    forgotSuccessMsg:"So'rovingiz qabul qilindi. Agar 1 kun ichida yangi parolni olmasangiz, 55-501-77-87 raqami orqali bog'laning.",
+    forgotGenericErr:"Xatolik yuz berdi, qayta urinib ko'ring",
     errText:"Login yoki parol noto'g'ri kiritilgan",
     lockedErr:"Ko'p marta noto'g'ri urinildi. 15 daqiqadan so'ng qayta urinib ko'ring.",
     footText:"© «O'zbektelekom» AK — Ichki portal",
-    submitting:"Tekshirilmoqda..."
+    submitting:"Tekshirilmoqda...",
+    totpTitle:"Ikki bosqichli tasdiqlash", totpSub:"Avtentifikator ilovasidagi 6 xonali kodni kiriting",
+    totpCodeLabel:"Tasdiqlash kodi", totpInvalidErr:"Kod noto'g'ri, qaytadan urinib ko'ring",
+    totpExpiredErr:"Vaqt tugagan, qaytadan kiring"
   },
   ru:{
     brandName:"АО «Узтелеком»",
     loginTitle:"Вход в систему",
-    loginSub:"Продолжите с рабочей учётной записью",
     loginLabel:"Логин",
     passLabel:"Пароль",
     submitBtn:"Войти",
+    registerBtn:"Регистрация",
+    registerStubMsg:"Эта функция скоро будет запущена",
+    forgotLink:"Забыли пароль?",
+    forgotTitle:"Восстановление пароля",
+    forgotSub:"Введите логин и номер телефона",
+    phoneLabel:"Номер телефона",
+    forgotSubmitBtn:"Отправить",
+    backToLoginLink:"Вернуться ко входу",
+    forgotLoginNotFound:"Логин не найден, проверьте и попробуйте снова",
+    forgotSuccessMsg:"Ваш запрос принят. Если в течение 1 дня не получите новый пароль, свяжитесь по номеру 55-501-77-87.",
+    forgotGenericErr:"Произошла ошибка, попробуйте снова",
     errText:"Неверный логин или пароль",
     lockedErr:"Слишком много неверных попыток. Повторите через 15 минут.",
     footText:"© АО «Узтелеком» — Внутренний портал",
-    submitting:"Проверка..."
+    submitting:"Проверка...",
+    totpTitle:"Двухфакторная аутентификация", totpSub:"Введите 6-значный код из приложения-аутентификатора",
+    totpCodeLabel:"Код подтверждения", totpInvalidErr:"Неверный код, попробуйте снова",
+    totpExpiredErr:"Время истекло, войдите заново"
   }
 };
 let currentLang = localStorage.getItem('km_lang') || 'uz';
@@ -290,18 +396,92 @@ function toggleTheme(){
 }
 applyTheme();
 
-/* ---------- Login logic — Google Apps Script (Sheets) bilan ulangan ---------- */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+/* ---------- Parolni ko'rsatish/yashirish ---------- */
+const eyeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const eyeOffIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M6.61 6.61A18.24 18.24 0 0 0 1 12s4 8 11 8a9.26 9.26 0 0 0 5.39-1.61M1 1l22 22"/></svg>`;
+let passVisible = false;
+document.getElementById('passEyeBtn').innerHTML = eyeIcon;
+function togglePasswordVisibility(){
+  passVisible = !passVisible;
+  document.getElementById('passInput').type = passVisible ? 'text' : 'password';
+  document.getElementById('passEyeBtn').innerHTML = passVisible ? eyeOffIcon : eyeIcon;
+}
 
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+/* ---------- Parolni unutdim / Ro'yxatdan o'tish ---------- */
+function showForgotForm(){
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('forgotView').style.display = 'block';
+}
+function showLoginForm(){
+  document.getElementById('forgotView').style.display = 'none';
+  document.getElementById('totpView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'block';
+  document.getElementById('forgotErrorBox').classList.remove('show');
+  document.getElementById('forgotSuccessBox').classList.remove('show');
+}
+function showTotpForm(){
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('totpView').style.display = 'block';
+  document.getElementById('totpCodeInput').value = '';
+  document.getElementById('totpErrorBox').classList.remove('show');
+  setTimeout(() => document.getElementById('totpCodeInput').focus(), 50);
+}
+function showRegisterStub(){
+  alert(dict[currentLang].registerStubMsg);
+}
+
+async function handleForgotPassword(e){
+  e.preventDefault();
+  const login = document.getElementById('forgotLoginInput').value.trim();
+  const telefon = document.getElementById('forgotPhoneInput').value.trim();
+  const btn = document.getElementById('forgotSubmitBtn');
+  const errBox = document.getElementById('forgotErrorBox');
+  const okBox = document.getElementById('forgotSuccessBox');
+
+  errBox.classList.remove('show');
+  okBox.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = dict[currentLang].submitting;
+
+  try{
+    const data = await apiCall({ action: 'requestPasswordReset', login, telefon });
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].forgotSubmitBtn;
+
+    if(data.success){
+      document.getElementById('forgotSuccessText').textContent = dict[currentLang].forgotSuccessMsg;
+      okBox.classList.add('show');
+      document.getElementById('forgotForm').reset();
+    } else if(data.code === 'LOGIN_NOT_FOUND'){
+      document.getElementById('forgotErrorText').textContent = dict[currentLang].forgotLoginNotFound;
+      errBox.classList.add('show');
+    } else {
+      document.getElementById('forgotErrorText').textContent = dict[currentLang].forgotGenericErr;
+      errBox.classList.add('show');
+    }
+  } catch(ex){
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].forgotSubmitBtn;
+    document.getElementById('forgotErrorText').textContent = 'Xatolik: ' + ex.message;
+    errBox.classList.add('show');
+  }
+
+  return false;
+}
+
+/* ---------- Login logic — Google Apps Script (Sheets) bilan ulangan ---------- */
+// PHP backend'ning ochiq API manzili (backend/public/index.php) — sahifa qayerdan
+// ochilgan bo'lsa (localhost, mahalliy tarmoq IP'si, ngrok, haqiqiy domen), o'sha
+// joyning o'ziga nisbatan avtomatik hisoblanadi, qo'lda o'zgartirish shart emas.
+const API_BASE_URL = new URL('backend/public/index.php', window.location.href).href;
+
+// Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
   const body = JSON.stringify(payload);
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', body, credentials:'same-origin' });
       const text = await res.text();
       try{ return JSON.parse(text); }
       catch(parseErr){
@@ -329,12 +509,16 @@ async function handleLogin(e){
   btn.textContent = dict[currentLang].submitting;
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action: 'login', login, parol });
+    const data = await apiCall({ action: 'login', login, parol });
 
     btn.disabled = false;
     btn.textContent = dict[currentLang].submitBtn;
 
-    if(data.success){
+    if(data.success && data.needsTotp){
+      pendingTotpToken = data.pendingToken;
+      pendingLogin = login;
+      showTotpForm();
+    } else if(data.success){
       // Endi barcha sahifalar bitta domenda (GitHub Pages) ishlagani uchun
       // ma'lumot faqat sessionStorage orqali uzatiladi — URL'da emas
       // (token kabi maxfiy ma'lumotni URL'ga chiqarmaslik xavfsizroq).
@@ -356,6 +540,42 @@ async function handleLogin(e){
     err.classList.add('show');
   }
 
+  return false;
+}
+
+let pendingTotpToken = null;
+let pendingLogin = null;
+
+async function handleTotpVerify(e){
+  e.preventDefault();
+  const code = document.getElementById('totpCodeInput').value.trim();
+  const btn = document.getElementById('totpSubmitBtn');
+  const err = document.getElementById('totpErrorBox');
+  err.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = dict[currentLang].submitting;
+
+  try{
+    const data = await apiCall({ action:'verifyTotpLogin', pendingToken: pendingTotpToken, code });
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].submitBtn;
+
+    if(data.success){
+      sessionStorage.setItem('km_user', JSON.stringify({...data, login: pendingLogin}));
+      document.querySelector('.card').style.transition='opacity .3s ease, transform .3s ease';
+      document.querySelector('.card').style.opacity='0';
+      document.querySelector('.card').style.transform='translateY(-10px) scale(.98)';
+      setTimeout(()=>{ window.location.href = 'main.html'; }, 300);
+    } else {
+      document.getElementById('totpErrorText').textContent = data.code === 'SESSION_EXPIRED' ? dict[currentLang].totpExpiredErr : dict[currentLang].totpInvalidErr;
+      err.classList.add('show');
+    }
+  } catch(ex){
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].submitBtn;
+    document.getElementById('totpErrorText').textContent = 'Xatolik: ' + ex.message;
+    err.classList.add('show');
+  }
   return false;
 }
 

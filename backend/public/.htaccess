@@ -1,0 +1,9 @@
+# Bu katalog (public/) — veb-server document root shu yerga qaratilishi kerak.
+# Yuqoridagi backend/.htaccess'dagi umumiy taqiqni shu yerda bekor qilamiz.
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+</IfModule>
