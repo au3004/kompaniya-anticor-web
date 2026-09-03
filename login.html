@@ -439,9 +439,10 @@ async function handleForgotPassword(e){
 }
 
 /* ---------- Login logic — Google Apps Script (Sheets) bilan ulangan ---------- */
-// PHP backend'ning ochiq API manzili (backend/public/index.php).
-// Joylashtirilgan domeningizga qarab shu qatorni o'zgartiring.
-const API_BASE_URL = "http://localhost/anticor/backend/public/index.php"; // XAMPP'da mahalliy test uchun
+// PHP backend'ning ochiq API manzili (backend/public/index.php) — sahifa qayerdan
+// ochilgan bo'lsa (localhost, mahalliy tarmoq IP'si, ngrok, haqiqiy domen), o'sha
+// joyning o'ziga nisbatan avtomatik hisoblanadi, qo'lda o'zgartirish shart emas.
+const API_BASE_URL = new URL('backend/public/index.php', window.location.href).href;
 
 // Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
