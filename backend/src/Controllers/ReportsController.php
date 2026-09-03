@@ -17,11 +17,14 @@ use PDO;
  */
 final class ReportsController
 {
+    private const TUGILGAN_SANA_DDL = "ALTER TABLE users ADD COLUMN IF NOT EXISTS tugilgan_sana DATE AFTER otasining_ismi";
+
     public static function getUsersReport(array $input): void
     {
         Auth::requireRole($input, ['gl-admin']);
 
         $db = Database::connection();
+        Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
         $rows = $db->query(
             "SELECT u.*,
                 EXISTS(SELECT 1 FROM doc_reads d WHERE d.user_id = u.id) AS has_docs,
@@ -112,11 +115,23 @@ final class ReportsController
         Response::success(['rows' => $rows]);
     }
 
+    private const SUPPORT_COMMENTS_DDL = 'CREATE TABLE IF NOT EXISTS support_comments (
+        id                  INT AUTO_INCREMENT PRIMARY KEY,
+        support_request_id  INT NOT NULL,
+        user_id             INT NOT NULL,
+        izoh                TEXT NOT NULL,
+        created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (support_request_id) REFERENCES support_requests(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_request (support_request_id)
+    ) ENGINE=InnoDB';
+
     public static function getSupportRequests(array $input): void
     {
         Auth::requireRole($input, ['gl-admin', 'admin']);
 
         $db = Database::connection();
+        Util::ensureSchema($db, self::SUPPORT_COMMENTS_DDL);
         $rows = $db->query(
             "SELECT sr.id, sr.murojaat, sr.created_at,
                     u.login, u.familiya, u.ism, u.otasining_ismi, u.telefon
@@ -168,6 +183,7 @@ final class ReportsController
         }
 
         $db = Database::connection();
+        Util::ensureSchema($db, self::SUPPORT_COMMENTS_DDL);
         $exists = $db->prepare('SELECT id FROM support_requests WHERE id = :id');
         $exists->execute(['id' => $id]);
         if (!$exists->fetch()) {

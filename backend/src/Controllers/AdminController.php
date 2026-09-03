@@ -12,6 +12,8 @@ use PDOException;
 
 final class AdminController
 {
+    private const TUGILGAN_SANA_DDL = "ALTER TABLE users ADD COLUMN IF NOT EXISTS tugilgan_sana DATE AFTER otasining_ismi";
+
     public static function addEmployee(array $input): void
     {
         Auth::requireRole($input, ['gl-admin']);
@@ -37,6 +39,7 @@ final class AdminController
         }
 
         $db = Database::connection();
+        Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
         $stmt = $db->prepare(
             'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, tugilgan_sana, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol)
              VALUES (:login, :hash, :familiya, :ism, :otasi, :tugilgan_sana, :lavozim, :lavozim_ru, :bolinma, :bolinma_ru, :telefon, :rol)'
@@ -72,6 +75,7 @@ final class AdminController
         Auth::requireRole($input, ['gl-admin', 'admin']);
 
         $db = Database::connection();
+        Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
         $rows = $db->query(
             'SELECT id, login, familiya, ism, otasining_ismi, tugilgan_sana, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol
              FROM users ORDER BY id ASC'
@@ -124,6 +128,7 @@ final class AdminController
         }
 
         $db = Database::connection();
+        Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
 
         $existingStmt = $db->prepare('SELECT rol FROM users WHERE id = :id LIMIT 1');
         $existingStmt->execute(['id' => $id]);
