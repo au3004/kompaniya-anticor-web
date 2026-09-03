@@ -92,4 +92,64 @@ final class ProfileController
 
         Response::success(['url' => Util::photoUrl($relativeUrl)]);
     }
+
+    /**
+     * Foydalanuvchining o'zi kirgan barcha faol sessiyalari (qurilmalar) ro'yxati.
+     * Haqiqiy token hech qachon mijozga yuborilmaydi — faqat uni aniqlash uchun
+     * bir tomonlama hash (idHash) beriladi, shu bilan bitta sessiyani nishonlab
+     * bekor qilish (revokeSession) mumkin bo'ladi.
+     */
+    public static function getMySessions(array $input): void
+    {
+        $user = Auth::requireUser($input);
+        $db = Database::connection();
+
+        $stmt = $db->prepare(
+            'SELECT token, created_at, expires_at FROM sessions WHERE user_id = :id ORDER BY created_at DESC'
+        );
+        $stmt->execute(['id' => $user['id']]);
+
+        $list = array_map(static fn (array $r) => [
+            'idHash' => substr(hash('sha256', $r['token']), 0, 16),
+            'createdAt' => date('d.m.Y G:i', strtotime((string) $r['created_at'])),
+            'expiresAt' => date('d.m.Y G:i', strtotime((string) $r['expires_at'])),
+            'isCurrent' => hash_equals($r['token'], (string) $user['token']),
+        ], $stmt->fetchAll());
+
+        Response::success(['sessions' => $list]);
+    }
+
+    public static function revokeSession(array $input): void
+    {
+        $user = Auth::requireUser($input);
+        $idHash = Validate::requiredStr($input, 'idHash', 16);
+
+        $db = Database::connection();
+        $stmt = $db->prepare('SELECT token FROM sessions WHERE user_id = :id');
+        $stmt->execute(['id' => $user['id']]);
+
+        foreach ($stmt->fetchAll() as $row) {
+            if (hash_equals(substr(hash('sha256', $row['token']), 0, 16), $idHash)) {
+                $del = $db->prepare('DELETE FROM sessions WHERE token = :token');
+                $del->execute(['token' => $row['token']]);
+                break;
+            }
+        }
+
+        Response::success();
+    }
+
+    /**
+     * Joriy sessiyadan tashqari, shu foydalanuvchining barcha boshqa faol
+     * sessiyalarini bekor qiladi ("boshqa qurilmalardan chiqish").
+     */
+    public static function revokeOtherSessions(array $input): void
+    {
+        $user = Auth::requireUser($input);
+        $db = Database::connection();
+        $stmt = $db->prepare('DELETE FROM sessions WHERE user_id = :id AND token != :token');
+        $stmt->execute(['id' => $user['id'], 'token' => $user['token']]);
+
+        Response::success();
+    }
 }

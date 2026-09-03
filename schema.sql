@@ -27,6 +27,8 @@ CREATE TABLE users (
   telefon           VARCHAR(20),
   rasm_url          VARCHAR(500),        -- endi base64 emas, haqiqiy fayl yo'li (masalan /uploads/photos/12.jpg)
   rol               ENUM('user','admin','gl-admin') NOT NULL DEFAULT 'user',
+  totp_secret       VARCHAR(64) NULL,    -- ikki bosqichli tasdiqlash (2FA) kaliti, ixtiyoriy
+  totp_enabled      TINYINT(1) NOT NULL DEFAULT 0,
   created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_telefon (telefon)
@@ -48,6 +50,15 @@ CREATE TABLE login_attempts (
   login         VARCHAR(100) PRIMARY KEY,
   fail_count    INT NOT NULL DEFAULT 0,
   locked_until  DATETIME NULL
+) ENGINE=InnoDB;
+
+-- Parol to'g'ri, lekin 2FA yoqilgan bo'lsa — haqiqiy sessiya yaratilmasdan oldin
+-- 6 xonali kod tasdiqlanishini kutayotgan vaqtinchalik (5 daqiqalik) holat.
+CREATE TABLE totp_pending (
+  token       CHAR(64) PRIMARY KEY,
+  user_id     INT NOT NULL,
+  expires_at  DATETIME NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------

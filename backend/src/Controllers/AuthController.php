@@ -12,6 +12,17 @@ use App\Validate;
 
 final class AuthController
 {
+    private const TOTP_DDL = "ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS totp_secret VARCHAR(64) NULL AFTER rol,
+        ADD COLUMN IF NOT EXISTS totp_enabled TINYINT(1) NOT NULL DEFAULT 0 AFTER totp_secret";
+
+    private const TOTP_PENDING_DDL = 'CREATE TABLE IF NOT EXISTS totp_pending (
+        token       CHAR(64) PRIMARY KEY,
+        user_id     INT NOT NULL,
+        expires_at  DATETIME NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB';
+
     public static function login(array $input): void
     {
         $login = Validate::requiredStr($input, 'login', 100);
@@ -26,6 +37,7 @@ final class AuthController
         }
 
         $db = Database::connection();
+        \App\Util::ensureSchema($db, self::TOTP_DDL);
         $stmt = $db->prepare('SELECT * FROM users WHERE login = :login LIMIT 1');
         $stmt->execute(['login' => $login]);
         $user = $stmt->fetch();
@@ -46,6 +58,23 @@ final class AuthController
         }
 
         Auth::resetAttempts($login);
+
+        // 2FA yoqilgan bo'lsa, hali haqiqiy sessiya yaratilmaydi — foydalanuvchi
+        // avtentifikator ilovasidagi 6 xonali kodni tasdiqlashi kerak
+        // (TotpController::verifyLogin, "pendingToken" orqali).
+        if (!empty($user['totp_enabled'])) {
+            Util::ensureSchema($db, self::TOTP_PENDING_DDL);
+            $pendingToken = Auth::generateToken();
+            $ins = $db->prepare(
+                'INSERT INTO totp_pending (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)'
+            );
+            $ins->execute([
+                'token' => $pendingToken,
+                'user_id' => $user['id'],
+                'expires_at' => date('Y-m-d H:i:s', time() + 300),
+            ]);
+            Response::success(['needsTotp' => true, 'pendingToken' => $pendingToken]);
+        }
 
         $token = Auth::generateToken();
         $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 30);

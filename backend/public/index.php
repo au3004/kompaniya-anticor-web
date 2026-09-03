@@ -22,6 +22,7 @@ use App\Controllers\ReportsController;
 use App\Controllers\SupportController;
 use App\Controllers\SurveyController;
 use App\Controllers\TestController;
+use App\Controllers\TotpController;
 
 Config::load();
 
@@ -66,6 +67,9 @@ $routes = [
 
     'checkStatus' => [ProfileController::class, 'checkStatus'],
     'updateProfilePhoto' => [ProfileController::class, 'updateProfilePhoto'],
+    'getMySessions' => [ProfileController::class, 'getMySessions'],
+    'revokeSession' => [ProfileController::class, 'revokeSession'],
+    'revokeOtherSessions' => [ProfileController::class, 'revokeOtherSessions'],
 
     'submitSupport' => [SupportController::class, 'submit'],
 
@@ -124,6 +128,12 @@ $routes = [
 
     'createBackup' => [BackupController::class, 'create'],
     'listBackups' => [BackupController::class, 'list'],
+
+    'totpStatus' => [TotpController::class, 'status'],
+    'totpSetupStart' => [TotpController::class, 'setupStart'],
+    'totpSetupConfirm' => [TotpController::class, 'setupConfirm'],
+    'totpDisable' => [TotpController::class, 'disable'],
+    'verifyTotpLogin' => [TotpController::class, 'verifyLogin'],
 ];
 
 if (!isset($routes[$action])) {

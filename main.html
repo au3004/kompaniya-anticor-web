@@ -321,6 +321,20 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
         </span>
       </button>
+      <button class="settings-menu-item" onclick="showSettingsView('totpSettingsView'); loadTotpStatus();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span data-i18n="totpMenu">Ikki bosqichli tasdiqlash</span>
+        <span class="chev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
+      <button class="settings-menu-item" onclick="showSettingsView('sessionsView'); loadMySessions();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+        <span data-i18n="sessionsMenu">Faol sessiyalar</span>
+        <span class="chev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
     </div>
 
     <div id="supportView" style="display:none;">
@@ -335,6 +349,54 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
         <button class="modal-submit" type="submit" data-i18n="sendBtn">Yuborish</button>
         <div class="modal-msg" id="supportMsg"></div>
       </form>
+    </div>
+
+    <div id="totpSettingsView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <p class="loading-row" id="totpStatusLoading" data-i18n="loading">Yuklanmoqda...</p>
+
+      <div id="totpDisabledBox" style="display:none;">
+        <p class="field-hint" style="font-size:12.5px; color:var(--text-dim); margin-bottom:14px;" data-i18n="totpDisabledDesc">Hozircha o'chirilgan. Yoqish uchun tugmani bosing.</p>
+        <button class="modal-submit" type="button" onclick="startTotpSetup()" data-i18n="totpEnableBtn">Yoqish</button>
+      </div>
+
+      <div id="totpSetupBox" style="display:none;">
+        <p class="field-hint" style="font-size:12.5px; color:var(--text-dim); margin-bottom:10px;" data-i18n="totpSetupDesc">Avtentifikator ilovangizga (Google Authenticator, Authy va h.k.) "Kalitni qo'lda kiritish" orqali quyidagi kalitni kiriting:</p>
+        <div id="totpSecretDisplay" style="font-family:monospace; font-size:15px; letter-spacing:1px; padding:12px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; text-align:center; margin-bottom:14px; word-break:break-all;"></div>
+        <form onsubmit="return confirmTotpSetup(event)">
+          <div class="field">
+            <label data-i18n="totpCodeLabel">Tasdiqlash kodi</label>
+            <input type="text" id="totpSetupCodeInput" inputmode="numeric" maxlength="6" placeholder="000000" required>
+          </div>
+          <button class="modal-submit" type="submit" data-i18n="totpConfirmBtn">Tasdiqlash</button>
+          <div class="modal-msg" id="totpSetupMsg"></div>
+        </form>
+      </div>
+
+      <div id="totpEnabledBox" style="display:none;">
+        <p class="field-hint" style="font-size:12.5px; color:var(--teal); margin-bottom:14px;" data-i18n="totpEnabledDesc">✓ Ikki bosqichli tasdiqlash yoqilgan. O'chirish uchun joriy parolingizni kiriting.</p>
+        <form onsubmit="return disableTotp(event)">
+          <div class="field">
+            <label data-i18n="totpDisablePassLabel">Joriy parol</label>
+            <input type="password" id="totpDisablePassInput" required>
+          </div>
+          <button class="modal-submit" type="submit" style="background:var(--coral);" data-i18n="totpDisableBtn">O'chirish</button>
+          <div class="modal-msg" id="totpDisableMsg"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="sessionsView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <div id="sessionsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;"></div>
+      <button class="settings-back" type="button" onclick="revokeOtherSessionsNow()" data-i18n="revokeOthersBtn">Boshqa barcha qurilmalardan chiqish</button>
+      <div class="modal-msg" id="sessionsMsg"></div>
     </div>
 
     <div id="photoView" style="display:none;">
@@ -474,7 +536,16 @@ const dict = {
     supportSentOk:"Murojaatingiz qabul qilindi, rahmat!", savingErr:"Xatolik yuz berdi, qayta urinib ko'ring",
     changePhotoMenu:"Rasmni o'zgartirish", photoUrlLabel:"Rasm tanlang",
     photoHint:"Qurilmangizdan rasm tanlang (JPG, PNG).",
-    photoSavedOk:"Rasm muvaffaqiyatli saqlandi", photoEmptyErr:"Rasm tanlang", photoReadErr:"Rasmni o'qib bo'lmadi, boshqa faylni tanlang"
+    photoSavedOk:"Rasm muvaffaqiyatli saqlandi", photoEmptyErr:"Rasm tanlang", photoReadErr:"Rasmni o'qib bo'lmadi, boshqa faylni tanlang",
+    totpMenu:"Ikki bosqichli tasdiqlash", totpEnableBtn:"Yoqish", totpConfirmBtn:"Tasdiqlash", totpDisableBtn:"O'chirish",
+    totpDisabledDesc:"Hozircha o'chirilgan. Yoqish uchun tugmani bosing.",
+    totpSetupDesc:"Avtentifikator ilovangizga (Google Authenticator, Authy va h.k.) \"Kalitni qo'lda kiritish\" orqali quyidagi kalitni kiriting:",
+    totpEnabledDesc:"✓ Ikki bosqichli tasdiqlash yoqilgan. O'chirish uchun joriy parolingizni kiriting.",
+    totpDisablePassLabel:"Joriy parol", totpCodeLabel:"Tasdiqlash kodi", totpInvalidErr:"Kod noto'g'ri, qaytadan urinib ko'ring",
+    sessionsMenu:"Faol sessiyalar", currentSessionLabel:"Joriy sessiya (bu qurilma)", sessionLabel:"Boshqa qurilma",
+    revokeBtn:"Chiqarish", revokeOthersBtn:"Boshqa barcha qurilmalardan chiqish",
+    totpEnabledOk:"Ikki bosqichli tasdiqlash yoqildi ✓", totpDisabledOk:"Ikki bosqichli tasdiqlash o'chirildi ✓",
+    sessionsRevokedOk:"Boshqa qurilmalardan muvaffaqiyatli chiqarildi ✓"
   },
   ru:{
     brandName:"АО «Узтелеком»",
@@ -499,7 +570,16 @@ const dict = {
     supportSentOk:"Ваше обращение принято, спасибо!", savingErr:"Произошла ошибка, попробуйте снова",
     changePhotoMenu:"Изменить фото", photoUrlLabel:"Выберите фото",
     photoHint:"Выберите фото с вашего устройства (JPG, PNG).",
-    photoSavedOk:"Фото успешно сохранено", photoEmptyErr:"Выберите фото", photoReadErr:"Не удалось прочитать фото, выберите другой файл"
+    photoSavedOk:"Фото успешно сохранено", photoEmptyErr:"Выберите фото", photoReadErr:"Не удалось прочитать фото, выберите другой файл",
+    totpMenu:"Двухфакторная аутентификация", totpEnableBtn:"Включить", totpConfirmBtn:"Подтвердить", totpDisableBtn:"Отключить",
+    totpDisabledDesc:"Пока отключено. Нажмите кнопку, чтобы включить.",
+    totpSetupDesc:"В приложении-аутентификаторе (Google Authenticator, Authy и т.д.) через \"Ввести код вручную\" введите этот ключ:",
+    totpEnabledDesc:"✓ Двухфакторная аутентификация включена. Для отключения введите текущий пароль.",
+    totpDisablePassLabel:"Текущий пароль", totpCodeLabel:"Код подтверждения", totpInvalidErr:"Неверный код, попробуйте снова",
+    sessionsMenu:"Активные сессии", currentSessionLabel:"Текущая сессия (это устройство)", sessionLabel:"Другое устройство",
+    revokeBtn:"Выйти", revokeOthersBtn:"Выйти со всех других устройств",
+    totpEnabledOk:"Двухфакторная аутентификация включена ✓", totpDisabledOk:"Двухфакторная аутентификация отключена ✓",
+    sessionsRevokedOk:"Успешно выполнен выход с других устройств ✓"
   }
 };
 let currentLang = localStorage.getItem('km_lang') || 'uz';
@@ -658,6 +738,8 @@ function showSettingsView(viewId){
   document.getElementById('photoView').style.display = viewId === 'photoView' ? 'block' : 'none';
   document.getElementById('passwordView').style.display = viewId === 'passwordView' ? 'block' : 'none';
   document.getElementById('supportView').style.display = viewId === 'supportView' ? 'block' : 'none';
+  document.getElementById('totpSettingsView').style.display = viewId === 'totpSettingsView' ? 'block' : 'none';
+  document.getElementById('sessionsView').style.display = viewId === 'sessionsView' ? 'block' : 'none';
   document.getElementById('passMsg').className = 'modal-msg';
   document.getElementById('supportMsg').className = 'modal-msg';
   document.getElementById('photoMsg').className = 'modal-msg';
@@ -682,6 +764,110 @@ function logout(){
     fetch(API_BASE_URL, { method:'POST', body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{});
   }
   window.location.href = 'login.html';
+}
+
+/* ---------- Ikki bosqichli tasdiqlash (2FA) ---------- */
+let pendingTotpSecret = null;
+
+async function loadTotpStatus(){
+  document.getElementById('totpStatusLoading').style.display = 'block';
+  document.getElementById('totpDisabledBox').style.display = 'none';
+  document.getElementById('totpSetupBox').style.display = 'none';
+  document.getElementById('totpEnabledBox').style.display = 'none';
+  try{
+    const data = await apiCall({ action:'totpStatus', token: currentUser.token });
+    document.getElementById('totpStatusLoading').style.display = 'none';
+    if(data.success && data.enabled){
+      document.getElementById('totpEnabledBox').style.display = 'block';
+    } else {
+      document.getElementById('totpDisabledBox').style.display = 'block';
+    }
+  } catch(ex){
+    document.getElementById('totpStatusLoading').textContent = 'Xatolik: ' + ex.message;
+  }
+}
+
+async function startTotpSetup(){
+  try{
+    const data = await apiCall({ action:'totpSetupStart', token: currentUser.token });
+    if(!data.success) return;
+    pendingTotpSecret = data.secret;
+    document.getElementById('totpSecretDisplay').textContent = data.secret.match(/.{1,4}/g).join(' ');
+    document.getElementById('totpSetupCodeInput').value = '';
+    document.getElementById('totpDisabledBox').style.display = 'none';
+    document.getElementById('totpSetupBox').style.display = 'block';
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function confirmTotpSetup(e){
+  e.preventDefault();
+  const code = document.getElementById('totpSetupCodeInput').value.trim();
+  const msg = document.getElementById('totpSetupMsg'); msg.className = 'modal-msg';
+  try{
+    const data = await apiCall({ action:'totpSetupConfirm', token: currentUser.token, secret: pendingTotpSecret, code });
+    if(data.success){
+      msg.textContent = dict[currentLang].totpEnabledOk; msg.classList.add('ok');
+      setTimeout(loadTotpStatus, 700);
+    } else {
+      msg.textContent = dict[currentLang].totpInvalidErr; msg.classList.add('err');
+    }
+  } catch(ex){ msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+async function disableTotp(e){
+  e.preventDefault();
+  const parol = document.getElementById('totpDisablePassInput').value;
+  const msg = document.getElementById('totpDisableMsg'); msg.className = 'modal-msg';
+  try{
+    const data = await apiCall({ action:'totpDisable', token: currentUser.token, parol });
+    if(data.success){
+      document.getElementById('totpDisablePassInput').value = '';
+      msg.textContent = dict[currentLang].totpDisabledOk; msg.classList.add('ok');
+      setTimeout(loadTotpStatus, 700);
+    } else {
+      msg.textContent = dict[currentLang].oldWrongErr; msg.classList.add('err');
+    }
+  } catch(ex){ msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+/* ---------- Faol sessiyalar ---------- */
+async function loadMySessions(){
+  const box = document.getElementById('sessionsList');
+  box.innerHTML = `<p class="loading-row">${dict[currentLang].checking}</p>`;
+  try{
+    const data = await apiCall({ action:'getMySessions', token: currentUser.token });
+    if(!data.success || !data.sessions.length){ box.innerHTML = ''; return; }
+    box.innerHTML = data.sessions.map(s => `
+      <div class="notif-hist-item" style="cursor:default; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div>
+          <div class="h-meta"><span>${s.isCurrent ? dict[currentLang].currentSessionLabel : dict[currentLang].sessionLabel}</span></div>
+          <div class="h-text" style="font-size:12px;">${escapeHtml(s.createdAt)} — ${escapeHtml(s.expiresAt)}</div>
+        </div>
+        ${s.isCurrent ? '' : `<button type="button" class="icon-btn danger" title="${dict[currentLang].revokeBtn}" onclick="revokeSessionRow('${s.idHash}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`}
+      </div>
+    `).join('');
+  } catch(ex){
+    box.innerHTML = `<p class="loading-row">Xatolik: ${escapeHtml(ex.message)}</p>`;
+  }
+}
+async function revokeSessionRow(idHash){
+  try{
+    const data = await apiCall({ action:'revokeSession', token: currentUser.token, idHash });
+    if(data.success) loadMySessions();
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function revokeOtherSessionsNow(){
+  const msg = document.getElementById('sessionsMsg'); msg.className = 'modal-msg';
+  try{
+    const data = await apiCall({ action:'revokeOtherSessions', token: currentUser.token });
+    if(data.success){
+      msg.textContent = dict[currentLang].sessionsRevokedOk; msg.classList.add('ok');
+      loadMySessions();
+    }
+  } catch(ex){ msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
 }
 
 /* ---------- Yordam / Support ---------- */
