@@ -26,11 +26,17 @@ final class ReportsController
             "SELECT u.*,
                 EXISTS(SELECT 1 FROM doc_reads d WHERE d.user_id = u.id) AS has_docs,
                 EXISTS(SELECT 1 FROM test_attempts t WHERE t.user_id = u.id) AS has_test
-             FROM users u ORDER BY u.familiya ASC, u.ism ASC"
+             FROM users u ORDER BY u.id ASC"
         )->fetchAll();
 
-        $users = array_map(static fn (array $r) => [
-            'id' => (int) $r['id'],
+        // "ID" — jadvaldagi joriy tartib raqami (1, 2, 3...), haqiqiy users.id emas —
+        // shu bilan admin panelidagi Xodimlar ro'yxati bilan bir xil raqamlash ko'rinadi
+        // va xodim o'chirilsa qolganlar avtomatik siljib, bo'shliq qolmaydi.
+        $rowNum = 0;
+        $users = array_map(static function (array $r) use (&$rowNum) {
+            $rowNum++;
+            return [
+            'id' => $rowNum,
             'login' => $r['login'],
             'familiya' => $r['familiya'],
             'ism' => $r['ism'],
@@ -42,9 +48,10 @@ final class ReportsController
             'bolinmaRu' => $r['bolinma_ru'],
             'telefon' => $r['telefon'],
             'rol' => $r['rol'],
-            'hujjatTanishgan' => (bool) $r['has_docs'],
-            'testTopshirgan' => (bool) $r['has_test'],
-        ], $rows);
+                'hujjatTanishgan' => (bool) $r['has_docs'],
+                'testTopshirgan' => (bool) $r['has_test'],
+            ];
+        }, $rows);
 
         Response::success(['users' => $users]);
     }

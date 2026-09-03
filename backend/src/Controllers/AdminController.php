@@ -74,7 +74,7 @@ final class AdminController
         $db = Database::connection();
         $rows = $db->query(
             'SELECT id, login, familiya, ism, otasining_ismi, tugilgan_sana, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol
-             FROM users ORDER BY familiya ASC, ism ASC'
+             FROM users ORDER BY id ASC'
         )->fetchAll();
 
         $users = array_map(static fn (array $r) => [
@@ -235,7 +235,7 @@ final class AdminController
         $db = Database::connection();
         $employeeRows = $db->query(
             "SELECT u.*, (SELECT MAX(read_at) FROM doc_reads d WHERE d.user_id = u.id) AS last_doc_read
-             FROM users u WHERE u.rol = 'user' ORDER BY u.familiya ASC, u.ism ASC"
+             FROM users u ORDER BY u.familiya ASC, u.ism ASC"
         )->fetchAll();
 
         $attemptRows = $db->query(

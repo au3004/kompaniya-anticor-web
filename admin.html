@@ -119,6 +119,14 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .field select option{ background-color:var(--bg-deep); color:var(--text); }
 .field textarea{ resize:vertical; }
 .field-hint{ font-size:11.5px; color:var(--text-dim); margin-top:5px; }
+.field-warning{
+  display:none; align-items:center; gap:8px;
+  background:rgba(255,176,32,0.12); border:1px solid rgba(255,176,32,0.4);
+  color:var(--amber); font-size:12.5px; font-weight:500;
+  padding:8px 11px; border-radius:9px; margin-top:6px;
+}
+.field-warning.show{ display:flex; }
+.field-warning svg{ flex-shrink:0; width:15px; height:15px; }
 .field-group-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--azure); margin-bottom:10px; padding-top:6px; border-top:1px solid var(--card-border); }
 .field-group-title:first-child{ border-top:none; padding-top:0; }
 .submit-btn{ padding:12px 24px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px; }
@@ -376,7 +384,11 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 
     <div class="form-card" style="max-width:640px;">
       <form onsubmit="return submitEmployeeForm(event)">
-        <div class="field"><label data-i18n="empLoginLabel">Login</label><input type="text" id="eLogin" required autocomplete="off"></div>
+        <div class="field">
+          <label data-i18n="empLoginLabel">Login</label>
+          <input type="text" id="eLogin" required autocomplete="off" oninput="checkLoginTaken()" onblur="checkLoginTaken()">
+          <div class="field-warning" id="eLoginWarning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg><span id="eLoginWarningText" data-i18n="loginTakenErr">Ushbu login band, iltimos qayta kiriting</span></div>
+        </div>
         <div class="field"><label id="eParolLabel" data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password"><div class="field-hint" id="eParolHint" style="display:none; font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="empPassEditHint">Bo'sh qoldirsangiz, parol o'zgarmaydi</div></div>
         <div class="field"><label data-i18n="empFamiliyaLabel">Familiya</label><input type="text" id="eFamiliya" required></div>
         <div class="field"><label data-i18n="empIsmLabel">Ism</label><input type="text" id="eIsm" required></div>
@@ -848,7 +860,7 @@ const dict = {
     confirmDeleteEmployee:"Ushbu xodimni butunlay o'chirmoqchimisiz? Uning barcha tarixi (test, hujjat, so'rovnoma) ham o'chadi.",
     cannotDeleteSelfErr:"O'zingizni o'chira olmaysiz", lastGlAdminErr:"Tizimda kamida bitta bosh administrator qolishi shart",
     roleUser:"Xodim", roleAdmin:"Admin", roleGlAdmin:"Bosh admin",
-    empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Bu login band, boshqasini tanlang",
+    empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Ushbu login band, iltimos qayta kiriting",
     weakPasswordErr:"Parol kamida 6 belgidan iborat bo'lishi kerak" },
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
     hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
@@ -912,7 +924,7 @@ const dict = {
     confirmDeleteEmployee:"Удалить этого сотрудника навсегда? Вся его история (тест, документы, уведомления) также будет удалена.",
     cannotDeleteSelfErr:"Вы не можете удалить себя", lastGlAdminErr:"В системе должен остаться хотя бы один главный администратор",
     roleUser:"Сотрудник", roleAdmin:"Админ", roleGlAdmin:"Гл. админ",
-    empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, выберите другой",
+    empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, пожалуйста, введите другой",
     weakPasswordErr:"Пароль должен содержать не менее 6 символов" }
 };
 function applyLang(){
@@ -1051,9 +1063,9 @@ async function exportTestQuestionsXlsx(){
     const data = await apiCall({ action:'getTestQuestions', token: currentUserForKpi.token });
     if(!data.success) return alert(dict[currentLang].savedErr);
     const rows = [['ID','Savol','Variant A','Variant B','Variant C','Variant D',"To'g'ri javob",'Вопрос','Ответ А','Ответ Б','Ответ В','Ответ Г','Правильный ответ']];
-    data.questions.forEach(q => {
+    data.questions.forEach((q, i) => {
       rows.push([
-        q.id, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.uz.correct || '',
+        i + 1, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.uz.correct || '',
         q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '', q.ru.correct || ''
       ]);
     });
@@ -1090,8 +1102,8 @@ async function exportSurveyQuestionsReport(){
     const data = await apiCall({ action:'getSurveyQuestions', token: currentUserForKpi.token });
     if(!data.success) return alert(dict[currentLang].savedErr);
     const rows = [['ID','Savol','Variant A','Variant B','Variant C','Variant D','Turi',"Yulduzchalar soni",'Вопрос','Ответ А','Ответ Б','Ответ В','Ответ Г']];
-    data.questions.forEach(q => {
-      rows.push([q.id, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.turi, q.stars, q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '']);
+    data.questions.forEach((q, i) => {
+      rows.push([i + 1, q.uz.savol, q.uz.a || '', q.uz.b || '', q.uz.c || '', q.uz.d || '', q.turi, q.stars, q.ru.savol || '', q.ru.a || '', q.ru.b || '', q.ru.c || '', q.ru.d || '']);
     });
     downloadXlsx(`anonim_sorovnoma_${todayStamp()}.xlsx`, rows, "So'rovnoma");
   } catch(ex){ alert('Xatolik: ' + ex.message); }
@@ -1154,7 +1166,7 @@ function renderUsersTable(){
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
         <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
       </div>` : '—';
-    return `<tr><td>${u.id ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
+    return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
   }).join('');
 }
 
@@ -1181,6 +1193,7 @@ function startEditEmployee(id){
   document.getElementById('empFormTitle').textContent = dict[currentLang].empFormEdit;
   document.getElementById('empCancelBtn').style.display = 'inline-flex';
   document.getElementById('empFormMsg').className = 'msg';
+  document.getElementById('eLoginWarning').classList.remove('show');
   openSection('addEmployeeView');
 }
 
@@ -1194,6 +1207,7 @@ function cancelEmployeeEdit(){
   document.getElementById('empCancelBtn').style.display = 'none';
   document.querySelector('#addEmployeeView form').reset();
   document.getElementById('empFormMsg').className = 'msg';
+  document.getElementById('eLoginWarning').classList.remove('show');
 }
 
 async function deleteEmployeeRow(id){
@@ -1216,15 +1230,32 @@ async function loadUsersList(user){
   try{
     const data = await apiCall({ action:'getUsersList', token: user.token });
     if(data.success){
-      usersData = data.users;
+      // Backend id bo'yicha (yaratilgan tartibida) qaytaradi — ko'rsatiladigan "ID" ustuni
+      // shu tartibdagi joriy pozitsiya (1,2,3...): xodim o'chirilsa, qolganlar avtomatik
+      // siljib, bo'shliq qolmaydi. Haqiqiy baza id'si (u.id) tahrirlash/o'chirish uchun ishlatiladi.
+      usersData = data.users.map((u, i) => ({ ...u, displayId: i + 1 }));
       if(document.getElementById('employeesView').style.display !== 'none') { filteredUsers = usersData; renderUsersTable(); }
     }
   } catch(ex){}
 }
 
+/* Login maydoni tagida jonli (real vaqtda) "band" ogohlantirishi — usersData
+   allaqachon xotirada yuklangani uchun serverga so'rov yubormasdan tekshiradi.
+   Tahrirlash rejimida (login maydoni disabled) hech qachon ko'rsatilmaydi. */
+function checkLoginTaken(){
+  const warning = document.getElementById('eLoginWarning');
+  const input = document.getElementById('eLogin');
+  if(editingEmployeeId || input.disabled){ warning.classList.remove('show'); return false; }
+  const login = input.value.trim().toLowerCase();
+  const taken = login !== '' && (usersData || []).some(u => (u.login || '').toLowerCase() === login);
+  warning.classList.toggle('show', taken);
+  return taken;
+}
+
 async function submitEmployeeForm(e){
   e.preventDefault();
   const msg = document.getElementById('empFormMsg'); msg.className = 'msg';
+  if(checkLoginTaken()){ return false; }
   const payload = {
     action: editingEmployeeId ? 'editEmployee' : 'addEmployee', token: currentUserForKpi.token,
     login: document.getElementById('eLogin').value.trim(),
@@ -1250,7 +1281,7 @@ async function submitEmployeeForm(e){
       msg.textContent = dict[currentLang].empSavedOk; msg.classList.add('ok');
       loadUsersList(currentUserForKpi);
     } else if(data.code === 'LOGIN_TAKEN'){
-      msg.textContent = dict[currentLang].loginTakenErr; msg.classList.add('err');
+      document.getElementById('eLoginWarning').classList.add('show');
     } else if(data.code === 'WEAK_PASSWORD'){
       msg.textContent = dict[currentLang].weakPasswordErr; msg.classList.add('err');
     } else if(data.code === 'LAST_GL_ADMIN'){
@@ -1322,9 +1353,9 @@ function renderTestsTable(){
     document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
-  document.getElementById('testsTbody').innerHTML = testsData.map(q => `
+  document.getElementById('testsTbody').innerHTML = testsData.map((q, i) => `
     <tr>
-      <td>${escapeHtml(q.id)}</td>
+      <td>${i + 1}</td>
       <td style="white-space:normal;">${escapeHtml(q.uz.savol)}</td>
       <td><div class="row-actions">
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditTest('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
@@ -1413,9 +1444,9 @@ function renderDocsTable(){
     document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
-  document.getElementById('docsTbody').innerHTML = docsData.map(d => `
+  document.getElementById('docsTbody').innerHTML = docsData.map((d, i) => `
     <tr>
-      <td>${escapeHtml(d.id)}</td>
+      <td>${i + 1}</td>
       <td style="white-space:normal;">${escapeHtml(d.uz)}</td>
       <td><div class="row-actions">
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditDoc('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
@@ -1560,9 +1591,9 @@ function renderSurveyTable(){
     document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="4" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
-  document.getElementById('surveyTbody').innerHTML = surveyData.map(q => `
+  document.getElementById('surveyTbody').innerHTML = surveyData.map((q, i) => `
     <tr>
-      <td>${escapeHtml(q.id)}</td>
+      <td>${i + 1}</td>
       <td title="${surveyTypeLabel(q.turi)}">${surveyTypeIcon(q.turi)}</td>
       <td style="white-space:normal;">${escapeHtml(q.uz.savol)}</td>
       <td><div class="row-actions">
