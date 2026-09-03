@@ -8,7 +8,6 @@ use App\Database;
 use App\Response;
 use App\Util;
 use App\Validate;
-use PDO;
 
 /**
  * "Hisobotlar" bo'limi uchun — admin.html'da xom (flat) jadval ko'rinishida
@@ -64,9 +63,12 @@ final class ReportsController
         Auth::requireRole($input, ['gl-admin']);
 
         $db = Database::connection();
+        // Barcha rollar (Korrupsiyaga qarshi kurashish sahifasidagi kabi) — aks holda
+        // admin/gl-admin o'zi sinov uchun test/hujjat bilan tanishsa ham natija
+        // shu hisobotda ko'rinmay qolardi.
         $employees = $db->query(
-            "SELECT id, familiya, ism, otasining_ismi, telefon FROM users
-             WHERE rol = 'user' ORDER BY familiya ASC, ism ASC"
+            'SELECT id, familiya, ism, otasining_ismi, telefon FROM users
+             ORDER BY familiya ASC, ism ASC'
         )->fetchAll();
 
         $docsByUser = [];
@@ -379,8 +381,13 @@ final class ReportsController
         Auth::requireRole($input, ['gl-admin']);
 
         $db = Database::connection();
-        $questionIds = $db->query('SELECT id FROM survey_questions ORDER BY id ASC')->fetchAll(PDO::FETCH_COLUMN);
-        $position = array_flip($questionIds);
+        $questions = $db->query(
+            'SELECT id, turi, savol, variant_a, variant_b, variant_c, variant_d FROM survey_questions ORDER BY id ASC'
+        )->fetchAll();
+        $position = [];
+        foreach ($questions as $i => $q) {
+            $position[(int) $q['id']] = $i;
+        }
 
         $submissions = $db->query('SELECT id, submitted_at FROM survey_submissions ORDER BY id ASC')->fetchAll();
 
@@ -391,10 +398,11 @@ final class ReportsController
             if (!isset($position[$qid])) {
                 continue;
             }
-            $bySubmission[(int) $a['submission_id']][$position[$qid]] = $a['answer_value'];
+            $pos = $position[$qid];
+            $bySubmission[(int) $a['submission_id']][$pos] = self::formatSurveyAnswer($questions[$pos], (string) $a['answer_value']);
         }
 
-        $questionCount = count($questionIds);
+        $questionCount = count($questions);
         $rows = [];
         foreach ($submissions as $s) {
             $sid = (int) $s['id'];
@@ -409,6 +417,29 @@ final class ReportsController
             ];
         }
 
-        Response::success(['questionCount' => $questionCount, 'submissions' => $rows]);
+        $questionLabels = array_map(static fn (array $q) => $q['savol'], $questions);
+
+        Response::success(['questionCount' => $questionCount, 'questions' => $questionLabels, 'submissions' => $rows]);
+    }
+
+    /**
+     * "Tanlov" turidagi savolda saqlangan xom harf (A/B/C/D) o'rniga o'sha
+     * savolning tegishli variant matnini qaytaradi. "Yulduzcha" (son) va
+     * "matn" (erkin javob) turlarida qiymat o'zgarishsiz qoladi.
+     */
+    private static function formatSurveyAnswer(array $question, string $value): string
+    {
+        if ($question['turi'] !== 'tanlov') {
+            return $value;
+        }
+        $variants = [
+            'A' => $question['variant_a'],
+            'B' => $question['variant_b'],
+            'C' => $question['variant_c'],
+            'D' => $question['variant_d'],
+        ];
+        $letter = strtoupper(trim($value));
+
+        return $variants[$letter] ?? $value;
     }
 }

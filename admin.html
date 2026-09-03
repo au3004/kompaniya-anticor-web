@@ -71,7 +71,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .stat-card.coral .num{ color:var(--coral); }
 .stat-card.amber .num{ color:var(--amber); }
 
-.search-row{ margin-bottom:16px; }
+.search-row{ margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .search-row input{
   width:100%; max-width:340px; padding:11px 14px; background:var(--input-bg); border:1px solid var(--input-border);
   border-radius:11px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none;
@@ -297,6 +297,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 
     <div class="search-row">
       <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()">
+      <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="exportComplianceReport()"><span data-i18n="complianceReportBtn">Bajarilmaganlar hisoboti</span></button>
     </div>
 
     <div class="table-wrap">
@@ -877,6 +878,8 @@ const dict = {
     confirmBulkDelete:"Tanlangan {n} ta yozuvni butunlay o'chirmoqchimisiz? Bu amalni orqaga qaytarib bo'lmaydi.",
     colBall:"Ball", colFoiz:"Foiz", colNatija:"Natija", colOtdi:"O'tdi", colOtmadi:"O'tmadi",
     colJavoblarSoni:"Javoblar soni", colMatn:"Matn", colYuboruvchi:"Yuboruvchi", colXabarId:"Xabar ID", colOqilganSana:"O'qilgan sana",
+    complianceReportBtn:"Bajarilmaganlar hisoboti",
+    complianceBothSheet:"Ikkalasi ham bajarilgan", complianceNoDocSheet:"Hujjat bilan tanishmagan", complianceNoTestSheet:"Test topshirmagan",
     supportIzohLabel:"Izoh", supportIzohPh:"Murojaatga izoh/javob yozing",
     thMurojaat:"Murojaat", thSana:"Sana", supportDetailTitle:"Murojaat tafsiloti",
     supportCommentsTitle:"Izohlar tarixi", supportNoComments:"Hozircha izoh yo'q",
@@ -947,6 +950,8 @@ const dict = {
     confirmBulkDelete:"Удалить выбранные {n} записей навсегда? Это действие нельзя отменить.",
     colBall:"Баллы", colFoiz:"Процент", colNatija:"Результат", colOtdi:"Прошёл", colOtmadi:"Не прошёл",
     colJavoblarSoni:"Кол-во ответов", colMatn:"Текст", colYuboruvchi:"Отправитель", colXabarId:"ID уведомления", colOqilganSana:"Дата прочтения",
+    complianceReportBtn:"Отчёт по невыполнению",
+    complianceBothSheet:"Оба выполнены", complianceNoDocSheet:"Не ознакомлен с документом", complianceNoTestSheet:"Не прошёл тест",
     supportIzohLabel:"Комментарий", supportIzohPh:"Напишите комментарий/ответ на обращение",
     thMurojaat:"Обращение", thSana:"Дата", supportDetailTitle:"Детали обращения",
     supportCommentsTitle:"История комментариев", supportNoComments:"Комментариев пока нет",
@@ -1074,6 +1079,20 @@ function downloadXlsx(filename, rows, sheetName){
   XLSX.utils.book_append_sheet(wb, ws, (sheetName || 'Hisobot').slice(0, 31));
   XLSX.writeFile(wb, filename);
 }
+// Bir nechta varaqli (masalan "bajargan / bajarmagan" ro'yxatlari alohida
+// list qilib) Excel fayl yaratadi. sheets: [{name, rows}, ...]
+function downloadXlsxMulti(filename, sheets){
+  if(typeof XLSX === 'undefined'){
+    alert(dict[currentLang].xlsxLibErr);
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+  sheets.forEach(sh => {
+    const ws = XLSX.utils.aoa_to_sheet(sh.rows);
+    XLSX.utils.book_append_sheet(wb, ws, (sh.name || 'Varaq').slice(0, 31));
+  });
+  XLSX.writeFile(wb, filename);
+}
 function todayStamp(){
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -1108,6 +1127,32 @@ async function exportProgressReport(){
     });
     downloadXlsx(`progress_${todayStamp()}.xlsx`, rows, 'Progress');
   } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+// Korrupsiyaga qarshi kurashish sahifasida allaqachon yuklangan statsData'dan
+// foydalanib, hujjat/test bo'yicha bajargan va bajarmaganlarni solishtiradi —
+// alohida so'rov yubormasdan, ekranda ko'rinayotgan aynan shu ma'lumot asosida.
+function exportComplianceReport(){
+  if(!statsData || !statsData.employees || !statsData.employees.length){
+    alert(dict[currentLang].savedErr);
+    return;
+  }
+  const header = ['F.I.Sh','Lavozim',"Bo'linma",'Telefon'];
+  const bothHeader = [...header, 'Hujjat sanasi', 'Test natijasi'];
+  const toRow = e => [e.fish, e.lavozim || '', e.bolinma || '', e.telefon || ''];
+
+  const bothDone = statsData.employees.filter(e => e.hujjatSana && e.testTaken);
+  const noDoc = statsData.employees.filter(e => !e.hujjatSana);
+  const noTest = statsData.employees.filter(e => !e.testTaken);
+
+  const sheets = [
+    { name: dict[currentLang].complianceBothSheet, rows: [bothHeader, ...bothDone.map(e => [
+      ...toRow(e), e.hujjatSana, e.testTaken ? `${e.testPoints} — ${e.testPercent}%${e.passed ? '' : ' ('+dict[currentLang].colOtmadi+')'}` : ''
+    ])] },
+    { name: dict[currentLang].complianceNoDocSheet, rows: [header, ...noDoc.map(toRow)] },
+    { name: dict[currentLang].complianceNoTestSheet, rows: [header, ...noTest.map(toRow)] },
+  ];
+  downloadXlsxMulti(`muvofiqlik_${todayStamp()}.xlsx`, sheets);
 }
 
 async function exportSupportReport(){
@@ -1180,8 +1225,7 @@ async function exportSurveyAnswersWide(){
   try{
     const data = await apiCall({ action:'getSurveyAnswersWide', token: currentUserForKpi.token });
     if(!data.success) return alert(dict[currentLang].savedErr);
-    const header = ['ID','Sana'];
-    for(let i = 1; i <= data.questionCount; i++) header.push(`ID-${i}`);
+    const header = ['ID','Sana', ...(data.questions || [])];
     const rows = [header];
     data.submissions.forEach(s => {
       rows.push([s.id, s.sana, ...s.answers]);
