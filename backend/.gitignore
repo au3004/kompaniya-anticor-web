@@ -1,3 +1,5 @@
 .env
 public/uploads/photos/*
 !public/uploads/photos/.gitkeep
+backups/*
+!backups/.gitkeep

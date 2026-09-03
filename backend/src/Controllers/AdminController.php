@@ -325,4 +325,36 @@ final class AdminController
             'employees' => $employees,
         ]);
     }
+
+    /**
+     * Server tomonida ushlangan xatoliklar (backend/public/index.php'ning
+     * umumiy catch bloki) ro'yxati — gl-admin serverning fayl tizimiga
+     * kirmasdan admin panelidan so'nggi xatoliklarni ko'ra oladi.
+     */
+    public static function getErrorLog(array $input): void
+    {
+        Auth::requireRole($input, ['gl-admin']);
+
+        $db = Database::connection();
+        Util::ensureSchema($db, "CREATE TABLE IF NOT EXISTS error_log (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            action      VARCHAR(100),
+            message     TEXT NOT NULL,
+            created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_created (created_at)
+        ) ENGINE=InnoDB");
+
+        $rows = $db->query(
+            'SELECT id, action, message, created_at FROM error_log ORDER BY id DESC LIMIT 200'
+        )->fetchAll();
+
+        $list = array_map(static fn (array $r) => [
+            'id' => (int) $r['id'],
+            'action' => $r['action'],
+            'message' => $r['message'],
+            'sana' => date('d.m.Y G:i:s', strtotime((string) $r['created_at'])),
+        ], $rows);
+
+        Response::success(['entries' => $list]);
+    }
 }

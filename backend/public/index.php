@@ -14,6 +14,7 @@ use App\Cors;
 use App\Response;
 use App\Controllers\AdminController;
 use App\Controllers\AuthController;
+use App\Controllers\BackupController;
 use App\Controllers\DocsController;
 use App\Controllers\NotificationController;
 use App\Controllers\ProfileController;
@@ -100,6 +101,7 @@ $routes = [
     'editEmployee' => [AdminController::class, 'editEmployee'],
     'deleteEmployee' => [AdminController::class, 'deleteEmployee'],
     'unlockLogin' => [AdminController::class, 'unlockLogin'],
+    'getErrorLog' => [AdminController::class, 'getErrorLog'],
 
     'getSupportRequests' => [ReportsController::class, 'getSupportRequests'],
     'addSupportComment' => [ReportsController::class, 'addSupportComment'],
@@ -119,6 +121,9 @@ $routes = [
     'deleteNotifications' => [ReportsController::class, 'deleteNotifications'],
     'deleteNotificationReads' => [ReportsController::class, 'deleteNotificationReads'],
     'deleteSupportRequests' => [ReportsController::class, 'deleteSupportRequests'],
+
+    'createBackup' => [BackupController::class, 'create'],
+    'listBackups' => [BackupController::class, 'list'],
 ];
 
 if (!isset($routes[$action])) {
@@ -131,5 +136,6 @@ try {
     $controller::$method($input);
 } catch (\Throwable $e) {
     error_log('[api] ' . $action . ': ' . $e->getMessage());
+    \App\Logger::error($action, $e->getMessage());
     Response::error('Ichki server xatoligi', 'SERVER_ERROR', 500);
 }

@@ -208,3 +208,15 @@ CREATE TABLE app_settings (
 INSERT INTO app_settings (setting_key, setting_value) VALUES
   ('test_active', 'true'),
   ('survey_active', 'true');
+
+-- ---------------------------------------------------------------------
+-- 10) TIZIM JURNALI (server tomonida ushlangan xatoliklar) — gl-admin
+-- serverning fayl tizimiga kirmasdan admin panelidan ko'rishi uchun.
+-- ---------------------------------------------------------------------
+CREATE TABLE error_log (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  action      VARCHAR(100),
+  message     TEXT NOT NULL,
+  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_created (created_at)
+) ENGINE=InnoDB;
