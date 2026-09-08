@@ -624,7 +624,7 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <h3 data-i18n="hubEmployees">Xodimlar ro'yxati</h3>
         <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
       </button>
-      <button class="hub-card" id="addEmployeeSubCard" onclick="cancelEmployeeEdit(); openSection('addEmployeeView')" style="display:none;">
+      <button class="hub-card" id="addEmployeeSubCard" onclick="cancelEmployeeEdit(); populateRoleSelect(); openSection('addEmployeeView')" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
         <h3 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h3>
         <p data-i18n="hubAddEmployeeDesc">Tizimga yangi xodim yoki administrator qo'shish</p>
@@ -696,11 +696,7 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <div class="field"><label data-i18n="thPhone">Telefon</label><input type="text" id="eTelefon"></div>
         <div class="field">
           <label data-i18n="thRol">Rol</label>
-          <select id="eRol">
-            <option value="user" data-i18n="roleUser">Xodim</option>
-            <option value="admin" data-i18n="roleAdmin">Admin</option>
-            <option value="gl-admin" data-i18n="roleGlAdmin">Bosh admin</option>
-          </select>
+          <select id="eRol"></select>
         </div>
         <button class="submit-btn" type="submit" id="empSubmitBtn" data-i18n="saveBtn">Saqlash</button>
         <button type="button" class="back-btn" id="empCancelBtn" onclick="cancelEmployeeEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
@@ -1294,7 +1290,8 @@ const dict = {
     empFormEdit:"Xodimni tahrirlash", empPassEditHint:"Bo'sh qoldirsangiz, parol o'zgarmaydi",
     confirmDeleteEmployee:"Ushbu xodimni butunlay o'chirmoqchimisiz? Uning barcha tarixi (test, hujjat, so'rovnoma) ham o'chadi.",
     cannotDeleteSelfErr:"O'zingizni o'chira olmaysiz", lastGlAdminErr:"Tizimda kamida bitta bosh administrator qolishi shart",
-    roleUser:"Xodim", roleAdmin:"Admin", roleGlAdmin:"Bosh admin",
+    role_user:"Xodim", role_anticor_admin:"Anticor — Admin", role_anticor:"Anticor",
+    role_hr_admin:"HR — Admin", role_hr:"HR", role_rahbariyat:"Rahbariyat", role_super_admin:"Super-admin",
     empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Ushbu login band, iltimos qayta kiriting",
     weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
     pwnedPasswordErr:"Bu parol avval ma'lumotlar sizib chiqishlarida uchragan. Iltimos boshqa parol tanlang.",
@@ -1384,7 +1381,8 @@ const dict = {
     empFormEdit:"Редактировать сотрудника", empPassEditHint:"Если оставить пустым, пароль не изменится",
     confirmDeleteEmployee:"Удалить этого сотрудника навсегда? Вся его история (тест, документы, уведомления) также будет удалена.",
     cannotDeleteSelfErr:"Вы не можете удалить себя", lastGlAdminErr:"В системе должен остаться хотя бы один главный администратор",
-    roleUser:"Сотрудник", roleAdmin:"Админ", roleGlAdmin:"Гл. админ",
+    role_user:"Сотрудник", role_anticor_admin:"Антикор — Админ", role_anticor:"Антикор",
+    role_hr_admin:"HR — Админ", role_hr:"HR", role_rahbariyat:"Руководство", role_super_admin:"Супер-админ",
     empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, пожалуйста, введите другой",
     weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
     pwnedPasswordErr:"Этот пароль ранее встречался в утечках данных. Пожалуйста, выберите другой пароль.",
@@ -1917,8 +1915,8 @@ function renderUsersTable(){
     document.getElementById('empTbody').innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
-  const canManageEmp = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
-  const canUnlock = currentUserForKpi && (currentUserForKpi.rol === 'gl-admin' || currentUserForKpi.rol === 'admin');
+  const canManageEmp = currentUserForKpi && HR_MANAGE.includes(currentUserForKpi.rol);
+  const canUnlock = currentUserForKpi && HR_MANAGE.includes(currentUserForKpi.rol);
   document.getElementById('empTbody').innerHTML = filteredUsers.map((u, i) => {
     const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
     const lockedBadge = u.locked ? `<span class="badge no" style="margin-left:6px;" title="${dict[currentLang].lockedUntilLabel}: ${escapeHtml(u.lockedUntil||'')}">${dict[currentLang].lockedBadge}</span>` : '';
@@ -1929,6 +1927,23 @@ function renderUsersTable(){
     const actions = (unlockBtn || editDeleteBtns) ? `<div class="row-actions">${unlockBtn}${editDeleteBtns}</div>` : '—';
     return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}${lockedBadge}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
   }).join('');
+}
+
+/**
+ * Rol tanlash ro'yxatini chaqiruvchining huquq darajasiga qarab quradi:
+ * super-admin va (vaqtinchalik bootstrap sifatida) anticor-admin barcha
+ * rollarni, jumladan super-admin'ni ham beradi; hr-admin esa faqat past
+ * darajali rollarni (backend/src/Controllers/AdminController.php'dagi
+ * allowedRolesFor() bilan bir xil mantiq).
+ */
+function populateRoleSelect(currentValue){
+  const rol = currentUserForKpi && currentUserForKpi.rol;
+  const full = ['user','anticor-admin','anticor','hr-admin','hr','rahbariyat','super-admin'];
+  const restricted = ['user','anticor','hr','rahbariyat'];
+  const options = (rol === 'super-admin' || rol === 'anticor-admin') ? full : restricted;
+  const sel = document.getElementById('eRol');
+  sel.innerHTML = options.map(r => `<option value="${r}">${escapeHtml(dict[currentLang]['role_' + r.replace(/-/g,'_')] || r)}</option>`).join('');
+  if(currentValue && options.includes(currentValue)) sel.value = currentValue;
 }
 
 function startEditEmployee(id){
@@ -1949,7 +1964,7 @@ function startEditEmployee(id){
   document.getElementById('eBolinma').value = u.bolinma || '';
   document.getElementById('eBolinmaRu').value = u.bolinmaRu || '';
   document.getElementById('eTelefon').value = u.telefon || '';
-  document.getElementById('eRol').value = u.rol || 'user';
+  populateRoleSelect(u.rol || 'user');
   document.getElementById('empFormEyebrow').textContent = dict[currentLang].empFormEdit;
   document.getElementById('empFormTitle').textContent = dict[currentLang].empFormEdit;
   document.getElementById('empCancelBtn').style.display = 'inline-flex';
@@ -2340,7 +2355,7 @@ async function deleteDocRow(id){
 
 /* ---------- Anonim so'rovnoma ---------- */
 function openSurveyEntry(){
-  if(currentUserForKpi.rol === 'gl-admin'){
+  if(ANTICOR_MANAGE.includes(currentUserForKpi.rol)){
     openSection('surveyHubView');
     loadSurveyStatusOnly();
   } else {
@@ -2350,7 +2365,7 @@ function openSurveyEntry(){
 }
 
 function backFromSurveyResults(){
-  if(currentUserForKpi.rol === 'gl-admin') openSection('surveyHubView');
+  if(ANTICOR_MANAGE.includes(currentUserForKpi.rol)) openSection('surveyHubView');
   else openSection('hubView');
 }
 
@@ -2741,11 +2756,11 @@ function toggleAllSupport(){
 }
 
 function updateSupportBulkBar(){
-  const isGlAdmin = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
+  const canDelete = currentUserForKpi && ANTICOR_MANAGE.includes(currentUserForKpi.rol);
   const bar = document.getElementById('supportBulkBar');
   const th = document.getElementById('supportSelectAllTh');
-  if(bar) bar.style.display = isGlAdmin ? 'flex' : 'none';
-  if(th) th.style.display = isGlAdmin ? 'table-cell' : 'none';
+  if(bar) bar.style.display = canDelete ? 'flex' : 'none';
+  if(th) th.style.display = canDelete ? 'table-cell' : 'none';
   const countEl = document.getElementById('supportSelectedCount');
   if(countEl) countEl.textContent = supportSelected.size;
   const btn = document.getElementById('supportDeleteBtn');
@@ -2768,7 +2783,7 @@ async function deleteSelectedSupport(){
 function renderSupportTable(){
   const tbody = document.getElementById('supportTbody');
   if(!tbody) return;
-  const isGlAdmin = currentUserForKpi && currentUserForKpi.rol === 'gl-admin';
+  const canDelete = currentUserForKpi && ANTICOR_MANAGE.includes(currentUserForKpi.rol);
   updateSupportBulkBar();
   if(!supportData || supportData.length === 0){
     tbody.innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
@@ -2776,7 +2791,7 @@ function renderSupportTable(){
   }
   tbody.innerHTML = supportData.map(r => `
     <tr>
-      ${isGlAdmin ? `<td><input type="checkbox" ${supportSelected.has(r.id)?'checked':''} onchange="toggleSupportRow(${r.id}, this.checked)"></td>` : ''}
+      ${canDelete ? `<td><input type="checkbox" ${supportSelected.has(r.id)?'checked':''} onchange="toggleSupportRow(${r.id}, this.checked)"></td>` : ''}
       <td>${r.id}</td>
       <td title="${escapeHtml(r.fish)}">${escapeHtml(r.fish)}</td>
       <td>${escapeHtml(r.telefon || '—')}</td>
@@ -2844,20 +2859,43 @@ async function saveSupportComment(){
   }
 }
 
+/* ===== Rol guruhlari (backend/src/Roles.php bilan bir xil mantiq) =====
+   anticor-admin/anticor/super-admin — "Korrupsiyaga qarshi kurashish";
+   hr-admin/hr/rahbariyat/super-admin — "Xodimlar" (faqat ko'rish);
+   hr-admin/super-admin — Xodimlarni boshqarish (qo'shish/tahrirlash/o'chirish);
+   anticor-admin/super-admin — Anticor tarkibini boshqarish (test/hujjat/
+   so'rovnoma savoli qo'shish-o'chirish, zaxira nusxa — parol hash'lari
+   bor bo'lgani uchun bu ham shu (qat'iyroq) darajaga tegishli). */
+const ANTICOR_VIEW = ['anticor-admin', 'anticor', 'super-admin'];
+const ANTICOR_MANAGE = ['anticor-admin', 'super-admin'];
+const HR_VIEW = ['hr-admin', 'hr', 'rahbariyat', 'super-admin'];
+const HR_MANAGE = ['hr-admin', 'super-admin'];
+const NOTIFY_SEND = ['anticor-admin', 'anticor', 'hr-admin', 'hr', 'rahbariyat', 'super-admin'];
+
 function init(){
   const user = getCurrentUser();
   if(!user || !user.token){ window.location.href = 'login.html'; return; }
   const rol = user.rol;
 
-  const canAnticor = rol === 'gl-admin';
-  const canEmployees = rol === 'gl-admin' || rol === 'admin';
-  const canManage = rol === 'gl-admin'; // Test savollari, Hujjat qo'shish — faqat gl-admin
-  const canSurvey = rol === 'gl-admin' || rol === 'admin'; // Anonim so'rovnoma (ichki huquqlar rolga qarab farqlanadi)
-  const canNotifSend = rol === 'gl-admin' || rol === 'admin';
-  const canSupport = rol === 'gl-admin' || rol === 'admin';
-  const canReports = rol === 'gl-admin'; // Hisobotlar — tashkilot bo'yicha to'liq ma'lumot, faqat gl-admin
+  const canAnticor = ANTICOR_VIEW.includes(rol);
+  const canAnticorManage = ANTICOR_MANAGE.includes(rol);
+  // VAQTINCHALIK BOOTSTRAP: backend/src/Controllers/AdminController.php'dagi
+  // ADD_EMPLOYEE_ROLES bilan bir xil — anticor-admin ham hozircha "Xodimlar"
+  // bo'limini (faqat ro'yxatni ko'rish + yangi xodim qo'shish, birinchi
+  // super-adminni tayinlash uchun) ochadi. Foydalanuvchi birinchi
+  // super-adminni tayinlagach, quyidagi ikkala qatordan ham
+  // "|| rol === 'anticor-admin'" qismini olib tashlash so'ralgan edi.
+  const canEmployees = HR_VIEW.includes(rol) || rol === 'anticor-admin';
+  const canAddEmployee = HR_MANAGE.includes(rol) || rol === 'anticor-admin';
+  const canEmployeesManage = HR_MANAGE.includes(rol); // tahrirlash/o'chirish — bootstrap bunga tegishli emas
+  const canManage = canAnticorManage; // Test savollari, Hujjat qo'shish — faqat anticor-admin/super-admin
+  const canSurvey = canAnticor; // Anonim so'rovnoma — ichki huquqlar canAnticorManage'ga qarab farqlanadi (openSurveyEntry)
+  const canNotifSend = NOTIFY_SEND.includes(rol);
+  const canSupport = canAnticor;
+  const canReports = canAnticor; // Hisobotlar/Tizim jurnali — faqat ko'rish, shu bois anticor ham kiradi
+  const canBackup = canAnticorManage; // Zaxira nusxada barcha xodimlarning parol hash'lari bor — qat'iyroq daraja
 
-  if(!canAnticor && !canEmployees && !canManage && !canSurvey && !canNotifSend && !canSupport && !canReports){
+  if(!canAnticor && !canEmployees && !canNotifSend){
     document.querySelector('.hub-grid').style.display = 'none';
     document.getElementById('noAccessMsg').style.display = 'block';
     return;
@@ -2865,15 +2903,15 @@ function init(){
 
   document.getElementById('anticorCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('employeesCard').style.display = canEmployees ? 'block' : 'none';
-  document.getElementById('conflictCard').style.display = canEmployees ? 'block' : 'none';
+  document.getElementById('conflictCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('surveyCard').style.display = canSurvey ? 'block' : 'none';
   document.getElementById('notifSendCard').style.display = canNotifSend ? 'block' : 'none';
-  document.getElementById('addEmployeeSubCard').style.display = canManage ? 'block' : 'none';
+  document.getElementById('addEmployeeSubCard').style.display = canAddEmployee ? 'block' : 'none';
   document.getElementById('supportCard').style.display = canSupport ? 'block' : 'none';
   document.getElementById('reportsCard').style.display = canReports ? 'block' : 'none';
-  document.getElementById('backupCard').style.display = canReports ? 'block' : 'none';
+  document.getElementById('backupCard').style.display = canBackup ? 'block' : 'none';
   document.getElementById('errorLogCard').style.display = canReports ? 'block' : 'none';
 
   currentUserForKpi = user;

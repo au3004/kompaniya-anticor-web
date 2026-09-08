@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Auth;
+use App\Roles;
 use App\Config;
 use App\Database;
 use App\Response;
@@ -23,7 +24,7 @@ final class TestController
     public static function getQuestions(array $input): void
     {
         $viewer = Auth::optionalUser($input);
-        $isAdmin = $viewer && in_array($viewer['rol'], ['admin', 'gl-admin'], true);
+        $isAdmin = $viewer && in_array($viewer['rol'], Roles::ANTICOR_VIEW, true);
 
         $db = Database::connection();
         $rows = $db->query('SELECT * FROM test_questions ORDER BY id ASC')->fetchAll();
@@ -115,7 +116,7 @@ final class TestController
 
     public static function setActive(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $active = Validate::bool($input, 'active');
 
         $db = Database::connection();
@@ -148,7 +149,7 @@ final class TestController
 
     public static function add(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $f = self::questionFields($input);
 
         $db = Database::connection();
@@ -167,7 +168,7 @@ final class TestController
 
     public static function edit(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
@@ -191,7 +192,7 @@ final class TestController
 
     public static function delete(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);

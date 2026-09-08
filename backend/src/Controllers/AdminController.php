@@ -7,6 +7,7 @@ use App\Auth;
 use App\Database;
 use App\PwnedPasswords;
 use App\Response;
+use App\Roles;
 use App\Util;
 use App\Validate;
 use PDOException;
@@ -15,9 +16,20 @@ final class AdminController
 {
     private const TUGILGAN_SANA_DDL = "ALTER TABLE users ADD COLUMN IF NOT EXISTS tugilgan_sana DATE AFTER otasining_ismi";
 
+    /**
+     * VAQTINCHALIK BOOTSTRAP: bazada hali super-admin bo'lmagan paytda,
+     * anticor-adminga birinchi super-adminni (odatda o'ziga alohida hisob
+     * sifatida) tayinlash imkonini beradi — aks holda buni hech kim qila
+     * olmas edi (faqat super-adminning o'zi bu rolni bera oladi, lekin
+     * hali birortasi yo'q). Foydalanuvchi birinchi super-adminni
+     * tayinlagach, BU QATORNI olib tashlab, pastdagi Auth::requireRole
+     * chaqiruvini shunchaki Roles::HR_MANAGE'ga qaytarish so'ralgan edi.
+     */
+    private const ADD_EMPLOYEE_ROLES = [Roles::HR_ADMIN, Roles::SUPER_ADMIN, Roles::ANTICOR_ADMIN];
+
     public static function addEmployee(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        $me = Auth::requireRole($input, self::ADD_EMPLOYEE_ROLES);
 
         $login = Validate::requiredStr($input, 'login', 100);
         $parol = Validate::requiredStr($input, 'parol', 255);
@@ -42,11 +54,9 @@ final class AdminController
                 422
             );
         }
-        if (!in_array($rol, ['user', 'admin', 'gl-admin'], true)) {
-            $rol = 'user';
-        }
 
         $db = Database::connection();
+        $rol = self::sanitizeAssignedRole($db, $me, $rol, null);
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
         $stmt = $db->prepare(
             'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, tugilgan_sana, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol)
@@ -80,17 +90,26 @@ final class AdminController
 
     public static function usersList(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin', 'admin']);
+        // Xodimlar bo'limi (hr-tomon) VA xabarnoma qabul qiluvchini tanlash
+        // (anticor-tomon ham xabarnoma yubora oladi) — shu bois barcha
+        // boshqaruv panelidagi rollarga ochiq, faqat aniq bir xodim yozuvini
+        // TAHRIRLASH huquqi bundan alohida (pastdagi editEmployee'da) tekshiriladi.
+        Auth::requireRole($input, Roles::ANY_PANEL_ACCESS);
 
         $db = Database::connection();
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
-        $rows = $db->query(
+        $stmt = $db->prepare(
             'SELECT u.id, u.login, u.familiya, u.ism, u.otasining_ismi, u.tugilgan_sana, u.lavozim, u.lavozim_ru,
                     u.bolinma, u.bolinma_ru, u.telefon, u.rol, la.locked_until
              FROM users u
              LEFT JOIN login_attempts la ON la.login = u.login
+             WHERE u.rol != :superAdmin
              ORDER BY u.id ASC'
-        )->fetchAll();
+        );
+        // super-admin hech qaysi ro'yxat/hisobotda ko'rinmasligi shart — go'yo
+        // bunday profil umuman yo'qdek (loyiha davomida amal qiladigan qoida).
+        $stmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $rows = $stmt->fetchAll();
 
         $users = array_map(static function (array $r) {
             $lockedUntil = $r['locked_until'] ?? null;
@@ -118,7 +137,7 @@ final class AdminController
 
     public static function editEmployee(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        $me = Auth::requireRole($input, Roles::HR_MANAGE);
 
         $id = Validate::int($input, 'id');
         if (!$id) {
@@ -137,9 +156,6 @@ final class AdminController
         $rol = Validate::str($input, 'rol', 20);
         $parol = Validate::str($input, 'parol', 255);
 
-        if (!in_array($rol, ['user', 'admin', 'gl-admin'], true)) {
-            $rol = 'user';
-        }
         if ($parol !== '' && !Validate::isStrongPassword($parol)) {
             Response::error(Validate::WEAK_PASSWORD_MESSAGE, 'WEAK_PASSWORD', 422);
         }
@@ -154,16 +170,15 @@ final class AdminController
         $db = Database::connection();
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
 
-        $existingStmt = $db->prepare('SELECT rol FROM users WHERE id = :id LIMIT 1');
+        $existingStmt = $db->prepare('SELECT id, rol FROM users WHERE id = :id LIMIT 1');
         $existingStmt->execute(['id' => $id]);
         $existing = $existingStmt->fetch();
         if (!$existing) {
             Response::error('Xodim topilmadi', 'NOT_FOUND', 404);
         }
 
-        if ($existing['rol'] === 'gl-admin' && $rol !== 'gl-admin' && self::glAdminCount($db) <= 1) {
-            Response::error("Tizimda kamida bitta bosh administrator (gl-admin) qolishi shart", 'LAST_GL_ADMIN', 409);
-        }
+        self::assertCanEditTarget($me, $existing);
+        $rol = self::sanitizeEditedRole($db, $me, $existing, $rol);
 
         $params = [
             'id' => $id,
@@ -204,7 +219,7 @@ final class AdminController
 
     public static function deleteEmployee(array $input): void
     {
-        $me = Auth::requireRole($input, ['gl-admin']);
+        $me = Auth::requireRole($input, Roles::HR_MANAGE);
 
         $id = Validate::int($input, 'id');
         if (!$id) {
@@ -215,7 +230,7 @@ final class AdminController
         }
 
         $db = Database::connection();
-        $existingStmt = $db->prepare('SELECT rol FROM users WHERE id = :id LIMIT 1');
+        $existingStmt = $db->prepare('SELECT id, rol FROM users WHERE id = :id LIMIT 1');
         $existingStmt->execute(['id' => $id]);
         $existing = $existingStmt->fetch();
         if (!$existing) {
@@ -223,9 +238,7 @@ final class AdminController
             return;
         }
 
-        if ($existing['rol'] === 'gl-admin' && self::glAdminCount($db) <= 1) {
-            Response::error("Tizimda kamida bitta bosh administrator (gl-admin) qolishi shart", 'LAST_GL_ADMIN', 409);
-        }
+        self::assertCanDeleteTarget($me, $existing);
 
         $stmt = $db->prepare('DELETE FROM users WHERE id = :id');
         $stmt->execute(['id' => $id]);
@@ -235,11 +248,11 @@ final class AdminController
 
     /**
      * Login urinishlari ko'p noto'g'ri bo'lgani uchun avtomatik bloklangan
-     * xodimni gl-admin/admin darhol (15 daqiqa kutmasdan) blokdan chiqaradi.
+     * xodimni darhol (15 daqiqa kutmasdan) blokdan chiqaradi.
      */
     public static function unlockLogin(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin', 'admin']);
+        Auth::requireRole($input, Roles::HR_MANAGE);
 
         $login = Validate::requiredStr($input, 'login', 100);
         Auth::resetAttempts($login);
@@ -266,20 +279,140 @@ final class AdminController
         return $value;
     }
 
-    private static function glAdminCount(\PDO $db): int
+    /** hr-admin faqat past darajali rollarni (oddiy xodim, anticor, hr, rahbariyat) tayinlashi mumkin. */
+    private const HR_ASSIGNABLE_ROLES = [Roles::USER, Roles::ANTICOR, Roles::HR, Roles::RAHBARIYAT];
+
+    /**
+     * Chaqiruvchining rolidan kelib chiqib, u xodimga qaysi rollarni
+     * tayinlashi mumkinligini aniqlaydi. super-admin va (vaqtinchalik
+     * bootstrap uchun) anticor-admin — istalgan rolni, jumladan
+     * super-admin'ni ham beradi; hr-admin esa faqat past darajali
+     * rollarni.
+     */
+    private static function allowedRolesFor(string $callerRol): array
     {
-        return (int) $db->query("SELECT COUNT(*) FROM users WHERE rol = 'gl-admin'")->fetchColumn();
+        if ($callerRol === Roles::SUPER_ADMIN || $callerRol === Roles::ANTICOR_ADMIN) {
+            return array_merge(Roles::ASSIGNABLE, [Roles::SUPER_ADMIN]);
+        }
+        return self::HR_ASSIGNABLE_ROLES;
+    }
+
+    /**
+     * super-admin rolini faqat hozirgi super-adminning o'zi (yoki hali
+     * hech kim super-admin bo'lmagan paytda, vaqtinchalik bootstrap sifatida
+     * anticor-admin) bera oladi.
+     */
+    private static function assertCanGrantSuperAdmin(\PDO $db, string $callerRol): void
+    {
+        if ($callerRol === Roles::SUPER_ADMIN) {
+            return;
+        }
+        $stmt = $db->prepare('SELECT COUNT(*) FROM users WHERE rol = :rol');
+        $stmt->execute(['rol' => Roles::SUPER_ADMIN]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            Response::error("Faqat super-adminning o'zi bu rolni boshqa xodimga bera oladi", 'FORBIDDEN', 403);
+        }
+    }
+
+    /**
+     * Yangi super-admin tayinlanganda, tizimda FAQAT bitta super-admin
+     * qolishi uchun avvalgisi (agar bo'lsa) avtomatik anticor-admin
+     * roliga tushiriladi — bu "rolni topshirish" (transfer) mexanizmi.
+     */
+    private static function demoteExistingSuperAdmins(\PDO $db, int $exceptId): void
+    {
+        $stmt = $db->prepare('UPDATE users SET rol = :fallback WHERE rol = :super AND id != :exceptId');
+        $stmt->execute(['fallback' => Roles::ANTICOR_ADMIN, 'super' => Roles::SUPER_ADMIN, 'exceptId' => $exceptId]);
+    }
+
+    /** addEmployee uchun: ruxsat etilmagan rol yuborilsa, xavfsiz standart holatga ("user") tushiriladi. */
+    private static function sanitizeAssignedRole(\PDO $db, array $me, string $rol, ?string $unused = null): string
+    {
+        $allowed = self::allowedRolesFor($me['rol']);
+        if (!in_array($rol, $allowed, true)) {
+            return Roles::USER;
+        }
+        if ($rol === Roles::SUPER_ADMIN) {
+            self::assertCanGrantSuperAdmin($db, $me['rol']);
+            self::demoteExistingSuperAdmins($db, 0);
+        }
+        return $rol;
+    }
+
+    /**
+     * hr-admin o'zidan yuqori yoki teng darajadagi xodimni (anticor-admin/
+     * hr-admin/super-admin) tahrirlay olmaydi — bu boshqaruv paneli orqali
+     * yuqori huquqli hisoblarni tasodifan yoki niyat bilan "egallab olish"
+     * dan himoya qiladi. super-admin uchun cheklov yo'q.
+     */
+    private static function assertCanEditTarget(array $me, array $existing): void
+    {
+        if ($me['rol'] === Roles::SUPER_ADMIN) {
+            return;
+        }
+        if (!in_array($existing['rol'], self::HR_ASSIGNABLE_ROLES, true)) {
+            Response::error("Sizda bu xodimni tahrirlash huquqi yo'q", 'FORBIDDEN', 403);
+        }
+    }
+
+    /**
+     * editEmployee uchun rolni tekshiradi: o'zgarmagan bo'lsa erkin, aks
+     * holda chaqiruvchining huquqi yetarli ekanini va super-admin'ning
+     * o'zini-o'zi (vorissiz) tushirib qo'ymasligini ta'minlaydi.
+     */
+    private static function sanitizeEditedRole(\PDO $db, array $me, array $existing, string $rol): string
+    {
+        if ($rol === $existing['rol']) {
+            return $rol;
+        }
+        $allowed = self::allowedRolesFor($me['rol']);
+        if (!in_array($rol, $allowed, true)) {
+            Response::error('Bu rolni tayinlashga sizda huquq yo\'q', 'FORBIDDEN', 403);
+        }
+        if ($rol === Roles::SUPER_ADMIN) {
+            self::assertCanGrantSuperAdmin($db, $me['rol']);
+            self::demoteExistingSuperAdmins($db, (int) $existing['id']);
+        }
+        if ($existing['rol'] === Roles::SUPER_ADMIN) {
+            Response::error(
+                "Avval boshqa xodimga super-admin rolini bering — shunda sizniki avtomatik almashadi",
+                'CANNOT_SELF_DEMOTE',
+                409
+            );
+        }
+        return $rol;
+    }
+
+    /** hr-admin faqat past darajali xodimlarni o'chira oladi; super-adminni bu yerdan o'chirib bo'lmaydi. */
+    private static function assertCanDeleteTarget(array $me, array $existing): void
+    {
+        if ($existing['rol'] === Roles::SUPER_ADMIN) {
+            Response::error(
+                "Super-adminni bu yerdan o'chirib bo'lmaydi — avval rolini boshqa xodimga o'tkazing",
+                'FORBIDDEN',
+                403
+            );
+        }
+        if ($me['rol'] === Roles::SUPER_ADMIN) {
+            return;
+        }
+        if (!in_array($existing['rol'], self::HR_ASSIGNABLE_ROLES, true)) {
+            Response::error("Sizda bu xodimni o'chirish huquqi yo'q", 'FORBIDDEN', 403);
+        }
     }
 
     public static function stats(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
-        $employeeRows = $db->query(
+        $employeeStmt = $db->prepare(
             "SELECT u.*, (SELECT MAX(read_at) FROM doc_reads d WHERE d.user_id = u.id) AS last_doc_read
-             FROM users u ORDER BY u.familiya ASC, u.ism ASC"
-        )->fetchAll();
+             FROM users u WHERE u.rol != :superAdmin ORDER BY u.familiya ASC, u.ism ASC"
+        );
+        // super-admin hech qaysi hisobot/statistikada ko'rinmasligi shart.
+        $employeeStmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $employeeRows = $employeeStmt->fetchAll();
 
         $attemptRows = $db->query(
             'SELECT * FROM test_attempts ORDER BY user_id ASC, attempted_at DESC'
@@ -343,12 +476,12 @@ final class AdminController
 
     /**
      * Server tomonida ushlangan xatoliklar (backend/public/index.php'ning
-     * umumiy catch bloki) ro'yxati — gl-admin serverning fayl tizimiga
-     * kirmasdan admin panelidan so'nggi xatoliklarni ko'ra oladi.
+     * umumiy catch bloki) ro'yxati — serverning fayl tizimiga kirmasdan
+     * admin panelidan so'nggi xatoliklarni ko'rish imkonini beradi.
      */
     public static function getErrorLog(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
         Util::ensureSchema($db, "CREATE TABLE IF NOT EXISTS error_log (

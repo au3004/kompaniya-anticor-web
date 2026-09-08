@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Auth;
+use App\Roles;
 use App\Config;
 use App\Response;
 
@@ -22,7 +23,7 @@ final class BackupController
 {
     public static function create(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
         $result = self::performBackup();
         if (!$result['success']) {
@@ -34,7 +35,7 @@ final class BackupController
 
     public static function list(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
         $dir = self::backupDir();
         $entries = [];

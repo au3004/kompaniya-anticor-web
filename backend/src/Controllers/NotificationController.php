@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Auth;
 use App\Database;
 use App\Response;
+use App\Roles;
 use App\Util;
 use App\Validate;
 
@@ -75,7 +76,7 @@ final class NotificationController
 
     public static function send(array $input): void
     {
-        $user = Auth::requireRole($input, ['gl-admin', 'admin']);
+        $user = Auth::requireRole($input, Roles::NOTIFY_SEND);
         $targetType = Validate::str($input, 'targetType', 20);
         $text = Validate::requiredStr($input, 'text', 4000);
 
@@ -83,18 +84,34 @@ final class NotificationController
             Response::error("Noto'g'ri qamrov turi", 'VALIDATION_ERROR', 422);
         }
 
+        $db = Database::connection();
+
         if ($targetType === 'department') {
             $targetValue = Validate::requiredStr($input, 'department', 200);
         } else {
             $logins = Validate::array($input, 'targetLogins');
             $logins = array_values(array_filter(array_map(static fn ($l) => trim((string) $l), $logins)));
+            // Himoya chorasi: mijoz tomonidan yuborilgan ro'yxatda super-admin
+            // login'i bo'lsa ham, u xabarnoma qabul qiluvchilar ro'yxatidan
+            // (va shu orqali keyingi hisobot/o'qilganlik yozuvlaridan)
+            // chetlatiladi — super-admin hech qaysi ro'yxatda ko'rinmasligi shart.
+            if (count($logins) > 0) {
+                $placeholders = implode(',', array_fill(0, count($logins), '?'));
+                $superStmt = $db->prepare(
+                    "SELECT login FROM users WHERE rol = ? AND login IN ($placeholders)"
+                );
+                $superStmt->execute(array_merge([Roles::SUPER_ADMIN], $logins));
+                $excluded = $superStmt->fetchAll(\PDO::FETCH_COLUMN);
+                if ($excluded) {
+                    $logins = array_values(array_diff($logins, $excluded));
+                }
+            }
             if (count($logins) === 0) {
                 Response::error('Kamida bitta qabul qiluvchi tanlang', 'VALIDATION_ERROR', 422);
             }
             $targetValue = implode(',', $logins);
         }
 
-        $db = Database::connection();
         $stmt = $db->prepare(
             'INSERT INTO notifications (sender_id, matn, target_type, target_value)
              VALUES (:sender_id, :matn, :target_type, :target_value)'
@@ -111,7 +128,7 @@ final class NotificationController
 
     public static function report(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin', 'admin']);
+        Auth::requireRole($input, Roles::NOTIFY_SEND);
 
         $db = Database::connection();
         $rows = $db->query(
@@ -126,18 +143,21 @@ final class NotificationController
             $nid = (int) $n['id'];
 
             if ($n['target_type'] === 'department') {
-                $totalStmt = $db->prepare('SELECT COUNT(*) FROM users WHERE bolinma = :d');
-                $totalStmt->execute(['d' => $n['target_value']]);
+                $totalStmt = $db->prepare('SELECT COUNT(*) FROM users WHERE bolinma = :d AND rol != :superAdmin');
+                $totalStmt->execute(['d' => $n['target_value'], 'superAdmin' => Roles::SUPER_ADMIN]);
                 $totalTarget = (int) $totalStmt->fetchColumn();
 
                 $readersStmt = $db->prepare(
                     'SELECT u.familiya, u.ism, u.otasining_ismi, nr.read_at
                      FROM notification_reads nr JOIN users u ON u.id = nr.user_id
-                     WHERE nr.notification_id = :id AND u.bolinma = :d
+                     WHERE nr.notification_id = :id AND u.bolinma = :d AND u.rol != :superAdmin
                      ORDER BY nr.read_at ASC'
                 );
-                $readersStmt->execute(['id' => $nid, 'd' => $n['target_value']]);
+                $readersStmt->execute(['id' => $nid, 'd' => $n['target_value'], 'superAdmin' => Roles::SUPER_ADMIN]);
             } else {
+                // send() allaqachon super-admin login'ini target_value'dan
+                // chetlatadi, lekin bu yozuv shundan oldin yaratilgan bo'lishi
+                // mumkinligi uchun bu yerda ham himoya sifatida qoldiramiz.
                 $logins = array_values(array_filter(explode(',', (string) $n['target_value'])));
                 $totalTarget = count($logins);
 
@@ -146,10 +166,10 @@ final class NotificationController
                     $readersStmt = $db->prepare(
                         "SELECT u.familiya, u.ism, u.otasining_ismi, nr.read_at
                          FROM notification_reads nr JOIN users u ON u.id = nr.user_id
-                         WHERE nr.notification_id = ? AND u.login IN ($placeholders)
+                         WHERE nr.notification_id = ? AND u.login IN ($placeholders) AND u.rol != ?
                          ORDER BY nr.read_at ASC"
                     );
-                    $readersStmt->execute(array_merge([$nid], $logins));
+                    $readersStmt->execute(array_merge([$nid], $logins, [Roles::SUPER_ADMIN]));
                 } else {
                     $readersStmt = null;
                 }

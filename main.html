@@ -967,7 +967,10 @@ function loadUser(){
   document.getElementById('avatarImg').src = user.rasm || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(user.familiya+' '+user.ism) + '&backgroundColor=00A3E0';
   document.getElementById('infoFish').textContent = [user.familiya, user.ism, user.otasi].filter(Boolean).join(' ');
   document.getElementById('infoPhone').textContent = user.telefon || '—';
-  if(user.rol === 'gl-admin' || user.rol === 'admin'){
+  // Boshqaruv paneliga kirish huquqi bor barcha rollar (oddiy "user"dan
+  // tashqari) — aniq ruxsatlarni admin.html'ning o'zi ichkarida tekshiradi,
+  // bu yerda faqat kirish nuqtasini ko'rsatish/yashirish kifoya.
+  if(user.rol !== 'user'){
     const navAdmin = document.getElementById('navAdmin');
     if(navAdmin) navAdmin.style.display = 'flex';
     const homeTileAdmin = document.getElementById('homeTileAdmin');

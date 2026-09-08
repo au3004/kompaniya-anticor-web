@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Auth;
+use App\Roles;
 use App\Database;
 use App\Response;
 use App\Util;
@@ -96,7 +97,7 @@ final class DocsController
 
     public static function add(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
         $db = Database::connection();
         Util::ensureSchema($db, self::DDL);
@@ -124,7 +125,7 @@ final class DocsController
 
     public static function edit(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
@@ -178,7 +179,7 @@ final class DocsController
 
     public static function delete(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);

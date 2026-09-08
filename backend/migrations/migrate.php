@@ -77,5 +77,5 @@ if ($hasError) {
 }
 
 echo "Migratsiya muvaffaqiyatli yakunlandi. Baza va jadvallar tayyor.\n";
-echo "Endi birinchi gl-admin xodimni yaratish uchun quyidagini bajaring:\n";
+echo "Endi birinchi super-admin xodimni yaratish uchun quyidagini bajaring:\n";
 echo "  php backend/migrations/seed_admin.php <login> <parol> <familiya> <ism>\n";

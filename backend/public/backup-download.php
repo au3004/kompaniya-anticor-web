@@ -4,7 +4,9 @@ declare(strict_types=1);
 // Zaxira nusxa faylini (db.sql + uploads.zip) bitta ZIP qilib yuklab beradi.
 // JSON action-dispatch API'dan tashqarida turadi (fayl oqimini to'g'ridan-to'g'ri
 // yuborish uchun) — lekin xuddi shunday HttpOnly sessiya cookie orqali
-// avtorizatsiya qilinadi, faqat gl-admin.
+// avtorizatsiya qilinadi (BackupController::create/list bilan bir xil huquq
+// darajasi — bazaning to'liq nusxasi parol hash'larini ham o'z ichiga
+// olgani uchun faqat "boshqaruvchi" darajasidagi rollarga ochiq).
 
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
@@ -14,11 +16,12 @@ require dirname(__DIR__) . '/src/autoload.php';
 use App\Auth;
 use App\Config;
 use App\Controllers\BackupController;
+use App\Roles;
 
 Config::load();
 
 $user = Auth::optionalUser([]);
-if (!$user || $user['rol'] !== 'gl-admin') {
+if (!$user || !in_array($user['rol'], Roles::ANTICOR_MANAGE, true)) {
     http_response_code(403);
     header('Content-Type: text/plain; charset=utf-8');
     echo "Ruxsat yo'q";

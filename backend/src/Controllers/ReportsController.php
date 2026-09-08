@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Auth;
 use App\Database;
 use App\Response;
+use App\Roles;
 use App\Util;
 use App\Validate;
 
@@ -20,16 +21,19 @@ final class ReportsController
 
     public static function getUsersReport(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
-        $rows = $db->query(
+        $stmt = $db->prepare(
             "SELECT u.*,
                 EXISTS(SELECT 1 FROM doc_reads d WHERE d.user_id = u.id) AS has_docs,
                 EXISTS(SELECT 1 FROM test_attempts t WHERE t.user_id = u.id) AS has_test
-             FROM users u ORDER BY u.id ASC"
-        )->fetchAll();
+             FROM users u WHERE u.rol != :superAdmin ORDER BY u.id ASC"
+        );
+        // super-admin hech qaysi hisobot/ro'yxatda ko'rinmasligi shart.
+        $stmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $rows = $stmt->fetchAll();
 
         // "ID" — jadvaldagi joriy tartib raqami (1, 2, 3...), haqiqiy users.id emas —
         // shu bilan admin panelidagi Xodimlar ro'yxati bilan bir xil raqamlash ko'rinadi
@@ -60,16 +64,20 @@ final class ReportsController
 
     public static function getProgressReport(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
         // Barcha rollar (Korrupsiyaga qarshi kurashish sahifasidagi kabi) — aks holda
-        // admin/gl-admin o'zi sinov uchun test/hujjat bilan tanishsa ham natija
-        // shu hisobotda ko'rinmay qolardi.
-        $employees = $db->query(
+        // admin o'zi sinov uchun test/hujjat bilan tanishsa ham natija
+        // shu hisobotda ko'rinmay qolardi. super-admin esa hech qaysi
+        // hisobotda ko'rinmasligi shart bo'lgani uchun bundan mustasno.
+        $employeesStmt = $db->prepare(
             'SELECT id, familiya, ism, otasining_ismi, telefon FROM users
+             WHERE rol != :superAdmin
              ORDER BY familiya ASC, ism ASC'
-        )->fetchAll();
+        );
+        $employeesStmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $employees = $employeesStmt->fetchAll();
 
         $docsByUser = [];
         foreach ($db->query('SELECT user_id, read_at FROM doc_reads ORDER BY user_id ASC, read_at ASC') as $d) {
@@ -119,16 +127,19 @@ final class ReportsController
 
     public static function getTestAttemptsRaw(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
-        $rows = $db->query(
+        $stmt = $db->prepare(
             "SELECT t.id, t.attempted_at, t.points, t.max_points, t.percent, t.passed,
                     u.familiya, u.ism, u.otasining_ismi
              FROM test_attempts t
              JOIN users u ON u.id = t.user_id
+             WHERE u.rol != :superAdmin
              ORDER BY t.id ASC"
-        )->fetchAll();
+        );
+        $stmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $rows = $stmt->fetchAll();
 
         $list = array_map(static fn (array $r) => [
             'id' => (int) $r['id'],
@@ -145,15 +156,18 @@ final class ReportsController
 
     public static function getDocReadsRaw(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
-        $rows = $db->query(
+        $stmt = $db->prepare(
             "SELECT d.id, d.read_at, u.familiya, u.ism, u.otasining_ismi
              FROM doc_reads d
              JOIN users u ON u.id = d.user_id
+             WHERE u.rol != :superAdmin
              ORDER BY d.id ASC"
-        )->fetchAll();
+        );
+        $stmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $rows = $stmt->fetchAll();
 
         $list = array_map(static fn (array $r) => [
             'id' => (int) $r['id'],
@@ -166,7 +180,7 @@ final class ReportsController
 
     public static function getSurveySubmissionsRaw(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
         $rows = $db->query(
@@ -195,7 +209,7 @@ final class ReportsController
      */
     private static function bulkDelete(array $input, string $table): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
         $ids = array_values(array_unique(array_filter(
             array_map('intval', Validate::array($input, 'ids')),
@@ -256,17 +270,20 @@ final class ReportsController
 
     public static function getSupportRequests(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin', 'admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
         Util::ensureSchema($db, self::SUPPORT_COMMENTS_DDL);
-        $rows = $db->query(
+        $stmt = $db->prepare(
             "SELECT sr.id, sr.murojaat, sr.created_at,
                     u.login, u.familiya, u.ism, u.otasining_ismi, u.telefon
              FROM support_requests sr
              JOIN users u ON u.id = sr.user_id
+             WHERE u.rol != :superAdmin
              ORDER BY sr.created_at DESC"
-        )->fetchAll();
+        );
+        $stmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $rows = $stmt->fetchAll();
 
         $commentsByRequest = [];
         $commentRows = $db->query(
@@ -299,7 +316,7 @@ final class ReportsController
 
     public static function addSupportComment(array $input): void
     {
-        $user = Auth::requireRole($input, ['gl-admin', 'admin']);
+        $user = Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $id = Validate::int($input, 'id');
         if (!$id) {
@@ -328,16 +345,19 @@ final class ReportsController
 
     public static function getNotificationsRaw(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
-        $rows = $db->query(
+        $stmt = $db->prepare(
             "SELECT n.id, n.matn, n.target_type, n.target_value, n.sent_at,
                     u.login AS sender_login, u.familiya, u.ism, u.otasining_ismi
              FROM notifications n
              JOIN users u ON u.id = n.sender_id
+             WHERE u.rol != :superAdmin
              ORDER BY n.id ASC"
-        )->fetchAll();
+        );
+        $stmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $rows = $stmt->fetchAll();
 
         $list = array_map(static fn (array $r) => [
             'id' => (int) $r['id'],
@@ -354,16 +374,19 @@ final class ReportsController
 
     public static function getNotificationReadsRaw(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
-        $rows = $db->query(
+        $stmt = $db->prepare(
             "SELECT nr.id, nr.notification_id, nr.read_at,
                     u.login, u.familiya, u.ism, u.otasining_ismi
              FROM notification_reads nr
              JOIN users u ON u.id = nr.user_id
+             WHERE u.rol != :superAdmin
              ORDER BY nr.id ASC"
-        )->fetchAll();
+        );
+        $stmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $rows = $stmt->fetchAll();
 
         $list = array_map(static fn (array $r) => [
             'id' => (int) $r['id'],
@@ -378,7 +401,7 @@ final class ReportsController
 
     public static function getSurveyAnswersWide(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
         $questions = $db->query(

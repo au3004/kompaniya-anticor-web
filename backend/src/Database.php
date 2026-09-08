@@ -38,6 +38,11 @@ final class Database
             // sonli siljish (+05:00) ishlatiladi — bu MySQL'ning alohida vaqt
             // zonasi jadvallari o'rnatilishini talab qilmaydi.
             self::$pdo->exec("SET time_zone = '+05:00'");
+            // Eski (user/admin/gl-admin) rol tizimidan yangi, bo'limlarga
+            // ajratilgan rol tizimiga o'zini o'zi bir martalik ko'chirish —
+            // har bir ulanishda tekshiriladi (arzon SELECT), faqat kerak
+            // bo'lgandagina haqiqiy ALTER/UPDATE ishga tushadi.
+            Util::ensureRoleMigration(self::$pdo);
         } catch (PDOException $e) {
             Response::error('Bazaga ulanishda xatolik', 'DB_ERROR', 500);
         }

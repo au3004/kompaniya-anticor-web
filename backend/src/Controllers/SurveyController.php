@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Auth;
+use App\Roles;
 use App\Database;
 use App\RateLimit;
 use App\Response;
@@ -93,7 +94,7 @@ final class SurveyController
 
     public static function setActive(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $active = Validate::bool($input, 'active');
 
         $db = Database::connection();
@@ -132,7 +133,7 @@ final class SurveyController
 
     public static function add(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $f = self::questionFields($input);
 
         $db = Database::connection();
@@ -151,7 +152,7 @@ final class SurveyController
 
     public static function edit(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
@@ -175,7 +176,7 @@ final class SurveyController
 
     public static function delete(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin']);
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
@@ -190,7 +191,7 @@ final class SurveyController
 
     public static function results(array $input): void
     {
-        Auth::requireRole($input, ['gl-admin', 'admin']);
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
 
         $db = Database::connection();
         $totalSubmissions = (int) $db->query('SELECT COUNT(*) FROM survey_submissions')->fetchColumn();

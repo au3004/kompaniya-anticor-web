@@ -41,4 +41,47 @@ final class Util
             // baribir o'zining aniq xatoligini beradi — bu yerda indamaymiz.
         }
     }
+
+    /**
+     * Eski (2 pog'onali: user/admin/gl-admin) rol tizimidan yangi, bo'limlarga
+     * ajratilgan rol tizimiga (7 ta rol) o'zini o'zi bir marta ko'chiradi —
+     * har bir so'rovda tekshiriladi, lekin faqat eski uslubdagi rol qolgan
+     * bo'lsagina haqiqiy ALTER/UPDATE ishga tushadi (aks holda bitta arzon
+     * SELECT bilan cheklanadi).
+     *
+     * Xaritalash: gl-admin -> anticor-admin (yagona eski "bosh admin" yangi
+     * "Korrupsiyaga qarshi kurashish" bo'limining to'liq boshqaruvchisiga
+     * aylanadi); admin va user -> user (ehtiyotkorlik uchun hech kimga
+     * avtomatik ravishda ortiqcha huquq berilmaydi — kerakli xodimlarga
+     * anticor-admin keyinroq Xodimlar bo'limidan qo'lda yangi rol beradi).
+     */
+    public static function ensureRoleMigration(\PDO $db): void
+    {
+        try {
+            $stmt = $db->query("SELECT COUNT(*) FROM users WHERE rol IN ('admin','gl-admin')");
+            if ((int) $stmt->fetchColumn() === 0) {
+                return;
+            }
+            $db->exec(
+                "ALTER TABLE users MODIFY COLUMN rol " .
+                "ENUM('user','admin','gl-admin','anticor-admin','anticor','hr-admin','hr','super-admin','rahbariyat') " .
+                "NOT NULL DEFAULT 'user'"
+            );
+            $db->exec(
+                "UPDATE users SET rol = CASE rol " .
+                "WHEN 'gl-admin' THEN 'anticor-admin' " .
+                "WHEN 'admin' THEN 'user' " .
+                "ELSE rol END " .
+                "WHERE rol IN ('admin','gl-admin')"
+            );
+            $db->exec(
+                "ALTER TABLE users MODIFY COLUMN rol " .
+                "ENUM('user','anticor-admin','anticor','hr-admin','hr','super-admin','rahbariyat') " .
+                "NOT NULL DEFAULT 'user'"
+            );
+        } catch (\Throwable $e) {
+            // Best-effort: bajara olmasak, rol tekshiruvlari eski qiymatlar
+            // bilan ishlashda davom etadi va shu joyda aniq xato chiqadi.
+        }
+    }
 }

@@ -2,7 +2,12 @@
 declare(strict_types=1);
 
 /**
- * CLI skript: birinchi "gl-admin" (bosh administrator) xodimni yaratadi/yangilaydi.
+ * CLI skript: birinchi "super-admin" (yagona, barcha bo'limlarga to'liq kirish
+ * huquqiga ega) xodimni yaratadi/yangilaydi — faqat bo'sh (yangi) bazada
+ * ishlatish uchun mo'ljallangan, chunki super-admin faqat bitta bo'lishi
+ * shart. Bazada allaqachon xodimlar bo'lsa, o'rniga anticor-admin rolidagi
+ * xodim orqali (Xodimlar bo'limidan) kerakli kishiga super-admin rolini
+ * qo'lda tayinlang.
  *
  * Ishlatish:
  *   php backend/migrations/seed_admin.php <login> <parol> <familiya> <ism> [otasi] [lavozim] [bolinma] [telefon]
@@ -44,9 +49,15 @@ $telefon = $argv[8] ?? null;
 $db = Database::connection();
 $hash = Auth::hashPassword($parol);
 
+$countStmt = $db->query('SELECT COUNT(*) FROM users WHERE rol = \'super-admin\'');
+if ((int) $countStmt->fetchColumn() > 0) {
+    fwrite(STDERR, "Bazada allaqachon super-admin mavjud — bu rol faqat bitta xodimda bo'lishi mumkin. Kerakli kishiga rolni Xodimlar bo'limidan (mavjud super-admin orqali) tayinlang.\n");
+    exit(1);
+}
+
 $stmt = $db->prepare(
     'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, lavozim, bolinma, telefon, rol)
-     VALUES (:login, :hash, :familiya, :ism, :otasi, :lavozim, :bolinma, :telefon, \'gl-admin\')
+     VALUES (:login, :hash, :familiya, :ism, :otasi, :lavozim, :bolinma, :telefon, \'super-admin\')
      ON DUPLICATE KEY UPDATE
         password_hash = VALUES(password_hash),
         familiya = VALUES(familiya),
@@ -55,7 +66,7 @@ $stmt = $db->prepare(
         lavozim = VALUES(lavozim),
         bolinma = VALUES(bolinma),
         telefon = VALUES(telefon),
-        rol = \'gl-admin\''
+        rol = \'super-admin\''
 );
 $stmt->execute([
     'login' => $login,
@@ -68,4 +79,4 @@ $stmt->execute([
     'telefon' => $telefon,
 ]);
 
-echo "gl-admin xodim tayyor: login=\"{$login}\"\n";
+echo "super-admin xodim tayyor: login=\"{$login}\"\n";

@@ -26,7 +26,7 @@ CREATE TABLE users (
   bolinma_ru        VARCHAR(200),
   telefon           VARCHAR(20),
   rasm_url          VARCHAR(500),        -- endi base64 emas, haqiqiy fayl yo'li (masalan /uploads/photos/12.jpg)
-  rol               ENUM('user','admin','gl-admin') NOT NULL DEFAULT 'user',
+  rol               ENUM('user','anticor-admin','anticor','hr-admin','hr','super-admin','rahbariyat') NOT NULL DEFAULT 'user',
   totp_secret       VARCHAR(64) NULL,    -- ikki bosqichli tasdiqlash (2FA) kaliti, ixtiyoriy
   totp_enabled      TINYINT(1) NOT NULL DEFAULT 0,
   created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
