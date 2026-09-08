@@ -767,12 +767,14 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div><div class="ttitle" data-i18n="repTestAttemptsTitle">Test natijalari</div><div class="tsub" data-i18n="repTestAttemptsDesc">Xodimlar topshirgan test natijalari — sinov/namoyish yozuvlarini o'chirish mumkin</div></div>
         <div style="display:flex; gap:8px;">
           <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('testAttempts')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportTestAttemptsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
         </div>
       </div>
       <div class="toggle-row" style="margin-bottom:0;">
         <div><div class="ttitle" data-i18n="repDocReadsTitle">Hujjat bilan tanishish</div><div class="tsub" data-i18n="repDocReadsDesc">Xodimlar hujjatni o'qidim deb belgilagan yozuvlar — sinov/namoyish yozuvlarini o'chirish mumkin</div></div>
         <div style="display:flex; gap:8px;">
           <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('docReads')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportDocReadsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
         </div>
       </div>
       <div class="toggle-row" style="margin-bottom:0;">
@@ -1282,6 +1284,30 @@ async function exportTestQuestionsXlsx(){
       ]);
     });
     downloadXlsx(`tests_${todayStamp()}.xlsx`, rows, 'Tests');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportTestAttemptsReport(){
+  try{
+    const data = await apiCall({ action:'getTestAttemptsRaw', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','F.I.Sh','Sana','Ball','Maksimal ball','Foiz','Natija']];
+    data.attempts.forEach(a => {
+      rows.push([a.id, a.fish, a.sana, a.ball, a.maxBall, a.foiz, a.otdi ? dict[currentLang].colOtdi : dict[currentLang].colOtmadi]);
+    });
+    downloadXlsx(`test_natijalari_${todayStamp()}.xlsx`, rows, 'Test natijalari');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function exportDocReadsReport(){
+  try{
+    const data = await apiCall({ action:'getDocReadsRaw', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['ID','F.I.Sh','Sana']];
+    data.reads.forEach(r => {
+      rows.push([r.id, r.fish, r.sana]);
+    });
+    downloadXlsx(`hujjat_tanishish_${todayStamp()}.xlsx`, rows, 'Hujjat tanishish');
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
@@ -2530,11 +2556,11 @@ window.addEventListener('pageshow', function(event){
   }
 });
 
-// XAVFSIZLIK: 30 daqiqa harakatsizlikdan so'ng avtomat chiqish.
+// XAVFSIZLIK: 10 daqiqa harakatsizlikdan so'ng avtomat chiqish.
 (function initIdleLogout(){
   const u = getCurrentUser();
   if(!u || !u.token) return;
-  const IDLE_LIMIT_MS = 30 * 60 * 1000;
+  const IDLE_LIMIT_MS = 10 * 60 * 1000;
   let idleTimer = null;
   function doIdleLogout(){
     const cur = getCurrentUser();

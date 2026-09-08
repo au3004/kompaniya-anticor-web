@@ -79,7 +79,7 @@ final class AuthController
         }
 
         $token = Auth::generateToken();
-        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 30);
+        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 10);
         $expiresAt = date('Y-m-d H:i:s', time() + $idleMinutes * 60);
 
         $ins = $db->prepare(

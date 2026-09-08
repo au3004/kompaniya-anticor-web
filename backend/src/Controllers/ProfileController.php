@@ -112,6 +112,13 @@ final class ProfileController
         $user = Auth::requireUser($input);
         $db = Database::connection();
 
+        // Muddati o'tgan (endi ishlamaydigan) sessiyalar jadvalda faqat ularning
+        // tokeni qayta ishlatilib ko'rilgandagina o'chirilardi — hech kim qayta
+        // urinmasa, ro'yxatda "kecha kirilgan" bo'lib abadiy osilib qolardi.
+        // Shu yerda ham har safar tozalab qo'yamiz.
+        $cleanup = $db->prepare('DELETE FROM sessions WHERE user_id = :id AND expires_at < NOW()');
+        $cleanup->execute(['id' => $user['id']]);
+
         $stmt = $db->prepare(
             'SELECT token, created_at, expires_at FROM sessions WHERE user_id = :id ORDER BY created_at DESC'
         );

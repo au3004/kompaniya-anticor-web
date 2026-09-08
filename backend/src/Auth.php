@@ -82,9 +82,9 @@ final class Auth
         }
 
         // Sliding expiration: har bir muvaffaqiyatli so'rovda muddatni uzaytiramiz —
-        // shuning uchun bu aslida "harakatsizlik" (idle) muddati (standart: 30 daqiqa).
+        // shuning uchun bu aslida "harakatsizlik" (idle) muddati (standart: 10 daqiqa).
         // sessionTooOld() tekshiruvi orqali umumiy amal qilish muddati baribir cheklangan.
-        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 30);
+        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 10);
         $newExpiry = date('Y-m-d H:i:s', time() + $idleMinutes * 60);
         $upd = $db->prepare('UPDATE sessions SET expires_at = :exp WHERE token = :token');
         $upd->execute(['exp' => $newExpiry, 'token' => $token]);

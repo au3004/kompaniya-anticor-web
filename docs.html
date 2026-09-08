@@ -300,11 +300,11 @@ window.addEventListener('pageshow', function(event){
   }
 });
 
-// XAVFSIZLIK: 30 daqiqa harakatsizlikdan so'ng avtomat chiqish (faqat tizimga
+// XAVFSIZLIK: 10 daqiqa harakatsizlikdan so'ng avtomat chiqish (faqat tizimga
 // kirgan foydalanuvchi uchun — sessiyasiz sahifani ko'rishga bu ta'sir qilmaydi).
 (function initIdleLogout(){
   if(!getToken()) return;
-  const IDLE_LIMIT_MS = 30 * 60 * 1000;
+  const IDLE_LIMIT_MS = 10 * 60 * 1000;
   let idleTimer = null;
   function doIdleLogout(){
     const token = getToken();
