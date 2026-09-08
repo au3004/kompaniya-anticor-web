@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Auth;
 use App\Config;
 use App\Database;
+use App\PwnedPasswords;
 use App\RateLimit;
 use App\Response;
 use App\Util;
@@ -160,6 +161,13 @@ final class AuthController
 
         if (!Validate::isStrongPassword($newPass)) {
             Response::error(Validate::WEAK_PASSWORD_MESSAGE, 'WEAK_PASSWORD', 422);
+        }
+        if (PwnedPasswords::isBreached($newPass)) {
+            Response::error(
+                "Bu parol avval ma'lumotlar sizib chiqishlarida uchragan. Iltimos boshqa parol tanlang.",
+                'PWNED_PASSWORD',
+                422
+            );
         }
 
         $db = Database::connection();

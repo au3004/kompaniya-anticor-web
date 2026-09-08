@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Auth;
 use App\Database;
+use App\PwnedPasswords;
 use App\Response;
 use App\Util;
 use App\Validate;
@@ -33,6 +34,13 @@ final class AdminController
 
         if (!Validate::isStrongPassword($parol)) {
             Response::error(Validate::WEAK_PASSWORD_MESSAGE, 'WEAK_PASSWORD', 422);
+        }
+        if (PwnedPasswords::isBreached($parol)) {
+            Response::error(
+                "Bu parol avval ma'lumotlar sizib chiqishlarida uchragan. Iltimos boshqa parol tanlang.",
+                'PWNED_PASSWORD',
+                422
+            );
         }
         if (!in_array($rol, ['user', 'admin', 'gl-admin'], true)) {
             $rol = 'user';
@@ -134,6 +142,13 @@ final class AdminController
         }
         if ($parol !== '' && !Validate::isStrongPassword($parol)) {
             Response::error(Validate::WEAK_PASSWORD_MESSAGE, 'WEAK_PASSWORD', 422);
+        }
+        if ($parol !== '' && PwnedPasswords::isBreached($parol)) {
+            Response::error(
+                "Bu parol avval ma'lumotlar sizib chiqishlarida uchragan. Iltimos boshqa parol tanlang.",
+                'PWNED_PASSWORD',
+                422
+            );
         }
 
         $db = Database::connection();

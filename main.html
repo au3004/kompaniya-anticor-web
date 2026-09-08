@@ -534,6 +534,7 @@ const dict = {
     menuLogout:"Chiqish", changePassMenu:"Parolni almashtirish", backLabel:"Orqaga",
     yes:"Ha", no:"Yo'q", mismatchErr:"Yangi parollar mos kelmadi", oldWrongErr:"Eski parol noto'g'ri",
     weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
+    pwnedPasswordErr:"Bu parol avval ma'lumotlar sizib chiqishlarida uchragan. Iltimos boshqa parol tanlang.",
     passwordPolicyHint:"Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)",
     savedOk:"Parol muvaffaqiyatli o'zgartirildi", checking:"Tekshirilmoqda...",
     phonePh:"Telefon raqamingiz", pointsLabel:"ball",
@@ -569,6 +570,7 @@ const dict = {
     menuLogout:"Выйти", changePassMenu:"Изменить пароль", backLabel:"Назад",
     yes:"Да", no:"Нет", mismatchErr:"Новые пароли не совпадают", oldWrongErr:"Старый пароль неверен",
     weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
+    pwnedPasswordErr:"Этот пароль ранее встречался в утечках данных. Пожалуйста, выберите другой пароль.",
     passwordPolicyHint:"Минимум 8 символов: заглавная, строчная буква, цифра и спецсимвол (например !@#$%)",
     savedOk:"Пароль успешно изменён", checking:"Проверка...",
     phonePh:"Ваш номер телефона", pointsLabel:"баллов",
@@ -1056,6 +1058,8 @@ async function changePassword(e){
       document.getElementById('oldPass').value = document.getElementById('newPass').value = document.getElementById('confirmPass').value = '';
     } else if(data.code === 'WEAK_PASSWORD'){
       msg.textContent = dict[currentLang].weakPasswordErr; msg.classList.add('err');
+    } else if(data.code === 'PWNED_PASSWORD'){
+      msg.textContent = dict[currentLang].pwnedPasswordErr; msg.classList.add('err');
     } else {
       msg.textContent = dict[currentLang].oldWrongErr; msg.classList.add('err');
     }

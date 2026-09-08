@@ -1004,6 +1004,7 @@ const dict = {
     roleUser:"Xodim", roleAdmin:"Admin", roleGlAdmin:"Bosh admin",
     empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Ushbu login band, iltimos qayta kiriting",
     weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
+    pwnedPasswordErr:"Bu parol avval ma'lumotlar sizib chiqishlarida uchragan. Iltimos boshqa parol tanlang.",
     passwordPolicyHint:"Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)",
     lockedBadge:"Bloklangan", lockedUntilLabel:"Blok tugash vaqti", unlockBtn:"Blokdan chiqarish",
     hubBackup:"Zaxira nusxa", hubBackupDesc:"Baza va rasmlarning zaxira nusxasini olish va yuklab olish",
@@ -1087,6 +1088,7 @@ const dict = {
     roleUser:"Сотрудник", roleAdmin:"Админ", roleGlAdmin:"Гл. админ",
     empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, пожалуйста, введите другой",
     weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
+    pwnedPasswordErr:"Этот пароль ранее встречался в утечках данных. Пожалуйста, выберите другой пароль.",
     passwordPolicyHint:"Минимум 8 символов: заглавная, строчная буква, цифра и спецсимвол (например !@#$%)",
     lockedBadge:"Заблокирован", lockedUntilLabel:"Блокировка до", unlockBtn:"Разблокировать",
     hubBackup:"Резервная копия", hubBackupDesc:"Создание и скачивание резервной копии базы и фото",
@@ -1720,6 +1722,8 @@ async function submitEmployeeForm(e){
       document.getElementById('eLoginWarning').classList.add('show');
     } else if(data.code === 'WEAK_PASSWORD'){
       msg.textContent = dict[currentLang].weakPasswordErr; msg.classList.add('err');
+    } else if(data.code === 'PWNED_PASSWORD'){
+      msg.textContent = dict[currentLang].pwnedPasswordErr; msg.classList.add('err');
     } else if(data.code === 'LAST_GL_ADMIN'){
       msg.textContent = dict[currentLang].lastGlAdminErr; msg.classList.add('err');
     } else {
