@@ -8,6 +8,16 @@ use PDO;
 final class Auth
 {
     public const COOKIE_NAME = 'session_token';
+    public const REMEMBER_COOKIE_NAME = 'remember_token';
+
+    private const REMEMBER_DDL = 'CREATE TABLE IF NOT EXISTS remember_tokens (
+        token       CHAR(64) PRIMARY KEY,
+        user_id     INT NOT NULL,
+        created_at  DATETIME NOT NULL,
+        expires_at  DATETIME NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_user (user_id)
+    ) ENGINE=InnoDB';
 
     /**
      * Sessiya tokeni endi javob tanasida (JSON) qaytarilmaydi va JS'dan
@@ -38,6 +48,49 @@ final class Auth
     {
         $secure = Config::get('FORCE_HTTPS', 'false') === 'true';
         setcookie(self::COOKIE_NAME, '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'domain' => '',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+    }
+
+    /**
+     * "Meni eslab qol" — parolni emas, faqat mutlaq (sliding bo'lmagan) 1 soatlik
+     * muddatga ega alohida tokenni HttpOnly cookie'da saqlaydi. Sessiya
+     * harakatsizlikdan (odatda 10 daqiqa) tugab qolsa, shu token orqali (parolsiz)
+     * bitta martalik jim (silent) qayta kirish mumkin bo'ladi — lekin token
+     * o'zi hech qachon uzaytirilmaydi, shuning uchun qurilma egasi bo'lmagan
+     * odam 1 soatdan keyin baribir parolni qayta kiritishga majbur bo'ladi.
+     */
+    public static function issueRememberToken(PDO $db, int $userId): void
+    {
+        Util::ensureSchema($db, self::REMEMBER_DDL);
+        $token = self::generateToken();
+        $ttlMinutes = Config::int('REMEMBER_TTL_MINUTES', 60);
+        $expiresAt = date('Y-m-d H:i:s', time() + $ttlMinutes * 60);
+        $ins = $db->prepare(
+            'INSERT INTO remember_tokens (token, user_id, created_at, expires_at) VALUES (:token, :user_id, NOW(), :expires_at)'
+        );
+        $ins->execute(['token' => $token, 'user_id' => $userId, 'expires_at' => $expiresAt]);
+
+        $secure = Config::get('FORCE_HTTPS', 'false') === 'true';
+        setcookie(self::REMEMBER_COOKIE_NAME, $token, [
+            'expires' => strtotime($expiresAt),
+            'path' => '/',
+            'domain' => '',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+    }
+
+    public static function clearRememberCookie(): void
+    {
+        $secure = Config::get('FORCE_HTTPS', 'false') === 'true';
+        setcookie(self::REMEMBER_COOKIE_NAME, '', [
             'expires' => time() - 3600,
             'path' => '/',
             'domain' => '',

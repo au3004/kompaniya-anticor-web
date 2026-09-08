@@ -61,6 +61,7 @@ $action = (string) ($input['action'] ?? '');
 /** @var array<string, array{0: class-string, 1: string}> $routes */
 $routes = [
     'login' => [AuthController::class, 'login'],
+    'loginViaRememberToken' => [AuthController::class, 'loginViaRememberToken'],
     'requestPasswordReset' => [AuthController::class, 'requestPasswordReset'],
     'logout' => [AuthController::class, 'logout'],
     'changePassword' => [AuthController::class, 'changePassword'],

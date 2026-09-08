@@ -147,6 +147,10 @@ final class TotpController
 
         Auth::setSessionCookie($token);
 
+        if (!empty($input['rememberMe'])) {
+            Auth::issueRememberToken($db, (int) $row['user_id']);
+        }
+
         Response::success([
             'token' => true,
             'id' => (int) $row['user_id'],
