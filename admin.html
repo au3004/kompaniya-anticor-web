@@ -319,41 +319,6 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
   .main{ padding:96px 14px 60px; }
   .controls{ gap:8px; }
 }
-
-/* ===== Yuklab olish animatsiyasi: "halqa — chiziqqa aylanadi" =====
-   Dizayn g'oyasi manbasi: foydalanuvchi yuborgan video (PARADROP nomli
-   "Download Button" namoyishi) — bosilganda halqa progress chizig'iga
-   aylanadi, yuklanish davomida foiz ko'rsatiladi, tugagach belgi (✓)
-   chiqadi. Animatsiya mexanizmi (SVG shakl morfologiyasi + haqiqiy
-   baytlar oqimi bo'yicha progress) o'z kodim bilan qayta yozilgan,
-   ranglar loyihaning o'z palitrasiga (azure/teal) moslashtirilgan. */
-.dl-toast{
-  position:fixed; right:24px; bottom:24px; z-index:200;
-  width:260px; padding:22px 18px 16px;
-  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
-  backdrop-filter:blur(20px);
-  border:1px solid var(--card-border); border-radius:18px;
-  box-shadow:0 24px 60px -12px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
-  display:flex; flex-direction:column; align-items:center; gap:8px;
-}
-.dl-toast[hidden]{ display:none; }
-.dl-ring-wrap{ position:relative; width:100%; height:64px; }
-.dl-ring-svg{ display:block; width:100%; height:64px; overflow:visible; }
-.dl-shape-bg{ fill:none; stroke:var(--card-border); stroke-width:3; }
-.dl-shape{ fill:none; stroke:url(#dlGrad); stroke-width:3; stroke-linecap:round; stroke-dasharray:1 1; stroke-dashoffset:0; }
-.dl-icon-wrap{ position:absolute; left:50%; top:32px; width:30px; height:30px; transform:translate(-50%,-50%); transition:top .5s cubic-bezier(.5,-0.3,.3,1.35); }
-.dl-toast.morphed .dl-icon-wrap{ top:2px; }
-.dl-icon-wrap svg{ position:absolute; inset:0; width:100%; height:100%; color:var(--azure); opacity:0; transform:scale(.6) rotate(-16deg); transition:opacity .35s ease, transform .4s cubic-bezier(.34,1.56,.64,1); }
-.dl-icon-arrow{ opacity:1; transform:scale(1) rotate(0deg); }
-.dl-toast.morphed .dl-icon-arrow{ opacity:0; transform:scale(.5) rotate(16deg); }
-.dl-toast.morphed .dl-icon-parachute{ opacity:1; transform:scale(1) rotate(0deg); }
-.dl-toast.done .dl-icon-parachute{ opacity:0; transform:scale(.5) rotate(-16deg); }
-.dl-toast.done .dl-icon-check{ opacity:1; transform:scale(1) rotate(0deg); color:var(--teal); }
-.dl-percent{ font-family:'Unbounded',sans-serif; font-weight:700; font-size:13px; color:var(--text); opacity:0; transition:opacity .3s ease .15s; }
-.dl-toast.morphed .dl-percent{ opacity:1; }
-.dl-filename{ font-size:11px; color:var(--text-dim); text-align:center; word-break:break-all; }
-.dl-cancel{ border:none; background:none; color:var(--coral); font-size:11.5px; font-weight:600; cursor:pointer; padding:2px 0; max-height:0; opacity:0; overflow:hidden; transition:opacity .25s ease, max-height .25s ease; }
-.dl-toast.morphed:not(.done) .dl-cancel{ opacity:1; max-height:20px; }
 </style>
 </head>
 <body data-theme="dark">
@@ -1361,33 +1326,29 @@ function formatBirthDate(v){
 /* ---------- Hisobotlarni haqiqiy Excel (.xlsx) fayl sifatida yuklab olish ---------- */
 // SheetJS orqali — CSV'dagi vergul/nuqta-vergul ajratkich muammosisiz, ustunlar
 // Excel'da har doim to'g'ri ajralib chiqadi (mamlakat/til sozlamalaridan qat'i nazar).
-async function downloadXlsx(filename, rows, sheetName){
+function downloadXlsx(filename, rows, sheetName){
   if(typeof XLSX === 'undefined'){
     alert(dict[currentLang].xlsxLibErr);
     return;
   }
-  await downloadWithSimulatedProgress(filename, () => {
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, (sheetName || 'Hisobot').slice(0, 31));
-    XLSX.writeFile(wb, filename);
-  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, (sheetName || 'Hisobot').slice(0, 31));
+  XLSX.writeFile(wb, filename);
 }
 // Bir nechta varaqli (masalan "bajargan / bajarmagan" ro'yxatlari alohida
 // list qilib) Excel fayl yaratadi. sheets: [{name, rows}, ...]
-async function downloadXlsxMulti(filename, sheets){
+function downloadXlsxMulti(filename, sheets){
   if(typeof XLSX === 'undefined'){
     alert(dict[currentLang].xlsxLibErr);
     return;
   }
-  await downloadWithSimulatedProgress(filename, () => {
-    const wb = XLSX.utils.book_new();
-    sheets.forEach(sh => {
-      const ws = XLSX.utils.aoa_to_sheet(sh.rows);
-      XLSX.utils.book_append_sheet(wb, ws, (sh.name || 'Varaq').slice(0, 31));
-    });
-    XLSX.writeFile(wb, filename);
+  const wb = XLSX.utils.book_new();
+  sheets.forEach(sh => {
+    const ws = XLSX.utils.aoa_to_sheet(sh.rows);
+    XLSX.utils.book_append_sheet(wb, ws, (sh.name || 'Varaq').slice(0, 31));
   });
+  XLSX.writeFile(wb, filename);
 }
 function todayStamp(){
   const d = new Date();
@@ -1721,7 +1682,7 @@ async function loadBackups(){
       <tr>
         <td>${escapeHtml(b.createdAt)}</td>
         <td>${formatBytes(b.sizeBytes)}</td>
-        <td><button type="button" class="icon-btn" title="${dict[currentLang].backupDownloadBtn}" onclick="downloadWithProgress('${API_BASE_URL.replace('backend/public/index.php','backend/public/backup-download.php')}?name=${encodeURIComponent(b.name)}', 'backup_${b.name}.zip')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button></td>
+        <td><a class="icon-btn" style="text-decoration:none;" title="${dict[currentLang].backupDownloadBtn}" href="${API_BASE_URL.replace('backend/public/index.php','backend/public/backup-download.php')}?name=${encodeURIComponent(b.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></a></td>
       </tr>
     `).join('');
   } catch(ex){
@@ -2830,163 +2791,6 @@ window.addEventListener('pageshow', function(event){
   });
   resetIdleTimer();
 })();
-</script>
-
-<div class="dl-toast" id="dlToast" hidden>
-  <div class="dl-ring-wrap">
-    <svg class="dl-ring-svg" viewBox="0 0 260 64">
-      <defs>
-        <linearGradient id="dlGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" style="stop-color:var(--azure)"/>
-          <stop offset="100%" style="stop-color:var(--teal)"/>
-        </linearGradient>
-      </defs>
-      <rect class="dl-shape-bg" id="dlShapeBg" x="102" y="2" width="56" height="56" rx="28" ry="28"/>
-      <rect class="dl-shape" id="dlShape" x="102" y="2" width="56" height="56" rx="28" ry="28" pathLength="1"/>
-    </svg>
-    <div class="dl-icon-wrap">
-      <svg class="dl-icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v13M6 11l6 6 6-6"/></svg>
-      <svg class="dl-icon-parachute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a9 9 0 0 1 18 0"/><path d="M3 9c1 1 2.5 1 4 0s2.5-1 4 0 2.5 1 4 0 2.5-1 4 0"/><path d="M4 9l4 8M20 9l-4 8M9 9l1 8M15 9l-1 8"/><rect x="9" y="17" width="6" height="4" rx="1"/></svg>
-      <svg class="dl-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-    </div>
-  </div>
-  <div class="dl-percent" id="dlPercent">0%</div>
-  <div class="dl-filename" id="dlFilename"></div>
-  <button type="button" class="dl-cancel" id="dlCancelBtn" onclick="cancelDownloadProgress()" data-i18n="cancelBtn">Bekor qilish</button>
-</div>
-<script>
-/* ===== Yuklab olish animatsiyasi: JS mexanizmi =====
-   1-bosqich: SVG to'rtburchak (halqa shaklida boshlanadi, rx=yarim
-   balandlik) x/y/width/height/rx qiymatlari requestAnimationFrame orqali
-   chiziqqa (keng, past to'rtburchak) tekislanadi — "halqa yoyiladi".
-   2-bosqich: shu shaklning konturi ustida (pathLength=1 orqali)
-   stroke-dashoffset haqiqiy yuklangan bayt ulushiga moslab o'zgaradi —
-   Backup ZIP yoki hujjat PDF kabi haqiqiy server fayllari uchun bu
-   chinakam progress, XLSX hisobotlar kabi lahzali (client tomonida
-   generatsiya qilinadigan) fayllar uchun esa qisqa vizual tasdiqlash. */
-let dlAbortController = null;
-
-const DL_IDLE = { x:102, y:2, w:56, h:56, rx:28 };
-const DL_BAR = { x:6, y:28, w:248, h:8, rx:4 };
-
-function dlSetShape(shape, s){
-  shape.setAttribute('x', s.x); shape.setAttribute('y', s.y);
-  shape.setAttribute('width', s.w); shape.setAttribute('height', s.h);
-  shape.setAttribute('rx', s.rx); shape.setAttribute('ry', s.rx);
-}
-
-function dlShowToast(filename){
-  const toast = document.getElementById('dlToast');
-  toast.hidden = false;
-  toast.classList.remove('morphed', 'done');
-  document.getElementById('dlPercent').textContent = '0%';
-  document.getElementById('dlFilename').textContent = filename || '';
-  dlSetShape(document.getElementById('dlShape'), DL_IDLE);
-  dlSetShape(document.getElementById('dlShapeBg'), DL_IDLE);
-}
-
-function dlMorphToBar(){
-  return new Promise(resolve => {
-    const toast = document.getElementById('dlToast');
-    const shape = document.getElementById('dlShape');
-    const bg = document.getElementById('dlShapeBg');
-    const dur = 480;
-    const t0 = performance.now();
-    toast.classList.add('morphed');
-    function tick(now){
-      const p = Math.min(1, (now - t0) / dur);
-      const e = 1 - Math.pow(1 - p, 3);
-      const s = {
-        x: DL_IDLE.x + (DL_BAR.x - DL_IDLE.x) * e,
-        y: DL_IDLE.y + (DL_BAR.y - DL_IDLE.y) * e,
-        w: DL_IDLE.w + (DL_BAR.w - DL_IDLE.w) * e,
-        h: DL_IDLE.h + (DL_BAR.h - DL_IDLE.h) * e,
-        rx: DL_IDLE.rx + (DL_BAR.rx - DL_IDLE.rx) * e,
-      };
-      dlSetShape(shape, s); dlSetShape(bg, s);
-      if(p < 1){ requestAnimationFrame(tick); } else { resolve(); }
-    }
-    requestAnimationFrame(tick);
-  });
-}
-
-function dlSetProgress(p){
-  document.getElementById('dlShape').style.strokeDashoffset = String(1 - Math.max(0, Math.min(1, p)));
-  document.getElementById('dlPercent').textContent = Math.round(p * 100) + '%';
-}
-
-function dlComplete(){
-  dlSetProgress(1);
-  document.getElementById('dlToast').classList.add('done');
-  setTimeout(() => { document.getElementById('dlToast').hidden = true; }, 1800);
-}
-
-function cancelDownloadProgress(){
-  if(dlAbortController) dlAbortController.abort();
-}
-
-/**
- * Haqiqiy fayl (backup, hujjat) uchun — server bergan Content-Length
- * asosida haqiqiy baytlar oqimi bo'yicha progress ko'rsatiladi.
- */
-async function downloadWithProgress(url, filename){
-  dlShowToast(filename);
-  dlAbortController = new AbortController();
-  try{
-    const res = await fetch(url, { credentials: 'same-origin', signal: dlAbortController.signal });
-    if(!res.ok){ throw new Error('HTTP ' + res.status); }
-    const total = parseInt(res.headers.get('Content-Length') || '0', 10);
-    await dlMorphToBar();
-    const reader = res.body.getReader();
-    const chunks = [];
-    let loaded = 0;
-    for(;;){
-      const { done, value } = await reader.read();
-      if(done) break;
-      chunks.push(value);
-      loaded += value.length;
-      dlSetProgress(total ? loaded / total : 0.9);
-    }
-    const blob = new Blob(chunks);
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = blobUrl; a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
-    dlComplete();
-  } catch(ex){
-    document.getElementById('dlToast').hidden = true;
-    if(ex.name !== 'AbortError'){ alert('Xatolik: ' + ex.message); }
-  } finally {
-    dlAbortController = null;
-  }
-}
-
-/**
- * Lahzali (client tomonida tayyorlanadigan, masalan XLSX) fayllar uchun —
- * haqiqiy tarmoq progress'i yo'q, shuning uchun qisqa, silliq animatsiya
- * bilan tasdiqlanadi, so'ng berilgan funksiya chaqirilib haqiqiy fayl
- * generatsiya qilinadi va yuklab olinadi.
- */
-async function downloadWithSimulatedProgress(filename, generateFn){
-  dlShowToast(filename);
-  await dlMorphToBar();
-  const dur = 420;
-  const t0 = performance.now();
-  await new Promise(resolve => {
-    function tick(now){
-      const p = Math.min(1, (now - t0) / dur);
-      dlSetProgress(p);
-      if(p < 1){ requestAnimationFrame(tick); } else { resolve(); }
-    }
-    requestAnimationFrame(tick);
-  });
-  try{
-    generateFn();
-  } finally {
-    dlComplete();
-  }
-}
 </script>
 </body>
 </html>
