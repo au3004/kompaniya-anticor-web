@@ -516,7 +516,12 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       <form onsubmit="return submitDocForm(event)">
         <div class="field"><label data-i18n="docNameUz">Hujjat nomi (O'zbek)</label><input type="text" id="dUz" required></div>
         <div class="field"><label data-i18n="docNameRu">Hujjat nomi (Rus)</label><input type="text" id="dRu"></div>
-        <div class="field"><label data-i18n="docUrl">Havola (URL)</label><input type="text" id="dUrl" required placeholder="https://..."></div>
+        <div class="field">
+          <label id="docFileLabel" data-i18n="docFileLabel">PDF fayl</label>
+          <input type="file" id="dFile" accept="application/pdf,.pdf" onchange="onDocFileChange(event)">
+          <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="docFileHint">Faqat PDF, maksimal 5MB</div>
+          <div class="field-hint" id="docFileCurrent" style="font-size:11.5px; color:var(--text-dim); margin-top:4px; display:none;"></div>
+        </div>
         <button class="submit-btn" type="submit" id="docSubmitBtn" data-i18n="saveBtn">Saqlash</button>
         <button type="button" class="back-btn" id="docCancelBtn" onclick="cancelDocEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
         <div class="msg" id="docFormMsg"></div>
@@ -982,7 +987,12 @@ const dict = {
     qCorrect:"To'g'ri javob", qCorrectPh:"Variantni tanlang",
     qSavolRu:"Вопрос", qVariantARu:"Ответ А", qVariantBRu:"Ответ Б", qVariantCRu:"Ответ В", qVariantDRu:"Ответ Г", qCorrectRu:"Правильный ответ",
     docFormAdd:"Yangi hujjat qo'shish", docFormEdit:"Hujjatni tahrirlash", docListTitle:"Mavjud hujjatlar",
-    docNameUz:"Hujjat nomi (O'zbek)", docNameRu:"Hujjat nomi (Rus)", docUrl:"Havola (URL)",
+    docNameUz:"Hujjat nomi (O'zbek)", docNameRu:"Hujjat nomi (Rus)",
+    docFileLabel:"PDF fayl", docFileHint:"Faqat PDF, maksimal 5MB",
+    docFileKeepCurrent:"Fayl tanlanmasa, mavjud fayl saqlanib qoladi",
+    docFileTooLargeErr:"Fayl hajmi juda katta (maksimal 5MB)",
+    docFileTypeErr:"Fayl formati noto'g'ri, faqat PDF qabul qilinadi",
+    docFileRequiredErr:"PDF fayl tanlanishi shart",
     confirmDeleteTest:"Ushbu savolni o'chirmoqchimisiz?", confirmDeleteDoc:"Ushbu hujjatni o'chirmoqchimisiz?",
     deletedOk:"O'chirildi ✓", editBtn:"Tahrirlash", deleteBtn:"O'chirish",
     hubSurvey:"Anonim so'rovnoma", hubSurveyDesc:"So'rovnoma savollari, natijalari va faollik holati",
@@ -1066,7 +1076,12 @@ const dict = {
     qCorrect:"Правильный ответ", qCorrectPh:"Выберите вариант",
     qSavolRu:"Вопрос", qVariantARu:"Ответ А", qVariantBRu:"Ответ Б", qVariantCRu:"Ответ В", qVariantDRu:"Ответ Г", qCorrectRu:"Правильный ответ",
     docFormAdd:"Добавить новый документ", docFormEdit:"Редактировать документ", docListTitle:"Существующие документы",
-    docNameUz:"Название документа (узб.)", docNameRu:"Название документа (рус.)", docUrl:"Ссылка (URL)",
+    docNameUz:"Название документа (узб.)", docNameRu:"Название документа (рус.)",
+    docFileLabel:"PDF файл", docFileHint:"Только PDF, максимум 5MB",
+    docFileKeepCurrent:"Если файл не выбран, текущий файл останется без изменений",
+    docFileTooLargeErr:"Размер файла слишком большой (максимум 5MB)",
+    docFileTypeErr:"Неверный формат файла, принимается только PDF",
+    docFileRequiredErr:"Необходимо выбрать PDF файл",
     confirmDeleteTest:"Удалить этот вопрос?", confirmDeleteDoc:"Удалить этот документ?",
     deletedOk:"Удалено ✓", editBtn:"Редактировать", deleteBtn:"Удалить",
     hubSurvey:"Анонимный опрос", hubSurveyDesc:"Вопросы опроса, результаты и статус активности",
@@ -1915,19 +1930,58 @@ function renderDocsTable(){
       <td>${i + 1}</td>
       <td style="white-space:normal;">${escapeHtml(d.uz)}</td>
       <td><div class="row-actions">
+        <a class="icon-btn" style="text-decoration:none;" title="${dict[currentLang].downloadBtn}" href="${API_BASE_URL.replace('backend/public/index.php','backend/public/document-download.php')}?id=${encodeURIComponent(d.id)}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></a>
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditDoc('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
         <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteDocRow('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
       </div></td>
     </tr>`).join('');
 }
 
+let pendingDocFileDataUrl = null;
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('read-failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function onDocFileChange(e){
+  const file = e.target.files[0];
+  pendingDocFileDataUrl = null;
+  if(!file) return;
+  const msg = document.getElementById('docFormMsg'); msg.className = 'msg';
+  if(file.size > 5 * 1024 * 1024){
+    msg.textContent = dict[currentLang].docFileTooLargeErr; msg.classList.add('err');
+    e.target.value = '';
+    return;
+  }
+  if(file.type !== 'application/pdf'){
+    msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    e.target.value = '';
+    return;
+  }
+  try{
+    pendingDocFileDataUrl = await readFileAsDataUrl(file);
+  } catch(ex){
+    msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    e.target.value = '';
+  }
+}
+
 function startEditDoc(id){
   const d = docsData.find(x => String(x.id) === String(id));
   if(!d) return;
   editingDocId = id;
+  pendingDocFileDataUrl = null;
   document.getElementById('dUz').value = d.uz || '';
   document.getElementById('dRu').value = d.ru || '';
-  document.getElementById('dUrl').value = d.url || '';
+  document.getElementById('dFile').value = '';
+  const currentEl = document.getElementById('docFileCurrent');
+  currentEl.textContent = dict[currentLang].docFileKeepCurrent;
+  currentEl.style.display = 'block';
   document.getElementById('docFormTitle').textContent = dict[currentLang].docFormEdit;
   document.getElementById('docCancelBtn').style.display = 'inline-flex';
   document.getElementById('docsView').scrollIntoView({ behavior:'smooth', block:'start' });
@@ -1935,18 +1989,25 @@ function startEditDoc(id){
 
 function cancelDocEdit(){
   editingDocId = null;
+  pendingDocFileDataUrl = null;
   document.getElementById('docFormTitle').textContent = dict[currentLang].docFormAdd;
   document.getElementById('docCancelBtn').style.display = 'none';
+  document.getElementById('docFileCurrent').style.display = 'none';
   document.querySelector('#docsView form').reset();
 }
 
 async function submitDocForm(e){
   e.preventDefault();
   const msg = document.getElementById('docFormMsg'); msg.className = 'msg';
+  if(!editingDocId && !pendingDocFileDataUrl){
+    msg.textContent = dict[currentLang].docFileRequiredErr; msg.classList.add('err');
+    return false;
+  }
   const payload = {
     token: currentUserForKpi.token,
     action: editingDocId ? 'editDocument' : 'addDocument',
-    uz: document.getElementById('dUz').value, ru: document.getElementById('dRu').value, url: document.getElementById('dUrl').value
+    uz: document.getElementById('dUz').value, ru: document.getElementById('dRu').value,
+    file: pendingDocFileDataUrl || ''
   };
   if(editingDocId) payload.id = editingDocId;
   const btn = document.getElementById('docSubmitBtn'); btn.disabled = true;
@@ -1957,6 +2018,10 @@ async function submitDocForm(e){
       msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
       cancelDocEdit();
       loadDocs();
+    } else if(data.code === 'FILE_TOO_LARGE'){
+      msg.textContent = dict[currentLang].docFileTooLargeErr; msg.classList.add('err');
+    } else if(data.code === 'INVALID_FILE'){
+      msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
     } else {
       msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
     }

@@ -242,12 +242,12 @@ function renderDocs(){
   }
   list.innerHTML = allDocs.map((doc, i) => {
     const name = escapeHtml(currentLang === 'ru' ? (doc.ru || doc.uz) : doc.uz);
-    const safeUrl = /^https?:\/\//i.test(doc.url || '') ? doc.url : '#';
+    const downloadUrl = new URL('backend/public/document-download.php', window.location.href).href + '?id=' + encodeURIComponent(doc.id);
     const isOpen = openedIdx.has(i);
     return `<div class="doc-item ${isOpen?'checked':''}" data-idx="${i}" style="animation-delay:${i*70}ms">
       <div class="doc-icon">PDF</div>
       <div class="doc-info"><div class="title">${name}</div></div>
-      <a class="doc-open" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer" onclick="markOpened(${i})">${dict[currentLang].openBtn}</a>
+      <a class="doc-open" href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener noreferrer" onclick="markOpened(${i})">${dict[currentLang].openBtn}</a>
       <div class="doc-check ${isOpen?'on':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M20 6L9 17l-5-5"/></svg></div>
     </div>`;
   }).join('');

@@ -86,6 +86,7 @@ final class BackupController
         }
 
         self::zipUploads($backupPath . '/uploads.zip');
+        self::zipDirectory(dirname(__DIR__, 2) . '/documents', $backupPath . '/documents.zip');
 
         self::cleanupOld($dir);
 
@@ -142,12 +143,21 @@ final class BackupController
 
     private static function zipUploads(string $zipPath): void
     {
-        $uploadsDir = dirname(__DIR__, 2) . '/public/uploads/photos';
-        if (!is_dir($uploadsDir) || !class_exists(\ZipArchive::class)) {
+        self::zipDirectory(dirname(__DIR__, 2) . '/public/uploads/photos', $zipPath);
+    }
+
+    /**
+     * Berilgan papkadagi (ichki papkalarsiz) barcha fayllarni bitta ZIP'ga
+     * yig'adi — profil rasmlari (`uploads/photos`) va endi hujjat PDF
+     * fayllari (`documents/`) uchun ishlatiladi.
+     */
+    private static function zipDirectory(string $srcDir, string $zipPath): void
+    {
+        if (!is_dir($srcDir) || !class_exists(\ZipArchive::class)) {
             return;
         }
 
-        $files = array_values(array_diff(scandir($uploadsDir) ?: [], ['.', '..', '.gitkeep']));
+        $files = array_values(array_diff(scandir($srcDir) ?: [], ['.', '..', '.gitkeep']));
         if (!$files) {
             return;
         }
@@ -157,7 +167,7 @@ final class BackupController
             return;
         }
         foreach ($files as $file) {
-            $full = $uploadsDir . '/' . $file;
+            $full = $srcDir . '/' . $file;
             if (is_file($full)) {
                 $zip->addFile($full, $file);
             }
