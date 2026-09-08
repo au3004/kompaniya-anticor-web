@@ -26,8 +26,109 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
 .lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; }
 .lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
-.theme-toggle{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
-.theme-toggle svg{ width:17px; height:17px; }
+/* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
+   Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
+   — kod to'liq o'qib chiqilgan (faqat CSS animatsiya + oddiy klass
+   almashtirish, tashqi so'rov/skript yo'q), loyihaning o'z rang
+   palitrasi, shrifti va o'lchamiga moslab qayta yozildi. Barcha asl
+   effektlar (blobning organik "nafas olish" animatsiyasi, ikki qatlamli
+   nur, bosilganda siqilish, matnli yorliqlar) o'lchamga proportsional
+   CSS o'zgaruvchilari orqali saqlab qolindi. */
+.theme-toggle{
+  --tt-w:56px; --tt-h:28px; --tt-thumb:40px; --tt-off:-6px;
+  position:relative; width:var(--tt-w); height:var(--tt-h); padding:0; flex-shrink:0;
+  border:none; background:none; cursor:pointer;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.18));
+}
+.theme-toggle-lg{ --tt-w:270px; --tt-h:92px; --tt-thumb:130px; --tt-off:-21px; margin:0 auto; }
+
+.tt-track{
+  position:absolute; inset:0; border-radius:999px; overflow:hidden;
+  backdrop-filter:blur(20px);
+  background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+  border:1px solid var(--card-border);
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.4), inset 0 -10px 20px rgba(0,0,0,.12), 0 15px 30px rgba(0,0,0,.08);
+}
+.tt-track::before{
+  content:""; position:absolute; inset:9%; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.18), transparent 45%, rgba(255,255,255,.05));
+}
+.tt-track::after{
+  content:""; position:absolute; inset:-45%; border-radius:999px; pointer-events:none;
+  filter:blur(30px); opacity:.55; transition:.7s ease;
+  background:radial-gradient(circle, rgba(255,200,0,.35), transparent 70%);
+}
+.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,163,224,.4), transparent 70%); }
+
+.tt-glow{
+  position:absolute; left:-15%; top:-30%; width:65%; height:160%; border-radius:50%;
+  background:radial-gradient(circle at center, var(--amber), rgba(255,176,32,.7) 45%, rgba(255,255,255,.1) 100%);
+  filter:blur(18px);
+  transition:.7s cubic-bezier(.68,-0.55,.27,1.55);
+}
+.theme-toggle.active .tt-glow{
+  left:50%;
+  background:radial-gradient(circle at center, rgba(0,163,224,.95), rgba(0,163,224,.55) 45%, transparent 80%);
+}
+
+.tt-label{
+  display:none; position:absolute; top:50%; transform:translateY(-50%);
+  color:#fff; font-family:'Unbounded',sans-serif; font-weight:600;
+  font-size:calc(var(--tt-h) * .28);
+  pointer-events:none; z-index:5; transition:.5s ease; white-space:nowrap;
+}
+.theme-toggle-lg .tt-label{ display:block; }
+.tt-label-left{ left:13%; }
+.tt-label-right{ right:13%; opacity:0; }
+.theme-toggle.active .tt-label-left{ opacity:0; transform:translateY(-50%) translateX(-10px); }
+.theme-toggle.active .tt-label-right{ opacity:1; transform:translateY(-50%) translateX(0); }
+
+.tt-thumb{
+  position:absolute; left:var(--tt-off); top:var(--tt-off);
+  width:var(--tt-thumb); height:var(--tt-thumb);
+  border-radius:42% 58% 70% 30% / 45% 45% 55% 55%;
+  overflow:hidden; display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,.14); border:2px solid rgba(255,255,255,.4);
+  box-shadow:0 16px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25), inset 0 0 24px rgba(255,255,255,.06);
+  transition:
+    left .7s cubic-bezier(.68,-0.55,.27,1.55),
+    border-radius .65s cubic-bezier(.68,-0.55,.27,1.55),
+    transform .3s cubic-bezier(.68,-0.55,.27,1.55),
+    background .6s ease, border-color .6s ease, box-shadow .6s ease;
+  animation:ttBlobFloat 7s ease-in-out infinite;
+  z-index:10;
+}
+.theme-toggle.active .tt-thumb{
+  left:calc(100% - var(--tt-thumb) - var(--tt-off));
+  background:rgba(11,37,69,.55); border-color:rgba(255,255,255,.22);
+  box-shadow:
+    inset 0 6px 14px rgba(255,255,255,.15),
+    inset 0 -14px 22px rgba(0,0,0,.15),
+    0 0 26px rgba(0,163,224,.5),
+    0 0 48px rgba(0,163,224,.25);
+}
+.theme-toggle:not(.active) .tt-thumb{
+  box-shadow:
+    inset 0 5px 10px rgba(255,255,255,.45),
+    inset 0 -3px 8px rgba(255,255,255,.16),
+    inset 0 0 14px rgba(255,255,255,.16),
+    0 16px 32px rgba(0,0,0,.35);
+}
+.theme-toggle:hover .tt-thumb{ transform:scale(1.06); }
+.theme-toggle:active .tt-thumb{ transform:scaleX(1.1) scaleY(.9); }
+
+@keyframes ttBlobFloat{
+  0%,100%{ border-radius:42% 58% 70% 30% / 45% 45% 55% 55%; }
+  34%{ border-radius:70% 30% 46% 54% / 30% 29% 71% 70%; }
+  67%{ border-radius:100% 60% 60% 100% / 100% 100% 60% 60%; }
+}
+
+.tt-icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; transition:opacity .4s ease, transform .4s ease; z-index:3; }
+.tt-icon svg{ width:38%; height:38%; }
+.tt-icon.tt-moon{ opacity:0; transform:scale(.6) rotate(-90deg); }
+.theme-toggle.active .tt-icon.tt-sun{ opacity:0; transform:scale(.55) rotate(90deg); }
+.theme-toggle.active .tt-icon.tt-moon{ opacity:1; transform:scale(1) rotate(0deg); }
 
 .main{ max-width:680px; margin:0 auto; padding:120px 24px 80px; }
 .page-head{ margin-bottom:10px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
@@ -116,7 +217,17 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
       <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
       <button id="lang-ru" onclick="setLang('ru')">RU</button>
     </div>
-    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"></button>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema">
+      <span class="tt-track">
+        <span class="tt-glow"></span>
+        <span class="tt-label tt-label-left">Kun</span>
+        <span class="tt-label tt-label-right">Tun</span>
+      </span>
+      <span class="tt-thumb">
+        <span class="tt-icon tt-sun"></span>
+        <span class="tt-icon tt-moon"></span>
+      </span>
+    </button>
   </div>
 </div>
 
@@ -321,7 +432,13 @@ applyLang();
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
 let theme = localStorage.getItem('km_theme') || 'dark';
-function applyTheme(){ document.body.setAttribute('data-theme', theme); document.getElementById('themeBtn').innerHTML = theme==='dark'?sunIcon:moonIcon; document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; }); }
+document.querySelectorAll('.tt-sun').forEach(function(el){ el.innerHTML = sunIcon; });
+document.querySelectorAll('.tt-moon').forEach(function(el){ el.innerHTML = moonIcon; });
+function applyTheme(){
+  document.body.setAttribute('data-theme', theme);
+  document.querySelectorAll('.theme-toggle').forEach(function(btn){ btn.classList.toggle('active', theme === 'dark'); });
+  document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; });
+}
 function toggleTheme(){ theme = theme==='dark'?'light':'dark'; localStorage.setItem('km_theme', theme); applyTheme(); }
 applyTheme();
 
