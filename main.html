@@ -208,6 +208,61 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 }
 .dropdown button:hover{ background:var(--card); }
 
+/* ===== Chap panel: shisha uslubidagi navigatsiya (glassmorphism sidebar) =====
+   Dizayn g'oyasi manbasi: github.com/Nazia-99/Glassmorphism-Settings-Sidebar-UI-using-HTML-CSS
+   — barcha fayllar to'liq o'qib chiqilgan, zararli/tashqi so'rov yo'q
+   (faqat CSS shisha effekti va oddiy ro'yxat tuzilishi), shu bois
+   loyihaning o'z rang palitrasi, ikonkalari va shriftiga moslab qayta
+   yozildi (tashqi CDN/shrift ishlatilmadi). */
+:root{ --topbar-h:76px; --sidebar-w:64px; --sidebar-w-open:270px; }
+.app-sidebar{
+  position:fixed; left:0; top:var(--topbar-h); bottom:0; z-index:25;
+  width:var(--sidebar-w); padding:14px 10px;
+  display:flex; flex-direction:column; align-items:stretch; gap:6px;
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border-right:1px solid var(--card-border);
+  box-shadow:inset -1px 0 0 rgba(255,255,255,.05), 8px 0 24px rgba(0,0,0,.10);
+  transition:width .3s cubic-bezier(.2,.9,.25,1);
+  overflow:hidden;
+}
+.app-sidebar.expanded{ width:var(--sidebar-w-open); box-shadow:inset -1px 0 0 rgba(255,255,255,.05), 14px 0 34px rgba(0,0,0,.22); }
+.sidebar-toggle{
+  flex:none; width:36px; height:36px; border-radius:11px; border:1px solid var(--card-border);
+  background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.03));
+  color:var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.2), inset 0 -3px 6px rgba(0,0,0,.08);
+  transition:color .2s ease, border-color .2s ease, transform .2s ease; margin-bottom:2px;
+}
+.sidebar-toggle:hover{ color:var(--azure); border-color:var(--azure); }
+.sidebar-divider{ height:1px; background:var(--card-border); margin:2px 4px 8px; flex:none; }
+.sidebar-nav{ display:flex; flex-direction:column; gap:5px; min-width:calc(var(--sidebar-w-open) - 20px); }
+.sidebar-item{
+  position:relative; display:flex; align-items:flex-start; gap:12px;
+  padding:10px 11px; border-radius:11px; text-decoration:none; color:var(--text-dim);
+  font-size:13.5px; font-weight:600; line-height:1.3;
+  transition:background .25s ease, color .2s ease;
+}
+.sidebar-item:hover{ background:rgba(255,255,255,.08); color:var(--text); }
+.sidebar-item.active{
+  color:var(--text);
+  background:linear-gradient(135deg, rgba(0,163,224,.22), rgba(0,217,192,.14));
+  box-shadow:inset 0 0 0 1px rgba(0,163,224,.35);
+}
+.si-icon{ flex:none; width:22px; height:22px; display:flex; align-items:center; justify-content:center; }
+.si-label{ opacity:0; white-space:nowrap; transition:opacity .2s ease .05s; padding-top:1px; }
+.app-sidebar.expanded .si-label{ opacity:1; white-space:normal; }
+.si-soon{
+  margin-left:auto; flex:none; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.3px;
+  color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px;
+  padding:2px 7px; opacity:0; transition:opacity .2s ease .05s;
+}
+.app-sidebar.expanded .si-soon{ opacity:1; }
+#sectionAnticor, #sectionHR{ padding-left:var(--sidebar-w); transition:padding-left .3s ease; }
+@media (max-width:640px){
+  :root{ --sidebar-w:52px; --sidebar-w-open:220px; }
+}
+
 /* ===== Hero ===== */
 .hero{ position:relative; z-index:5; padding:150px 32px 60px; max-width:920px; margin:0 auto; text-align:center; }
 .hero .eyebrow{
@@ -330,6 +385,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .modal-msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); border:1px solid rgba(0,217,192,0.3); }
 
 @media (max-width:480px){
+  :root{ --topbar-h:58px; }
   .status-row{ flex-direction:column; }
   .chip-btn .name{ display:none; }
   .topbar{ padding:12px 10px; }
@@ -398,39 +454,77 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   </div>
 </div>
 
-<div class="hero">
-  <h1 data-i18n="heroTitle">Korrupsiyaga qarshi kurashish</h1>
-  <p class="desc" data-i18n="heroDesc">Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.</p>
-  <div class="hero-actions">
-    <a href="docs.html" class="primary" data-i18n="docsBtn">Hujjatlar bilan tanishish</a>
-    <a href="test.html" class="secondary" data-i18n="testBtn">Testni topshirish</a>
-    <a href="survey.html" class="secondary" data-i18n="surveyBtn">Anonim so'rovnoma</a>
-    <a href="javascript:void(0)" class="secondary soon" onclick="alert(dict[currentLang].soonMsg)"><span data-i18n="declarationBtn">Deklaratsiya to'ldirish</span><span class="soon-badge" data-i18n="soonTag">Tez orada</span></a>
+<!-- ===== Chap tomondagi navigatsiya paneli (shisha uslubida) =====
+     Dizayn g'oyasi manbasi: github.com/Nazia-99/Glassmorphism-Settings-Sidebar-UI-using-HTML-CSS
+     — kod to'liq o'qib chiqilgan (faqat CSS shisha effekti + oddiy
+     ro'yxat, tashqi so'rov/skript yo'q — faqat Google Fonts va Font
+     Awesome CDN, ikkalasi ham ishlatilmadi), loyihaning o'z rang
+     palitrasi, shrifti va SVG belgilariga moslab qayta yozilgan. -->
+<div class="app-sidebar" id="appSidebar">
+  <button class="sidebar-toggle" onclick="toggleSidebar()" title="Menyu" aria-label="Menyu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+  </button>
+  <div class="sidebar-divider"></div>
+  <nav class="sidebar-nav">
+    <a class="sidebar-item active" id="navHome" href="#" onclick="return sidebarGoHome()">
+      <span class="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span>
+      <span class="si-label" data-i18n="navHome">Bosh sahifa</span>
+    </a>
+    <a class="sidebar-item" id="navAnticor" href="#" onclick="return sidebarShowSection('anticor')">
+      <span class="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+      <span class="si-label" data-i18n="navAnticor">Korrupsiyaga qarshi kurashish</span>
+    </a>
+    <a class="sidebar-item" id="navHR" href="#" onclick="return sidebarShowSection('hr')">
+      <span class="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="si-label" data-i18n="navHR">Inson resurslarini boshqarish xizmati</span>
+      <span class="si-soon" data-i18n="soonTag">Tez orada</span>
+    </a>
+  </nav>
+</div>
+
+<div id="sectionAnticor">
+  <div class="hero">
+    <h1 data-i18n="heroTitle">Korrupsiyaga qarshi kurashish</h1>
+    <p class="desc" data-i18n="heroDesc">Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.</p>
+    <div class="hero-actions">
+      <a href="docs.html" class="primary" data-i18n="docsBtn">Hujjatlar bilan tanishish</a>
+      <a href="test.html" class="secondary" data-i18n="testBtn">Testni topshirish</a>
+      <a href="survey.html" class="secondary" data-i18n="surveyBtn">Anonim so'rovnoma</a>
+      <a href="javascript:void(0)" class="secondary soon" onclick="alert(dict[currentLang].soonMsg)"><span data-i18n="declarationBtn">Deklaratsiya to'ldirish</span><span class="soon-badge" data-i18n="soonTag">Tez orada</span></a>
+    </div>
+  </div>
+
+  <div class="status-section">
+    <div class="status-card">
+      <h2 data-i18n="statusTitle">Holatingizni tekshiring</h2>
+      <p class="sub" data-i18n="statusSub">Telefon raqamingizni kiriting</p>
+      <div class="status-row">
+        <div class="phone-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <input type="tel" id="phoneInput" data-i18n-ph="phonePh">
+        </div>
+        <button onclick="checkStatus()" data-i18n="checkBtn">Tekshirish</button>
+      </div>
+      <div class="status-error" id="statusError" data-i18n="statusErrText">Bu raqam topilmadi</div>
+      <div class="status-result" id="statusResult">
+        <div class="status-item">
+          <span data-i18n="docLabel">Ichki normativ hujjatlar bilan tanishgan</span>
+          <span class="badge" id="docBadge">—</span>
+        </div>
+        <div class="status-item">
+          <span data-i18n="testLabel">Test natijasi</span>
+          <span class="badge" id="testBadge">—</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="status-section">
-  <div class="status-card">
-    <h2 data-i18n="statusTitle">Holatingizni tekshiring</h2>
-    <p class="sub" data-i18n="statusSub">Telefon raqamingizni kiriting</p>
-    <div class="status-row">
-      <div class="phone-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <input type="tel" id="phoneInput" data-i18n-ph="phonePh">
-      </div>
-      <button onclick="checkStatus()" data-i18n="checkBtn">Tekshirish</button>
-    </div>
-    <div class="status-error" id="statusError" data-i18n="statusErrText">Bu raqam topilmadi</div>
-    <div class="status-result" id="statusResult">
-      <div class="status-item">
-        <span data-i18n="docLabel">Ichki normativ hujjatlar bilan tanishgan</span>
-        <span class="badge" id="docBadge">—</span>
-      </div>
-      <div class="status-item">
-        <span data-i18n="testLabel">Test natijasi</span>
-        <span class="badge" id="testBadge">—</span>
-      </div>
-    </div>
+<!-- Inson resurslarini boshqarish xizmati (keyinroq ishga tushiriladi) -->
+<div id="sectionHR" style="display:none;">
+  <div class="hero">
+    <h1 data-i18n="hrTitle">Inson resurslarini boshqarish xizmati</h1>
+    <p class="desc" data-i18n="hrDesc">Bu bo'lim tez orada ishga tushiriladi.</p>
   </div>
 </div>
 
@@ -693,6 +787,8 @@ const dict = {
     statusTitle:"Holatingizni tekshiring", statusSub:"Telefon raqamingizni kiriting",
     docsBtn:"Hujjatlar bilan tanishish", testBtn:"Testni topshirish", surveyBtn:"Anonim so'rovnoma",
     declarationBtn:"Deklaratsiya to'ldirish", soonTag:"Tez orada", soonMsg:"Bu bo'lim tez orada ishga tushiriladi",
+    navHome:"Bosh sahifa", navAnticor:"Korrupsiyaga qarshi kurashish", navHR:"Inson resurslarini boshqarish xizmati",
+    hrTitle:"Inson resurslarini boshqarish xizmati", hrDesc:"Bu bo'lim tez orada ishga tushiriladi.",
     checkBtn:"Tekshirish", statusErrText:"Bu raqam topilmadi", notYourNumber:"Ushbu raqam sizga tegishli emas",
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
     docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Test natijasi",
@@ -731,6 +827,8 @@ const dict = {
     statusTitle:"Проверьте свой статус", statusSub:"Введите номер телефона",
     docsBtn:"Ознакомиться с документами", testBtn:"Пройти тест", surveyBtn:"Анонимный опрос",
     declarationBtn:"Заполнить декларацию", soonTag:"Скоро", soonMsg:"Этот раздел скоро будет запущен",
+    navHome:"Главная", navAnticor:"Противодействие коррупции", navHR:"Служба управления персоналом",
+    hrTitle:"Служба управления персоналом", hrDesc:"Этот раздел скоро будет запущен.",
     checkBtn:"Проверить", statusErrText:"Номер не найден", notYourNumber:"Этот номер вам не принадлежит",
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
     docLabel:"Ознакомлен с внутренними документами", testLabel:"Результат теста",
@@ -948,6 +1046,38 @@ function showSettingsView(viewId){
     document.getElementById('photoPreviewWrap').style.display = 'flex';
     document.getElementById('photoPreview').src = current || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(currentUser.familiya+' '+currentUser.ism) + '&backgroundColor=00A3E0';
   }
+}
+
+/* ---------- Chap navigatsiya paneli ---------- */
+function toggleSidebar(){
+  document.getElementById('appSidebar').classList.toggle('expanded');
+}
+
+function setActiveNav(id){
+  document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+}
+
+function sidebarGoHome(){
+  sidebarShowSection('anticor');
+  setActiveNav('navHome');
+  return false;
+}
+
+function sidebarShowSection(name){
+  const anticor = document.getElementById('sectionAnticor');
+  const hr = document.getElementById('sectionHR');
+  if(name === 'hr'){
+    anticor.style.display = 'none';
+    hr.style.display = 'block';
+    setActiveNav('navHR');
+  } else {
+    hr.style.display = 'none';
+    anticor.style.display = 'block';
+    setActiveNav('navAnticor');
+  }
+  return false;
 }
 
 function logout(){
