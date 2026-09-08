@@ -8,7 +8,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root{
-  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --white:#FFFFFF;
+  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
   --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
   --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
 }
@@ -218,6 +218,26 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   .doc-open{ margin-left:auto; }
   .main{ padding-top:100px; }
 }
+
+/* ===== Xabarnomalar modali (main.html bilan bir xil) ===== */
+@keyframes rise{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(4,15,30,0.65); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+.modal-overlay.show{ display:flex; }
+.modal{
+  width:100%; max-width:420px; background:var(--bg-deep); border:1px solid var(--card-border);
+  border-radius:20px; padding:30px; animation:rise .3s ease both;
+  max-height:85vh; overflow-y:auto;
+}
+.modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+.modal-head h3{ font-family:'Unbounded', sans-serif; font-size:17px; }
+.modal-close{ background:var(--card); border:1px solid var(--card-border); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
+.notif-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:12px; padding:13px 14px; position:relative; }
+.notif-item.unread{ border-color:var(--azure); }
+.notif-item.unread::before{ content:''; position:absolute; top:14px; left:-6px; width:8px; height:8px; border-radius:50%; background:var(--azure); }
+.notif-item .notif-text{ font-size:13.5px; line-height:1.5; white-space:pre-wrap; }
 </style>
 </head>
 <body data-theme="dark">
@@ -242,6 +262,26 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
         <span class="tt-icon tt-moon"></span>
       </span>
     </button>
+    <a class="home-icon-btn" href="main.html?openHelp=1" title="Yordam">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
+    </a>
+    <button class="home-icon-btn" id="notifBtn" onclick="openNotifPanel()" title="Xabarnomalar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px; border-radius:9px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:10px; font-weight:700; line-height:13px; text-align:center;"></span>
+    </button>
+  </div>
+</div>
+
+<!-- Xabarnomalar modal -->
+<div class="modal-overlay" id="notifModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h3 data-i18n="notifTitle">Xabarnomalar</h3>
+      <button class="modal-close" onclick="closeModal('notifModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div id="notifList" style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+      <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
+    </div>
   </div>
 </div>
 
@@ -318,6 +358,7 @@ const dict = {
     doc2title:"Odob-axloq kodeksi", doc2desc:"Xodimlar uchun majburiy qoidalar",
     doc3title:"Manfaatlar to'qnashuvi to'g'risida yo'riqnoma", doc3desc:"Amaliy holatlar va tushuntirishlar",
     loading:"Yuklanmoqda...", noDocs:"Hujjatlar topilmadi",
+    notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
     openBtn:"Ochish", confirmText:"Barcha hujjatlar bilan tanishganingizni tasdiqlang",
     confirmBtn:"Men barcha hujjatlar bilan tanishdim", nextBtn:"Testga o'tish →", homeBtn:"Bosh sahifaga qaytish",
     savedOk:"Saqlandi ✓", savedErr:"Xatolik yuz berdi, qayta urinib ko'ring", openAllFirst:"Avval barcha hujjatlarni oching"
@@ -330,6 +371,7 @@ const dict = {
     doc2title:"Кодекс этики", doc2desc:"Обязательные правила для сотрудников",
     doc3title:"Инструкция о конфликте интересов", doc3desc:"Практические случаи и разъяснения",
     loading:"Загрузка...", noDocs:"Документы не найдены",
+    notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
     openBtn:"Открыть", confirmText:"Подтвердите, что ознакомились со всеми документами",
     confirmBtn:"Я ознакомлен со всеми документами", nextBtn:"Перейти к тесту →", homeBtn:"Вернуться на главную",
     savedOk:"Сохранено ✓", savedErr:"Произошла ошибка, попробуйте снова", openAllFirst:"Сначала откройте все документы"
@@ -359,6 +401,64 @@ applyTheme();
 
 function getToken(){
   try{ return JSON.parse(sessionStorage.getItem('km_user'))?.token; }catch(e){ return null; }
+}
+
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+/* ---------- Xabarnomalar ---------- */
+let notifCache = null;
+
+function updateNotifBadge(){
+  const count = (notifCache || []).filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if(count > 0){ badge.textContent = count > 99 ? '99+' : String(count); badge.style.display = 'flex'; badge.style.alignItems = 'center'; badge.style.justifyContent = 'center'; }
+  else { badge.style.display = 'none'; }
+}
+
+async function loadNotifBadge(){
+  if(!getToken()) return;
+  try{
+    const data = await apiCall({ action:'getMyNotifications', token: getToken() });
+    if(data.success){ notifCache = data.notifications; updateNotifBadge(); }
+  } catch(ex){ /* jimgina o'tkazib yuboramiz */ }
+}
+if(getToken()) setTimeout(loadNotifBadge, 400);
+
+function renderNotifList(){
+  const box = document.getElementById('notifList');
+  if(!notifCache || notifCache.length === 0){
+    box.innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].notifEmpty}</p>`;
+    return;
+  }
+  box.innerHTML = notifCache.map(n => `
+    <div class="notif-item ${n.read?'':'unread'}" data-id="${n.id}">
+      <div class="notif-text">${escapeHtml(n.text)}</div>
+    </div>
+  `).join('');
+}
+
+async function openNotifPanel(){
+  openModal('notifModal');
+  if(!notifCache){
+    document.getElementById('notifList').innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].loading}</p>`;
+  }
+  try{
+    const token = getToken();
+    const data = await apiCall({ action:'getMyNotifications', token });
+    if(data.success){
+      notifCache = data.notifications;
+      renderNotifList();
+      const unread = notifCache.filter(n => !n.read);
+      for(const n of unread){
+        apiCall({ action:'markNotificationRead', token, notifId: n.id }).catch(()=>{});
+        n.read = true;
+      }
+      updateNotifBadge();
+    }
+  } catch(ex){
+    document.getElementById('notifList').innerHTML = `<p style="color:var(--coral); font-size:13px;">Xatolik: ${ex.message}</p>`;
+  }
 }
 
 let allDocs = [];

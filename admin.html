@@ -375,6 +375,26 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
   .main{ padding:96px 14px 60px; }
   .controls{ gap:8px; }
 }
+
+/* ===== Xabarnomalar modali (main.html bilan bir xil) ===== */
+@keyframes rise{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(4,15,30,0.65); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+.modal-overlay.show{ display:flex; }
+.modal{
+  width:100%; max-width:420px; background:var(--bg-deep); border:1px solid var(--card-border);
+  border-radius:20px; padding:30px; animation:rise .3s ease both;
+  max-height:85vh; overflow-y:auto;
+}
+.modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+.modal-head h3{ font-family:'Unbounded', sans-serif; font-size:17px; }
+.modal-close{ background:var(--card); border:1px solid var(--card-border); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
+.notif-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:12px; padding:13px 14px; position:relative; }
+.notif-item.unread{ border-color:var(--azure); }
+.notif-item.unread::before{ content:''; position:absolute; top:14px; left:-6px; width:8px; height:8px; border-radius:50%; background:var(--azure); }
+.notif-item .notif-text{ font-size:13.5px; line-height:1.5; white-space:pre-wrap; }
 </style>
 </head>
 <body data-theme="dark">
@@ -401,6 +421,26 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <span class="tt-icon tt-moon"></span>
       </span>
     </button>
+    <a class="home-icon-btn" href="main.html?openHelp=1" title="Yordam">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
+    </a>
+    <button class="home-icon-btn" id="notifBtn" onclick="openNotifPanel()" title="Xabarnomalar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px; border-radius:9px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:10px; font-weight:700; line-height:13px; text-align:center;"></span>
+    </button>
+  </div>
+</div>
+
+<!-- Xabarnomalar modal -->
+<div class="modal-overlay" id="notifModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h3 data-i18n="notifTitle">Xabarnomalar</h3>
+      <button class="modal-close" onclick="closeModal('notifModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div id="notifList" style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+      <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
+    </div>
   </div>
 </div>
 
@@ -1171,6 +1211,7 @@ const dict = {
     thLogin:"Login", thRol:"Rol", thAmal:"Amal",
     searchPh:"F.I.Sh bo'yicha qidirish...", noResults:"Hech narsa topilmadi",
     loading:"Yuklanmoqda...", yes:"Ha", no:"Yo'q", notTaken:"Ishlamagan", denied:"Sizda bu sahifaga kirish huquqi yo'q",
+    notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
     testFormAdd:"Yangi savol qo'shish", testFormEdit:"Savolni tahrirlash", testListTitle:"Mavjud savollar",
     langUzTitle:"O'zbekcha", langRuTitle:"Русский",
     qSavol:"Savol", qVariantA:"Variant A", qVariantB:"Variant B", qVariantC:"Variant C", qVariantD:"Variant D",
@@ -1260,6 +1301,7 @@ const dict = {
     thLogin:"Логин", thRol:"Роль", thAmal:"Действие",
     searchPh:"Поиск по ФИО...", noResults:"Ничего не найдено",
     loading:"Загрузка...", yes:"Да", no:"Нет", notTaken:"Не пройден", denied:"У вас нет доступа к этой странице",
+    notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
     testFormAdd:"Добавить новый вопрос", testFormEdit:"Редактировать вопрос", testListTitle:"Существующие вопросы",
     langUzTitle:"Узбекский", langRuTitle:"Русский",
     qSavol:"Вопрос", qVariantA:"Вариант A", qVariantB:"Вариант B", qVariantC:"Вариант C", qVariantD:"Вариант D",
@@ -2783,8 +2825,66 @@ function init(){
   if(canAnticor) loadStats(user);
   if(canEmployees) loadUsersList(user);
   if(canSupport) loadSupportRequests();
+  setTimeout(loadNotifBadge, 400);
 }
 init();
+
+/* ---------- Modal (main.html bilan bir xil) ---------- */
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+/* ---------- Xabarnomalar ---------- */
+let notifCache = null;
+
+function updateNotifBadge(){
+  const count = (notifCache || []).filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if(count > 0){ badge.textContent = count > 99 ? '99+' : String(count); badge.style.display = 'flex'; badge.style.alignItems = 'center'; badge.style.justifyContent = 'center'; }
+  else { badge.style.display = 'none'; }
+}
+
+async function loadNotifBadge(){
+  if(!currentUserForKpi) return;
+  try{
+    const data = await apiCall({ action:'getMyNotifications', token: currentUserForKpi.token });
+    if(data.success){ notifCache = data.notifications; updateNotifBadge(); }
+  } catch(ex){ /* jimgina o'tkazib yuboramiz */ }
+}
+
+function renderNotifList(){
+  const box = document.getElementById('notifList');
+  if(!notifCache || notifCache.length === 0){
+    box.innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].notifEmpty}</p>`;
+    return;
+  }
+  box.innerHTML = notifCache.map(n => `
+    <div class="notif-item ${n.read?'':'unread'}" data-id="${n.id}">
+      <div class="notif-text">${escapeHtml(n.text)}</div>
+    </div>
+  `).join('');
+}
+
+async function openNotifPanel(){
+  openModal('notifModal');
+  if(!notifCache){
+    document.getElementById('notifList').innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].loading}</p>`;
+  }
+  try{
+    const data = await apiCall({ action:'getMyNotifications', token: currentUserForKpi.token });
+    if(data.success){
+      notifCache = data.notifications;
+      renderNotifList();
+      const unread = notifCache.filter(n => !n.read);
+      for(const n of unread){
+        apiCall({ action:'markNotificationRead', token: currentUserForKpi.token, notifId: n.id }).catch(()=>{});
+        n.read = true;
+      }
+      updateNotifBadge();
+    }
+  } catch(ex){
+    document.getElementById('notifList').innerHTML = `<p style="color:var(--coral); font-size:13px;">Xatolik: ${ex.message}</p>`;
+  }
+}
 
 /* ---------- Fon animatsiyasi (tarmoq) ---------- */
 const canvas = document.getElementById('net'); const ctx = canvas.getContext('2d');
