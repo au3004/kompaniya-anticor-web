@@ -109,6 +109,8 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; }
 .field input, .field select, .field textarea{ width:100%; padding:11px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; }
 .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--azure); }
+.file-btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:12px 14px; border:1.5px dashed var(--input-border); border-radius:10px; background:var(--input-bg); color:var(--text-dim); font-size:13.5px; font-weight:600; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
+.file-btn:hover{ border-color:var(--azure); color:var(--azure); }
 /* Ochilgan <select> ro'yxati (<option>lar) brauzer tomonidan alohida, sahifa
    fonidan mustaqil oynada chiziladi — shaffof (rgba) fon shu yerda ishlamay,
    tizim standart (oq) foniga tushib qoladi va ustiga och rangli matn
@@ -517,9 +519,13 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="field"><label data-i18n="docNameUz">Hujjat nomi (O'zbek)</label><input type="text" id="dUz" required></div>
         <div class="field"><label data-i18n="docNameRu">Hujjat nomi (Rus)</label><input type="text" id="dRu"></div>
         <div class="field">
-          <label id="docFileLabel" data-i18n="docFileLabel">PDF fayl</label>
-          <input type="file" id="dFile" accept="application/pdf,.pdf" onchange="onDocFileChange(event)">
-          <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="docFileHint">Faqat PDF, maksimal 5MB</div>
+          <label data-i18n="docFileLabel">PDF fayl</label>
+          <label class="file-btn" for="dFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            <span id="docFileBtnText" data-i18n="docFileChoose">PDF fayl tanlash</span>
+          </label>
+          <input type="file" id="dFile" accept="application/pdf,.pdf" style="display:none;" onchange="onDocFileChange(event)">
+          <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="docFileHint">Faqat PDF, maksimal 25MB</div>
           <div class="field-hint" id="docFileCurrent" style="font-size:11.5px; color:var(--text-dim); margin-top:4px; display:none;"></div>
         </div>
         <button class="submit-btn" type="submit" id="docSubmitBtn" data-i18n="saveBtn">Saqlash</button>
@@ -988,9 +994,9 @@ const dict = {
     qSavolRu:"Вопрос", qVariantARu:"Ответ А", qVariantBRu:"Ответ Б", qVariantCRu:"Ответ В", qVariantDRu:"Ответ Г", qCorrectRu:"Правильный ответ",
     docFormAdd:"Yangi hujjat qo'shish", docFormEdit:"Hujjatni tahrirlash", docListTitle:"Mavjud hujjatlar",
     docNameUz:"Hujjat nomi (O'zbek)", docNameRu:"Hujjat nomi (Rus)",
-    docFileLabel:"PDF fayl", docFileHint:"Faqat PDF, maksimal 5MB",
+    docFileLabel:"PDF fayl", docFileChoose:"PDF fayl tanlash", docFileHint:"Faqat PDF, maksimal 25MB",
     docFileKeepCurrent:"Fayl tanlanmasa, mavjud fayl saqlanib qoladi",
-    docFileTooLargeErr:"Fayl hajmi juda katta (maksimal 5MB)",
+    docFileTooLargeErr:"Fayl hajmi juda katta (maksimal 25MB)",
     docFileTypeErr:"Fayl formati noto'g'ri, faqat PDF qabul qilinadi",
     docFileRequiredErr:"PDF fayl tanlanishi shart",
     confirmDeleteTest:"Ushbu savolni o'chirmoqchimisiz?", confirmDeleteDoc:"Ushbu hujjatni o'chirmoqchimisiz?",
@@ -1077,9 +1083,9 @@ const dict = {
     qSavolRu:"Вопрос", qVariantARu:"Ответ А", qVariantBRu:"Ответ Б", qVariantCRu:"Ответ В", qVariantDRu:"Ответ Г", qCorrectRu:"Правильный ответ",
     docFormAdd:"Добавить новый документ", docFormEdit:"Редактировать документ", docListTitle:"Существующие документы",
     docNameUz:"Название документа (узб.)", docNameRu:"Название документа (рус.)",
-    docFileLabel:"PDF файл", docFileHint:"Только PDF, максимум 5MB",
+    docFileLabel:"PDF файл", docFileChoose:"Выбрать PDF файл", docFileHint:"Только PDF, максимум 25MB",
     docFileKeepCurrent:"Если файл не выбран, текущий файл останется без изменений",
-    docFileTooLargeErr:"Размер файла слишком большой (максимум 5MB)",
+    docFileTooLargeErr:"Размер файла слишком большой (максимум 25MB)",
     docFileTypeErr:"Неверный формат файла, принимается только PDF",
     docFileRequiredErr:"Необходимо выбрать PDF файл",
     confirmDeleteTest:"Удалить этот вопрос?", confirmDeleteDoc:"Удалить этот документ?",
@@ -1948,26 +1954,32 @@ function readFileAsDataUrl(file){
   });
 }
 
+const DOC_MAX_BYTES = 25 * 1024 * 1024;
+
 async function onDocFileChange(e){
   const file = e.target.files[0];
   pendingDocFileDataUrl = null;
   if(!file) return;
   const msg = document.getElementById('docFormMsg'); msg.className = 'msg';
-  if(file.size > 5 * 1024 * 1024){
+  if(file.size > DOC_MAX_BYTES){
     msg.textContent = dict[currentLang].docFileTooLargeErr; msg.classList.add('err');
     e.target.value = '';
+    document.getElementById('docFileBtnText').textContent = dict[currentLang].docFileChoose;
     return;
   }
   if(file.type !== 'application/pdf'){
     msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
     e.target.value = '';
+    document.getElementById('docFileBtnText').textContent = dict[currentLang].docFileChoose;
     return;
   }
   try{
     pendingDocFileDataUrl = await readFileAsDataUrl(file);
+    document.getElementById('docFileBtnText').textContent = file.name;
   } catch(ex){
     msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
     e.target.value = '';
+    document.getElementById('docFileBtnText').textContent = dict[currentLang].docFileChoose;
   }
 }
 
@@ -1979,6 +1991,7 @@ function startEditDoc(id){
   document.getElementById('dUz').value = d.uz || '';
   document.getElementById('dRu').value = d.ru || '';
   document.getElementById('dFile').value = '';
+  document.getElementById('docFileBtnText').textContent = dict[currentLang].docFileChoose;
   const currentEl = document.getElementById('docFileCurrent');
   currentEl.textContent = dict[currentLang].docFileKeepCurrent;
   currentEl.style.display = 'block';
@@ -1993,6 +2006,7 @@ function cancelDocEdit(){
   document.getElementById('docFormTitle').textContent = dict[currentLang].docFormAdd;
   document.getElementById('docCancelBtn').style.display = 'none';
   document.getElementById('docFileCurrent').style.display = 'none';
+  document.getElementById('docFileBtnText').textContent = dict[currentLang].docFileChoose;
   document.querySelector('#docsView form').reset();
 }
 

@@ -23,7 +23,7 @@ final class DocsController
         ADD COLUMN IF NOT EXISTS file_name VARCHAR(255) NULL AFTER url,
         MODIFY COLUMN url VARCHAR(1000) NULL';
 
-    private const MAX_BYTES = 5 * 1024 * 1024;
+    private const MAX_BYTES = 25 * 1024 * 1024;
 
     public static function documentsDir(): string
     {
@@ -68,7 +68,7 @@ final class DocsController
     private static function saveUploadedPdf(string $dataUrl): string
     {
         if (strlen($dataUrl) > (int) (self::MAX_BYTES * 1.4) + 100) {
-            Response::error('Fayl hajmi juda katta (maksimal 5MB)', 'FILE_TOO_LARGE', 422);
+            Response::error('Fayl hajmi juda katta (maksimal 25MB)', 'FILE_TOO_LARGE', 422);
         }
 
         if (!preg_match('/^data:application\/pdf;base64,(.+)$/i', $dataUrl, $m)) {
@@ -81,7 +81,7 @@ final class DocsController
         }
 
         if (strlen($binary) > self::MAX_BYTES) {
-            Response::error('Fayl hajmi juda katta (maksimal 5MB)', 'FILE_TOO_LARGE', 422);
+            Response::error('Fayl hajmi juda katta (maksimal 25MB)', 'FILE_TOO_LARGE', 422);
         }
 
         if (!str_starts_with($binary, '%PDF-')) {

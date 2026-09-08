@@ -7,3 +7,15 @@
     Order allow,deny
     Allow from all
 </IfModule>
+
+# Hujjat (PDF, maksimal 25MB) base64 shaklida JSON so'rov tanasi ichida
+# yuboriladi — bu haqiqiy fayldan ~1.37 baravar katta bo'ladi, shuning uchun
+# standart php.ini cheklovlari (odatda 8M) buni rad etib qo'yishi mumkin.
+# MUHIM: bu faqat PHP Apache moduli (mod_php) sifatida ishlaganda ta'sir
+# qiladi — agar serveringiz PHP-FPM orqali ishlasa, shu qiymatlarni
+# php.ini faylining o'zida (yoki pool sozlamalarida) qo'lda oshiring.
+<IfModule mod_php.c>
+    php_value post_max_size 40M
+    php_value upload_max_filesize 40M
+    php_value memory_limit 192M
+</IfModule>
