@@ -31,6 +31,13 @@ final class Database
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
+            // MySQL'ning o'z ichki soati (NOW(), CURRENT_TIMESTAMP) PHP bilan bir xil
+            // vaqt zonasida bo'lishi shart — aks holda ular yozgan/solishtirgan
+            // vaqtlar mos kelmay, hali amal qilishi kerak bo'lgan yozuvlar (masalan
+            // sessiyalar) muddati o'tgan deb noto'g'ri o'chirilib ketadi. Aniq
+            // sonli siljish (+05:00) ishlatiladi — bu MySQL'ning alohida vaqt
+            // zonasi jadvallari o'rnatilishini talab qilmaydi.
+            self::$pdo->exec("SET time_zone = '+05:00'");
         } catch (PDOException $e) {
             Response::error('Bazaga ulanishda xatolik', 'DB_ERROR', 500);
         }

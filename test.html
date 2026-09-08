@@ -23,17 +23,48 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .brand{ display:flex; align-items:center; gap:10px; font-family:'Unbounded', sans-serif; font-weight:700; font-size:14px; text-decoration:none; color:var(--text); }
 .brand-logo{ height:22px; width:auto; display:block; }
 .controls{ display:flex; align-items:center; gap:12px; }
-/* ===== Glass UI oilasi: theme-toggle bilan bir xil shisha (glassmorphism)
-   tili — xiralashgan orqa fon, ichki nur, yumshoq soya, hover'da azure porlash. */
-.lang-toggle{
-  display:flex; gap:2px;
+/* ===== Til almashtirgich: kichik tugma + belgilash ro'yxati (checkmark list)
+   uslubidagi ochiluvchi menyu — bosilganda tillar ro'yxati ochiladi, tanlangani
+   azure/teal rangli belgi bilan ko'rsatiladi. ===== */
+.lang-picker{ position:relative; }
+.lang-picker-btn{
+  display:flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px;
   background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
   backdrop-filter:blur(16px);
-  border:1px solid var(--card-border); border-radius:999px; padding:3px;
+  border:1px solid var(--card-border);
   box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  cursor:pointer; color:var(--text-dim); font-family:'Inter'; font-weight:700; font-size:12px;
+  transition:border-color .25s ease, color .25s ease;
 }
-.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; transition:background .35s cubic-bezier(.68,-0.2,.27,1.3), color .3s ease, box-shadow .35s ease; }
-.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; box-shadow:0 4px 14px rgba(0,163,224,.4), inset 0 1px 0 rgba(255,255,255,.45); }
+.lang-picker-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.lang-picker-btn svg{ width:15px; height:15px; flex:none; }
+.lang-menu{
+  position:absolute; top:calc(100% + 10px); right:0; width:200px;
+  background:var(--bg-deep); border:1px solid var(--card-border); border-radius:14px;
+  padding:5px; box-shadow:0 20px 40px -12px rgba(0,0,0,0.5);
+  opacity:0; visibility:hidden; transform:translateY(-8px);
+  transition:all .2s ease; z-index:40;
+}
+.lang-menu.show{ opacity:1; visibility:visible; transform:translateY(0); }
+.lang-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+  border:none; background:transparent; cursor:pointer; text-align:left;
+  padding:9px 10px; border-radius:10px; transition:background .2s ease;
+  font-family:'Inter';
+}
+.lang-row:hover{ background:rgba(255,255,255,.07); }
+.lang-row-text{ display:flex; flex-direction:column; gap:1px; }
+.lang-row-name{ font-size:13px; font-weight:600; color:var(--text); }
+.lang-row-sub{ font-size:11px; color:var(--text-dim); }
+.lang-row-check{
+  flex:none; width:18px; height:18px; border-radius:50%; border:1.5px solid var(--card-border);
+  display:flex; align-items:center; justify-content:center; color:transparent;
+  transition:background .25s ease, border-color .25s ease, color .25s ease;
+}
+.lang-row-check svg{ width:11px; height:11px; }
+.lang-row.active{ background:rgba(0,163,224,.10); }
+.lang-row.active .lang-row-name{ color:var(--azure); }
+.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#00263F; }
 .home-icon-btn{
   position:relative; width:32px; height:32px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
@@ -113,7 +144,6 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   box-shadow:0 16px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25), inset 0 0 24px rgba(255,255,255,.06);
   transition:
     left .7s cubic-bezier(.68,-0.55,.27,1.55),
-    border-radius .65s cubic-bezier(.68,-0.55,.27,1.55),
     transform .3s cubic-bezier(.68,-0.55,.27,1.55),
     background .6s ease, border-color .6s ease, box-shadow .6s ease;
   animation:ttBlobFloat 7s ease-in-out infinite;
@@ -256,9 +286,21 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
     <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
   </div>
   <div class="controls">
-    <div class="lang-toggle">
-      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
-      <button id="lang-ru" onclick="setLang('ru')">RU</button>
+    <div class="lang-picker" id="langPicker">
+      <button class="lang-picker-btn" onclick="toggleLangMenu()" aria-label="Til" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+        <span id="langPickerCode">UZ</span>
+      </button>
+      <div class="lang-menu" id="langMenu">
+        <button id="lang-uz" class="lang-row active" onclick="setLang('uz')">
+          <span class="lang-row-text"><span class="lang-row-name">O'zbekcha</span><span class="lang-row-sub">Uzbek</span></span>
+          <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
+        <button id="lang-ru" class="lang-row" onclick="setLang('ru')">
+          <span class="lang-row-text"><span class="lang-row-name">Русский</span><span class="lang-row-sub">Russian</span></span>
+          <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
+      </div>
     </div>
     <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema">
       <span class="tt-track">
@@ -446,11 +488,17 @@ function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
   document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
   document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
+  document.getElementById('langPickerCode').textContent = currentLang.toUpperCase();
 }
 function setLang(l){
   currentLang=l; localStorage.setItem('km_lang', l);
   applyLang(); renderQuestions();
+  document.getElementById('langMenu').classList.remove('show');
 }
+function toggleLangMenu(){ document.getElementById('langMenu').classList.toggle('show'); }
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.lang-picker')){ document.getElementById('langMenu').classList.remove('show'); }
+});
 applyLang();
 
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;

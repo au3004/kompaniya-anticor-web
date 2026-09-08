@@ -24,11 +24,10 @@
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 body{
-  font-family:'Inter', sans-serif; background:var(--bg); color:var(--text);
+  font-family:'Inter', sans-serif; color:var(--text);
+  background:radial-gradient(ellipse at 70% 10%, var(--bg-deep), var(--bg) 70%);
   min-height:100vh; overflow-x:hidden; transition:background .5s ease, color .5s ease; position:relative;
 }
-canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
-  background:radial-gradient(ellipse at 70% 10%, var(--bg-deep), var(--bg) 70%); }
 
 /* ===== Topbar ===== */
 .topbar{
@@ -42,19 +41,34 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .brand-logo{ height:22px; width:auto; display:block; }
 
 .controls{ display:flex; align-items:center; gap:12px; }
-/* ===== Glass UI oilasi: theme-toggle bilan bir xil shisha (glassmorphism)
-   tili — xiralashgan orqa fon, ichki nur, yumshoq soya, hover'da azure porlash.
-   Til almashtirgichi endi profil ochiluvchi menyusi ichida, eng tepada. */
+/* ===== Til almashtirgich: belgilash ro'yxati (checkmark list) uslubida =====
+   Profil ochiluvchi menyusi ichida, eng tepada — har bir til alohida qatorda,
+   tanlangani o'ng tomonda azure/teal rangli belgi (check) bilan ko'rsatiladi. */
 .dropdown-lang{
-  display:flex; gap:2px;
-  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
+  display:flex; flex-direction:column; gap:2px;
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
   backdrop-filter:blur(16px);
-  border:1px solid var(--card-border); border-radius:999px; padding:3px;
-  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  border:1px solid var(--card-border); border-radius:14px; padding:4px;
   margin-bottom:6px;
 }
-.dropdown-lang button{ flex:1; border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:7px 0; border-radius:999px; transition:background .35s cubic-bezier(.68,-0.2,.27,1.3), color .3s ease, box-shadow .35s ease; }
-.dropdown-lang button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; box-shadow:0 4px 14px rgba(0,163,224,.4), inset 0 1px 0 rgba(255,255,255,.45); }
+.lang-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+  border:none; background:transparent; cursor:pointer; text-align:left;
+  padding:9px 10px; border-radius:10px; transition:background .2s ease;
+}
+.lang-row:hover{ background:rgba(255,255,255,.07); }
+.lang-row-text{ display:flex; flex-direction:column; gap:1px; }
+.lang-row-name{ font-size:13px; font-weight:600; color:var(--text); }
+.lang-row-sub{ font-size:11px; color:var(--text-dim); }
+.lang-row-check{
+  flex:none; width:18px; height:18px; border-radius:50%; border:1.5px solid var(--card-border);
+  display:flex; align-items:center; justify-content:center; color:transparent;
+  transition:background .25s ease, border-color .25s ease, color .25s ease;
+}
+.lang-row-check svg{ width:11px; height:11px; }
+.lang-row.active{ background:rgba(0,163,224,.10); }
+.lang-row.active .lang-row-name{ color:var(--azure); }
+.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#00263F; }
 .dropdown-divider{ height:1px; background:var(--card-border); margin:2px 4px 8px; }
 .home-icon-btn{
   position:relative; width:32px; height:32px; border-radius:50%;
@@ -136,7 +150,6 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   box-shadow:0 16px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25), inset 0 0 24px rgba(255,255,255,.06);
   transition:
     left .7s cubic-bezier(.68,-0.55,.27,1.55),
-    border-radius .65s cubic-bezier(.68,-0.55,.27,1.55),
     transform .3s cubic-bezier(.68,-0.55,.27,1.55),
     background .6s ease, border-color .6s ease, box-shadow .6s ease;
   animation:ttBlobFloat 7s ease-in-out infinite;
@@ -258,7 +271,18 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   padding:2px 7px; opacity:0; transition:opacity .2s ease .05s;
 }
 .app-sidebar.expanded .si-soon{ opacity:1; }
-#sectionAnticor, #sectionHR, #sectionAdmin{ padding-left:var(--sidebar-w); transition:padding-left .3s ease; }
+#sectionHome, #sectionAnticor, #sectionHR, #sectionAdmin{ padding-left:var(--sidebar-w); transition:padding-left .3s ease; }
+.home-tiles{ position:relative; z-index:5; max-width:920px; margin:0 auto; padding:0 32px 60px; display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:16px; }
+.home-tile{
+  position:relative; display:flex; flex-direction:column; gap:8px; text-align:left; text-decoration:none; color:var(--text);
+  background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:20px;
+  transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.home-tile:hover{ transform:translateY(-3px); border-color:var(--azure); box-shadow:0 14px 30px -12px rgba(0,163,224,0.35); }
+.home-tile-icon{ width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; color:var(--azure); background:rgba(0,163,224,0.12); }
+.home-tile-title{ font-weight:700; font-size:15px; }
+.home-tile-desc{ font-size:12.5px; color:var(--text-dim); line-height:1.5; }
+.home-tile-badge{ position:absolute; top:16px; right:16px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px; padding:2px 7px; }
 #sectionAdmin{ padding-top:var(--topbar-h); position:relative; z-index:5; }
 #sectionAdmin #adminFrame{ display:block; width:100%; border:0; height:calc(100vh - var(--topbar-h)); }
 @media (max-width:640px){
@@ -410,8 +434,6 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 </head>
 <body data-theme="dark">
 
-<canvas id="net"></canvas>
-
 <div class="topbar">
   <div style="display:flex; align-items:center; gap:10px;">
     <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
@@ -443,8 +465,14 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
       </button>
       <div class="dropdown" id="dropdown">
         <div class="dropdown-lang">
-          <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
-          <button id="lang-ru" onclick="setLang('ru')">RU</button>
+          <button id="lang-uz" class="lang-row active" onclick="setLang('uz')">
+            <span class="lang-row-text"><span class="lang-row-name">O'zbekcha</span><span class="lang-row-sub">Uzbek</span></span>
+            <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+          </button>
+          <button id="lang-ru" class="lang-row" onclick="setLang('ru')">
+            <span class="lang-row-text"><span class="lang-row-name">Русский</span><span class="lang-row-sub">Russian</span></span>
+            <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+          </button>
         </div>
         <div class="dropdown-divider"></div>
         <button onclick="openModal('settingsModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="menuSettings">Sozlamalar</span></button>
@@ -487,7 +515,33 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   </nav>
 </div>
 
-<div id="sectionAnticor">
+<!-- Bosh sahifa: shaxsiy salomlashuv + bo'limlarga tezkor o'tish -->
+<div id="sectionHome">
+  <div class="hero">
+    <h1 data-i18n="homeTitle">Bosh sahifa</h1>
+    <p class="desc" id="homeGreeting"></p>
+  </div>
+  <div class="home-tiles">
+    <a href="#" class="home-tile" onclick="return sidebarShowSection('anticor')">
+      <span class="home-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+      <span class="home-tile-title" data-i18n="navAnticor">Korrupsiyaga qarshi kurashish</span>
+      <span class="home-tile-desc" data-i18n="homeAnticorDesc">Hujjatlar, testlar va holatingizni shu yerdan kuzating</span>
+    </a>
+    <a href="#" class="home-tile" onclick="return sidebarShowSection('hr')">
+      <span class="home-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="home-tile-title" data-i18n="navHR">Inson resurslarini boshqarish xizmati</span>
+      <span class="home-tile-desc" data-i18n="homeHrDesc">Tez orada ishga tushiriladi</span>
+      <span class="home-tile-badge" data-i18n="soonTag">Tez orada</span>
+    </a>
+    <a href="#" class="home-tile" id="homeTileAdmin" style="display:none;" onclick="return sidebarShowSection('admin')">
+      <span class="home-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-4-4L3 15.5"/></svg></span>
+      <span class="home-tile-title" data-i18n="navAdmin">Boshqaruv paneli</span>
+      <span class="home-tile-desc" data-i18n="homeAdminDesc">Xodimlar, hisobotlar va tizim sozlamalari</span>
+    </a>
+  </div>
+</div>
+
+<div id="sectionAnticor" style="display:none;">
   <div class="hero">
     <h1 data-i18n="heroTitle">Korrupsiyaga qarshi kurashish</h1>
     <p class="desc" data-i18n="heroDesc">Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.</p>
@@ -580,13 +634,6 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
       <button class="settings-menu-item" onclick="showSettingsView('sessionsView'); loadMySessions();">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/></svg>
         <span data-i18n="sessionsMenu">Faol sessiyalar</span>
-        <span class="chev">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
-        </span>
-      </button>
-      <button class="settings-menu-item" onclick="showSettingsView('supportView')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
-        <span data-i18n="helpMenu">Yordam</span>
         <span class="chev">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
         </span>
@@ -801,6 +848,9 @@ const dict = {
     declarationBtn:"Deklaratsiya to'ldirish", soonTag:"Tez orada", soonMsg:"Bu bo'lim tez orada ishga tushiriladi",
     navHome:"Bosh sahifa", navAnticor:"Korrupsiyaga qarshi kurashish", navHR:"Inson resurslarini boshqarish xizmati", navAdmin:"Boshqaruv paneli",
     hrTitle:"Inson resurslarini boshqarish xizmati", hrDesc:"Bu bo'lim tez orada ishga tushiriladi.",
+    homeTitle:"Bosh sahifa", homeGreeting:"Xush kelibsiz, {name}!",
+    homeAnticorDesc:"Hujjatlar, testlar va holatingizni shu yerdan kuzating",
+    homeHrDesc:"Tez orada ishga tushiriladi", homeAdminDesc:"Xodimlar, hisobotlar va tizim sozlamalari",
     checkBtn:"Tekshirish", statusErrText:"Bu raqam topilmadi", notYourNumber:"Ushbu raqam sizga tegishli emas",
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
     docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Test natijasi",
@@ -841,6 +891,9 @@ const dict = {
     declarationBtn:"Заполнить декларацию", soonTag:"Скоро", soonMsg:"Этот раздел скоро будет запущен",
     navHome:"Главная", navAnticor:"Противодействие коррупции", navHR:"Служба управления персоналом", navAdmin:"Панель управления",
     hrTitle:"Служба управления персоналом", hrDesc:"Этот раздел скоро будет запущен.",
+    homeTitle:"Главная", homeGreeting:"Добро пожаловать, {name}!",
+    homeAnticorDesc:"Следите за документами, тестами и своим статусом",
+    homeHrDesc:"Скоро будет запущено", homeAdminDesc:"Сотрудники, отчёты и настройки системы",
     checkBtn:"Проверить", statusErrText:"Номер не найден", notYourNumber:"Этот номер вам не принадлежит",
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
     docLabel:"Ознакомлен с внутренними документами", testLabel:"Результат теста",
@@ -884,7 +937,7 @@ function applyLang(){
   document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
   document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
 }
-function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderInfoLang(); }
+function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderInfoLang(); if(typeof currentUser !== 'undefined') renderHomeGreeting(currentUser); }
 applyLang();
 
 /* ---------- Theme ---------- */
@@ -917,8 +970,16 @@ function loadUser(){
   if(user.rol === 'gl-admin' || user.rol === 'admin'){
     const navAdmin = document.getElementById('navAdmin');
     if(navAdmin) navAdmin.style.display = 'flex';
+    const homeTileAdmin = document.getElementById('homeTileAdmin');
+    if(homeTileAdmin) homeTileAdmin.style.display = 'flex';
   }
+  renderHomeGreeting(user);
   return user;
+}
+function renderHomeGreeting(user){
+  const el = document.getElementById('homeGreeting');
+  if(!el || !user) return;
+  el.textContent = dict[currentLang].homeGreeting.replace('{name}', user.ism || '');
 }
 let currentUser = loadUser();
 if(currentUser) renderInfoLang();
@@ -1069,15 +1130,13 @@ function setActiveNav(id){
 }
 
 function sidebarGoHome(){
-  sidebarShowSection('anticor');
-  setActiveNav('navHome');
-  return false;
+  return sidebarShowSection('home');
 }
 
 function sidebarShowSection(name){
-  const sections = { anticor:'sectionAnticor', hr:'sectionHR', admin:'sectionAdmin' };
-  const navIds = { anticor:'navAnticor', hr:'navHR', admin:'navAdmin' };
-  if(!sections[name]) name = 'anticor';
+  const sections = { home:'sectionHome', anticor:'sectionAnticor', hr:'sectionHR', admin:'sectionAdmin' };
+  const navIds = { home:'navHome', anticor:'navAnticor', hr:'navHR', admin:'navAdmin' };
+  if(!sections[name]) name = 'home';
   Object.keys(sections).forEach(function(key){
     document.getElementById(sections[key]).style.display = (key === name) ? 'block' : 'none';
   });
@@ -1435,34 +1494,6 @@ async function checkStatus(){
     errBox.classList.add('show');
   }
 }
-
-/* ---------- Network background (login sahifasidagi bilan bir xil) ---------- */
-const canvas = document.getElementById('net'); const ctx = canvas.getContext('2d');
-let W,H,nodes;
-function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
-window.addEventListener('resize', resize); resize();
-function initNodes(){
-  const count = Math.min(70, Math.floor((W*H)/22000));
-  nodes = Array.from({length:count}, ()=>({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*0.35, vy:(Math.random()-0.5)*0.35, r:Math.random()*1.6+0.6 }));
-}
-initNodes(); window.addEventListener('resize', initNodes);
-function isLight(){ return document.body.getAttribute('data-theme')==='light'; }
-function draw(){
-  ctx.clearRect(0,0,W,H);
-  const lineColor = isLight() ? 'rgba(11,37,69,' : 'rgba(0,217,192,';
-  const dotColor = isLight() ? 'rgba(0,163,224,0.55)' : 'rgba(0,217,192,0.75)';
-  for(let i=0;i<nodes.length;i++){
-    const n=nodes[i]; n.x+=n.vx; n.y+=n.vy;
-    if(n.x<0||n.x>W) n.vx*=-1; if(n.y<0||n.y>H) n.vy*=-1;
-    for(let j=i+1;j<nodes.length;j++){
-      const m=nodes[j]; const dx=n.x-m.x, dy=n.y-m.y; const dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<130){ ctx.strokeStyle=lineColor+(0.12*(1-dist/130))+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(n.x,n.y); ctx.lineTo(m.x,m.y); ctx.stroke(); }
-    }
-  }
-  for(const n of nodes){ ctx.fillStyle=dotColor; ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill(); }
-  requestAnimationFrame(draw);
-}
-draw();
 
 // XAVFSIZLIK: brauzer "Ortga" tugmasi orqali keshdagi (bfcache) sahifani qaytarganda
 // (masalan, Chiqish qilingandan keyin) sessiyani qayta tekshiradi — agar sessiya

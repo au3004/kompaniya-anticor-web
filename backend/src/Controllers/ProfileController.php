@@ -115,9 +115,12 @@ final class ProfileController
         // Muddati o'tgan (endi ishlamaydigan) sessiyalar jadvalda faqat ularning
         // tokeni qayta ishlatilib ko'rilgandagina o'chirilardi — hech kim qayta
         // urinmasa, ro'yxatda "kecha kirilgan" bo'lib abadiy osilib qolardi.
-        // Shu yerda ham har safar tozalab qo'yamiz.
-        $cleanup = $db->prepare('DELETE FROM sessions WHERE user_id = :id AND expires_at < NOW()');
-        $cleanup->execute(['id' => $user['id']]);
+        // Shu yerda ham har safar tozalab qo'yamiz. MySQL'ning o'z NOW()'i emas,
+        // aynan PHP'da hisoblangan vaqt bilan solishtiramiz — expires_at ham
+        // har doim shu tarzda (Auth::requireUser'da) yozilgan, shu bilan ikkala
+        // tomon qanday sozlangan bo'lishidan qat'i nazar hamisha izchil bo'ladi.
+        $cleanup = $db->prepare('DELETE FROM sessions WHERE user_id = :id AND expires_at < :now');
+        $cleanup->execute(['id' => $user['id'], 'now' => date('Y-m-d H:i:s')]);
 
         $stmt = $db->prepare(
             'SELECT token, created_at, expires_at FROM sessions WHERE user_id = :id ORDER BY created_at DESC'
