@@ -258,7 +258,9 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   padding:2px 7px; opacity:0; transition:opacity .2s ease .05s;
 }
 .app-sidebar.expanded .si-soon{ opacity:1; }
-#sectionAnticor, #sectionHR{ padding-left:var(--sidebar-w); transition:padding-left .3s ease; }
+#sectionAnticor, #sectionHR, #sectionAdmin{ padding-left:var(--sidebar-w); transition:padding-left .3s ease; }
+#sectionAdmin{ padding-top:var(--topbar-h); position:relative; z-index:5; }
+#sectionAdmin #adminFrame{ display:block; width:100%; border:0; height:calc(100vh - var(--topbar-h)); }
 @media (max-width:640px){
   :root{ --sidebar-w:52px; --sidebar-w-open:220px; }
 }
@@ -415,7 +417,6 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
     <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
   </div>
   <div class="controls">
-    <a id="adminMenuBtn" class="home-icon-btn" href="#" title="Boshqaruv" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-4-4L3 15.5"/></svg></a>
     <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema">
       <span class="tt-track">
         <span class="tt-glow"></span>
@@ -479,6 +480,10 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
       <span class="si-label" data-i18n="navHR">Inson resurslarini boshqarish xizmati</span>
       <span class="si-soon" data-i18n="soonTag">Tez orada</span>
     </a>
+    <a class="sidebar-item" id="navAdmin" href="#" onclick="return sidebarShowSection('admin')" style="display:none;">
+      <span class="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-4-4L3 15.5"/></svg></span>
+      <span class="si-label" data-i18n="navAdmin">Boshqaruv paneli</span>
+    </a>
   </nav>
 </div>
 
@@ -526,6 +531,13 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
     <h1 data-i18n="hrTitle">Inson resurslarini boshqarish xizmati</h1>
     <p class="desc" data-i18n="hrDesc">Bu bo'lim tez orada ishga tushiriladi.</p>
   </div>
+</div>
+
+<!-- Boshqaruv paneli (admin/gl-admin) — admin.html shu yerda <iframe> orqali
+     "ichida" ochiladi (bir xil origin, sessiya sessionStorage/localStorage
+     orqali umumiy), sidebar orqali navigatsiya qilinadi. -->
+<div id="sectionAdmin" style="display:none;">
+  <iframe id="adminFrame" title="Boshqaruv paneli"></iframe>
 </div>
 
 <!-- Settings modal -->
@@ -787,7 +799,7 @@ const dict = {
     statusTitle:"Holatingizni tekshiring", statusSub:"Telefon raqamingizni kiriting",
     docsBtn:"Hujjatlar bilan tanishish", testBtn:"Testni topshirish", surveyBtn:"Anonim so'rovnoma",
     declarationBtn:"Deklaratsiya to'ldirish", soonTag:"Tez orada", soonMsg:"Bu bo'lim tez orada ishga tushiriladi",
-    navHome:"Bosh sahifa", navAnticor:"Korrupsiyaga qarshi kurashish", navHR:"Inson resurslarini boshqarish xizmati",
+    navHome:"Bosh sahifa", navAnticor:"Korrupsiyaga qarshi kurashish", navHR:"Inson resurslarini boshqarish xizmati", navAdmin:"Boshqaruv paneli",
     hrTitle:"Inson resurslarini boshqarish xizmati", hrDesc:"Bu bo'lim tez orada ishga tushiriladi.",
     checkBtn:"Tekshirish", statusErrText:"Bu raqam topilmadi", notYourNumber:"Ushbu raqam sizga tegishli emas",
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
@@ -827,7 +839,7 @@ const dict = {
     statusTitle:"Проверьте свой статус", statusSub:"Введите номер телефона",
     docsBtn:"Ознакомиться с документами", testBtn:"Пройти тест", surveyBtn:"Анонимный опрос",
     declarationBtn:"Заполнить декларацию", soonTag:"Скоро", soonMsg:"Этот раздел скоро будет запущен",
-    navHome:"Главная", navAnticor:"Противодействие коррупции", navHR:"Служба управления персоналом",
+    navHome:"Главная", navAnticor:"Противодействие коррупции", navHR:"Служба управления персоналом", navAdmin:"Панель управления",
     hrTitle:"Служба управления персоналом", hrDesc:"Этот раздел скоро будет запущен.",
     checkBtn:"Проверить", statusErrText:"Номер не найден", notYourNumber:"Этот номер вам не принадлежит",
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
@@ -903,11 +915,8 @@ function loadUser(){
   document.getElementById('infoFish').textContent = [user.familiya, user.ism, user.otasi].filter(Boolean).join(' ');
   document.getElementById('infoPhone').textContent = user.telefon || '—';
   if(user.rol === 'gl-admin' || user.rol === 'admin'){
-    const adminBtn = document.getElementById('adminMenuBtn');
-    if(adminBtn){
-      adminBtn.style.display = 'flex';
-      adminBtn.href = 'admin.html';
-    }
+    const navAdmin = document.getElementById('navAdmin');
+    if(navAdmin) navAdmin.style.display = 'flex';
   }
   return user;
 }
@@ -1066,16 +1075,16 @@ function sidebarGoHome(){
 }
 
 function sidebarShowSection(name){
-  const anticor = document.getElementById('sectionAnticor');
-  const hr = document.getElementById('sectionHR');
-  if(name === 'hr'){
-    anticor.style.display = 'none';
-    hr.style.display = 'block';
-    setActiveNav('navHR');
-  } else {
-    hr.style.display = 'none';
-    anticor.style.display = 'block';
-    setActiveNav('navAnticor');
+  const sections = { anticor:'sectionAnticor', hr:'sectionHR', admin:'sectionAdmin' };
+  const navIds = { anticor:'navAnticor', hr:'navHR', admin:'navAdmin' };
+  if(!sections[name]) name = 'anticor';
+  Object.keys(sections).forEach(function(key){
+    document.getElementById(sections[key]).style.display = (key === name) ? 'block' : 'none';
+  });
+  setActiveNav(navIds[name]);
+  if(name === 'admin'){
+    const frame = document.getElementById('adminFrame');
+    if(frame && !frame.src){ frame.src = 'admin.html'; }
   }
   return false;
 }
@@ -1485,6 +1494,14 @@ window.addEventListener('pageshow', function(event){
   }
   ['mousedown','mousemove','keydown','wheel','touchstart','click'].forEach(evt => {
     window.addEventListener(evt, resetIdleTimer, { passive:true });
+  });
+  // Ichki (embedded) boshqaruv paneli <iframe>'i o'z hodisalarini alohida
+  // hujjat sifatida oladi (parentga "bubble" bo'lib chiqmaydi) — shu bois u
+  // harakat bo'lganda shu yerga postMessage orqali xabar beradi, aks holda
+  // foydalanuvchi boshqaruv panelida faol ishlab turgan holda ham 10 daqiqadan
+  // so'ng chiqarib yuborilishi mumkin edi.
+  window.addEventListener('message', function(e){
+    if(e.origin === window.location.origin && e.data && e.data.type === 'km-activity'){ resetIdleTimer(); }
   });
   resetIdleTimer();
 })();

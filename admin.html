@@ -155,6 +155,16 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .theme-toggle.active .tt-icon.tt-moon{ opacity:1; transform:scale(1) rotate(0deg); }
 
 .main{ max-width:1300px; margin:0 auto; padding:110px 24px 80px; position:relative; z-index:5; }
+/* ===== "Ichki" (embedded) rejim: main.html'ning chap sidebar paneli ichida
+   ochilganda o'z topbar'ini yashiradi — chunki tema, til, Yordam, Xabarnoma
+   va "Bosh sahifa"ga qaytish allaqachon asosiy sahifaning o'z topbar'i va
+   sidebar'ida mavjud, ikkalanishning oldini olish uchun. ===== */
+body.embedded .topbar{ display:none; }
+body.embedded .main{ padding-top:28px; }
+body.embedded #hubView .back-btn{ display:none; }
+/* Fon animatsiyasi (tarmoq chizig'i) asosiy sahifada allaqachon ishlab
+   turibdi — ichida qayta chizib, ikkita parallel animatsiya yuklamasin. */
+body.embedded canvas#net{ display:none; }
 .page-head{ margin-bottom:26px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
 .page-head .eyebrow{ font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--azure); }
 .page-head h1{ font-family:'Unbounded', sans-serif; font-size:clamp(20px,4vw,28px); margin-top:8px; }
@@ -398,6 +408,11 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 </style>
 </head>
 <body data-theme="dark">
+<script>
+// main.html'ning chap sidebar paneli ichida <iframe> orqali ochilganmi —
+// shunga qarab o'zining topbar'ini yashiradi (embedded rejim).
+if(window.self !== window.top){ document.body.classList.add('embedded'); }
+</script>
 
 <canvas id="net"></canvas>
 
@@ -2912,7 +2927,7 @@ function draw(){
   for(const n of nodes){ ctx.fillStyle=dotColor; ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill(); }
   requestAnimationFrame(draw);
 }
-draw();
+if(!document.body.classList.contains('embedded')) draw();
 
 // XAVFSIZLIK: brauzer "Ortga" tugmasi orqali keshdagi (bfcache) sahifani qaytarganda
 // (masalan, Chiqish qilingandan keyin) sessiyani qayta tekshiradi — agar sessiya
@@ -2926,9 +2941,21 @@ window.addEventListener('pageshow', function(event){
 });
 
 // XAVFSIZLIK: 10 daqiqa harakatsizlikdan so'ng avtomat chiqish.
+// Embedded (iframe) rejimda bu hisob asosiy sahifa (main.html) tomonidan
+// yuritiladi — shu yerdagi harakatlar faqat parent'ga xabar qilinadi
+// (postMessage), ikkita mustaqil taymer bir-biriga zid ishlamasligi uchun.
 (function initIdleLogout(){
   const u = getCurrentUser();
   if(!u || !u.token) return;
+  const embedded = window.self !== window.top;
+  if(embedded){
+    ['mousedown','mousemove','keydown','wheel','touchstart','click'].forEach(evt => {
+      window.addEventListener(evt, function(){
+        try{ window.parent.postMessage({ type:'km-activity' }, window.location.origin); }catch(e){}
+      }, { passive:true });
+    });
+    return;
+  }
   const IDLE_LIMIT_MS = 10 * 60 * 1000;
   let idleTimer = null;
   function doIdleLogout(){
@@ -2947,6 +2974,13 @@ window.addEventListener('pageshow', function(event){
   });
   resetIdleTimer();
 })();
+
+// Tema/til boshqa oynada (masalan asosiy sahifa topbar'idan) o'zgartirilsa,
+// shu (iframe ichidagi) sahifada ham darhol yangilanadi.
+window.addEventListener('storage', function(e){
+  if(e.key === 'km_theme'){ theme = e.newValue || 'dark'; applyTheme(); }
+  if(e.key === 'km_lang'){ currentLang = e.newValue || 'uz'; applyLang(); renderAll(); }
+});
 </script>
 </body>
 </html>
