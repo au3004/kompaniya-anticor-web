@@ -91,15 +91,47 @@ canvas#net{
   color:#00263F;
 }
 
+/* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
+   Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
+   — kod to'liq o'qib chiqilgan (faqat CSS animatsiya + oddiy klass
+   almashtirish, tashqi so'rov/skript yo'q), loyihaning o'z rang
+   palitrasi va o'lchamiga moslab qayta yozildi. */
 .theme-toggle{
-  width:38px; height:38px; border-radius:50%;
-  background:var(--card); border:1px solid var(--card-border);
-  backdrop-filter:blur(10px);
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer; color:var(--text); transition:transform .3s ease;
+  position:relative; width:56px; height:28px; padding:0; flex-shrink:0;
+  border:1px solid var(--card-border); border-radius:999px; cursor:pointer;
+  background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.25), inset 0 -6px 12px rgba(0,0,0,.15);
+  overflow:hidden;
 }
-.theme-toggle:hover{ transform:rotate(20deg); }
-.theme-toggle svg{ width:18px; height:18px; }
+.tt-glow{
+  position:absolute; left:-15%; top:-40%; width:65%; height:180%; border-radius:50%;
+  background:radial-gradient(circle at center, var(--amber), rgba(255,176,32,.55) 45%, transparent 75%);
+  filter:blur(10px); opacity:.85;
+  transition:.6s cubic-bezier(.68,-0.55,.27,1.55);
+}
+.theme-toggle.active .tt-glow{
+  left:50%;
+  background:radial-gradient(circle at center, var(--azure), rgba(0,163,224,.5) 45%, transparent 75%);
+}
+.tt-thumb{
+  position:absolute; top:50%; left:2px; transform:translateY(-50%);
+  width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(6px);
+  background:rgba(255,255,255,.35); border:1px solid rgba(255,255,255,.55);
+  box-shadow:0 2px 6px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.6);
+  transition:left .5s cubic-bezier(.68,-0.55,.27,1.55), background .5s ease, border-color .5s ease, transform .25s ease;
+}
+.theme-toggle.active .tt-thumb{
+  left:calc(100% - 26px);
+  background:rgba(11,37,69,.55); border-color:rgba(255,255,255,.25);
+}
+.theme-toggle:hover .tt-thumb{ transform:translateY(-50%) scale(1.08); }
+.tt-icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; transition:opacity .3s ease, transform .3s ease; }
+.tt-icon svg{ width:13px; height:13px; }
+.tt-icon.tt-moon{ opacity:0; transform:scale(.5) rotate(-90deg); }
+.theme-toggle.active .tt-icon.tt-sun{ opacity:0; transform:scale(.5) rotate(90deg); }
+.theme-toggle.active .tt-icon.tt-moon{ opacity:1; transform:scale(1) rotate(0deg); }
 
 /* ===== Login card ===== */
 .wrap{
@@ -234,7 +266,13 @@ canvas#net{
       <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
       <button id="lang-ru" onclick="setLang('ru')">RU</button>
     </div>
-    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema"></button>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema">
+      <span class="tt-glow"></span>
+      <span class="tt-thumb">
+        <span class="tt-icon tt-sun"></span>
+        <span class="tt-icon tt-moon"></span>
+      </span>
+    </button>
   </div>
 </div>
 
@@ -383,10 +421,13 @@ applyLang();
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
 
+document.querySelector('.tt-sun').innerHTML = sunIcon;
+document.querySelector('.tt-moon').innerHTML = moonIcon;
+
 let theme = localStorage.getItem('km_theme') || 'dark';
 function applyTheme(){
   document.body.setAttribute('data-theme', theme);
-  document.getElementById('themeBtn').innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+  document.getElementById('themeBtn').classList.toggle('active', theme === 'dark');
   document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; });
 }
 function toggleTheme(){
