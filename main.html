@@ -42,11 +42,29 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .brand-logo{ height:22px; width:auto; display:block; }
 
 .controls{ display:flex; align-items:center; gap:12px; }
-.lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
-.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; transition:all .25s ease; }
-.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
-.home-icon-btn{ width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); text-decoration:none; transition:border-color .2s ease, color .2s ease; margin-left:2px; }
-.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
+/* ===== Glass UI oilasi: theme-toggle bilan bir xil shisha (glassmorphism)
+   tili — xiralashgan orqa fon, ichki nur, yumshoq soya, hover'da azure porlash. */
+.lang-toggle{
+  display:flex; gap:2px;
+  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
+  backdrop-filter:blur(16px);
+  border:1px solid var(--card-border); border-radius:999px; padding:3px;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+}
+.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; transition:background .35s cubic-bezier(.68,-0.2,.27,1.3), color .3s ease, box-shadow .35s ease; }
+.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; box-shadow:0 4px 14px rgba(0,163,224,.4), inset 0 1px 0 rgba(255,255,255,.45); }
+.home-icon-btn{
+  position:relative; width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
+  backdrop-filter:blur(16px);
+  border:1px solid var(--card-border);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  cursor:pointer; color:var(--text-dim); text-decoration:none;
+  transition:border-color .25s ease, color .25s ease, transform .2s ease, box-shadow .25s ease;
+  margin-left:2px;
+}
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,163,224,.28); }
 /* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
    Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
    — kod to'liq o'qib chiqilgan (faqat CSS animatsiya + oddiy klass
@@ -155,11 +173,15 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 /* Profile chip */
 .profile-chip{ position:relative; }
 .chip-btn{
-  display:flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--card-border);
+  display:flex; align-items:center; gap:9px;
+  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
+  backdrop-filter:blur(16px);
+  border:1px solid var(--card-border);
   padding:5px 14px 5px 5px; border-radius:999px; cursor:pointer; color:var(--text); font-family:'Inter';
-  transition:border-color .2s ease, transform .15s ease;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  transition:border-color .25s ease, transform .2s ease, box-shadow .25s ease;
 }
-.chip-btn:hover{ border-color:var(--azure); transform:translateY(-1px); }
+.chip-btn:hover{ border-color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,163,224,.22); }
 .chip-btn .avatar{
   width:30px; height:30px; border-radius:50%; object-fit:cover;
   border:1.5px solid var(--teal); background:linear-gradient(135deg, var(--azure), var(--teal));
@@ -353,7 +375,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
         <span class="tt-icon tt-moon"></span>
       </span>
     </button>
-    <button class="theme-toggle" id="notifBtn" onclick="openNotifPanel()" style="position:relative;" title="Xabarnomalar">
+    <button class="home-icon-btn" id="notifBtn" onclick="openNotifPanel()" title="Xabarnomalar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px; border-radius:9px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:10px; font-weight:700; line-height:13px; text-align:center;"></span>
     </button>
