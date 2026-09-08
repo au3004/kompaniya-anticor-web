@@ -95,9 +95,11 @@ final class AuthController
 
         Response::success([
             'token' => true,
+            'id' => (int) $user['id'],
             'familiya' => $user['familiya'],
             'ism' => $user['ism'],
             'otasi' => $user['otasining_ismi'],
+            'tugilganSana' => $user['tugilgan_sana'] ?? null,
             'lavozim' => $user['lavozim'],
             'bolinma' => $user['bolinma'],
             'telefon' => $user['telefon'],

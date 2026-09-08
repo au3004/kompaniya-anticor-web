@@ -149,9 +149,11 @@ final class TotpController
 
         Response::success([
             'token' => true,
+            'id' => (int) $row['user_id'],
             'familiya' => $row['familiya'],
             'ism' => $row['ism'],
             'otasi' => $row['otasining_ismi'],
+            'tugilganSana' => $row['tugilgan_sana'] ?? null,
             'lavozim' => $row['lavozim'],
             'bolinma' => $row['bolinma'],
             'telefon' => $row['telefon'],

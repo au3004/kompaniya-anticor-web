@@ -57,4 +57,7 @@ final class Roles
 
     /** Boshqaruv paneliga umuman kirish huquqi bor rollar ro'yxati (hub sahifasida "kirish yo'q" xabarini ko'rsatish/kirmaslik uchun). */
     public const ANY_PANEL_ACCESS = [self::ANTICOR_ADMIN, self::ANTICOR, self::HR_ADMIN, self::HR, self::RAHBARIYAT, self::SUPER_ADMIN];
+
+    /** Xodimlar yuborgan shaxsiy hujjatlarni (Inson resurslari bo'limi orqali) ko'radi/yuklab oladi/o'chiradi — rahbariyat bunga kirmaydi. */
+    public const HR_DOCS = [self::HR_ADMIN, self::HR, self::SUPER_ADMIN];
 }

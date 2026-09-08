@@ -354,6 +354,64 @@ body{
 .status-error{ margin-top:14px; color:var(--amber); font-size:13px; display:none; }
 .status-error.show{ display:block; }
 
+/* ===== Inson resurslari bo'limi ===== */
+.hr-wrap{ position:relative; z-index:5; max-width:760px; margin:0 auto; padding:0 24px 100px; }
+.hr-tabs{ display:flex; gap:8px; margin-bottom:20px; }
+.hr-tab{
+  flex:1; padding:12px 14px; border-radius:12px; border:1px solid var(--card-border); background:var(--card);
+  color:var(--text-dim); font-weight:700; font-size:13.5px; cursor:pointer; transition:all .2s ease;
+}
+.hr-tab.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; border-color:transparent; }
+.hr-panel-card{
+  background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:28px;
+  backdrop-filter:blur(16px); box-shadow:0 30px 60px -25px rgba(0,0,0,0.4); margin-bottom:20px;
+}
+.hr-panel-card h3{ font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:18px; }
+.file-btn{
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px;
+  border:1.5px dashed var(--input-border); border-radius:11px; background:var(--input-bg);
+  color:var(--text-dim); font-size:13.5px; font-weight:600; cursor:pointer; transition:border-color .2s ease, color .2s ease;
+}
+.file-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.hr-info-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+.hr-info-table td{ padding:12px 4px; border-top:1px solid var(--card-border); }
+.hr-info-table td:first-child{ color:var(--text-dim); font-weight:600; width:40%; }
+.hr-info-table tr:first-child td{ border-top:none; }
+.hr-badge{
+  max-width:320px; margin:0 auto; border-radius:18px; padding:24px 20px 20px;
+  background:linear-gradient(160deg, var(--navy-900), var(--navy-950));
+  border:1px solid var(--card-border); text-align:center; position:relative; overflow:hidden;
+  box-shadow:0 30px 60px -25px rgba(0,0,0,0.5);
+}
+.hr-badge::before{
+  content:""; position:absolute; top:-40%; right:-30%; width:70%; height:70%; border-radius:50%;
+  background:radial-gradient(circle, rgba(0,163,224,.25), transparent 70%);
+}
+.hr-badge-photo{
+  width:76px; height:76px; border-radius:50%; margin:0 auto 12px; overflow:hidden;
+  border:3px solid rgba(255,255,255,.18); position:relative; z-index:1;
+}
+.hr-badge-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+.hr-badge-name{ position:relative; z-index:1; font-family:'Unbounded', sans-serif; font-weight:700; font-size:15px; color:#fff; }
+.hr-badge-role{ position:relative; z-index:1; color:var(--teal); font-size:12px; font-weight:600; margin-top:4px; }
+.hr-badge-divider{ position:relative; z-index:1; height:1px; background:rgba(255,255,255,.14); margin:16px 0; }
+.hr-badge-company{ position:relative; z-index:1; color:rgba(255,255,255,.55); font-size:10.5px; text-transform:uppercase; letter-spacing:.6px; }
+.hr-badge-id{ position:relative; z-index:1; color:rgba(255,255,255,.85); font-size:11px; font-family:monospace; margin-top:4px; }
+.hr-table-wrap{
+  background:var(--card); border:1px solid var(--card-border); border-radius:16px;
+  max-height:560px; overflow:auto; -webkit-overflow-scrolling:touch;
+}
+.hr-table{ width:100%; border-collapse:collapse; font-size:13px; min-width:640px; }
+.hr-table thead th{ position:sticky; top:0; z-index:2; }
+.hr-table th{ text-align:left; padding:13px 14px; background:var(--bg-deep); color:var(--text-dim); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.3px; }
+.hr-table td{ padding:12px 14px; border-top:1px solid var(--card-border); }
+.hr-table .icon-btn{
+  width:30px; height:30px; border-radius:8px; border:1px solid var(--card-border); background:var(--input-bg);
+  color:var(--text-dim); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; margin-right:6px;
+}
+.hr-table .icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.hr-table .icon-btn.danger:hover{ border-color:var(--coral); color:var(--coral); }
+
 /* ===== Modal ===== */
 .modal-overlay{
   position:fixed; inset:0; background:rgba(4,15,30,0.65); backdrop-filter:blur(4px);
@@ -574,16 +632,65 @@ body{
           <span data-i18n="testLabel">Test natijasi</span>
           <span class="badge" id="testBadge">—</span>
         </div>
+        <div class="status-item">
+          <span data-i18n="declLabel">Deklaratsiya to'ldirilgan</span>
+          <span class="badge" id="declBadge">—</span>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Inson resurslarini boshqarish xizmati (keyinroq ishga tushiriladi) -->
+<!-- Inson resurslarini boshqarish xizmati -->
 <div id="sectionHR" style="display:none;">
-  <div class="hero">
+  <div class="hero" style="padding-bottom:20px;">
     <h1 data-i18n="hrTitle">Inson resurslarini boshqarish xizmati</h1>
-    <p class="desc" data-i18n="hrDesc">Bu bo'lim tez orada ishga tushiriladi.</p>
+    <p class="desc" data-i18n="hrDesc2">Hujjat yuboring yoki shaxsiy ma'lumotlaringizni ko'ring.</p>
+  </div>
+
+  <div class="hr-wrap">
+    <div class="hr-tabs">
+      <button class="hr-tab active" id="hrTabUpload" onclick="showHrTab('upload')" data-i18n="hrTabUpload">Hujjat yuborish</button>
+      <button class="hr-tab" id="hrTabInfo" onclick="showHrTab('info')" data-i18n="hrTabInfo">Mening ma'lumotlarim</button>
+    </div>
+
+    <div id="hrUploadPanel">
+      <div class="hr-panel-card">
+        <h3 data-i18n="hrUploadTitle">Hujjat yuborish</h3>
+        <div class="field">
+          <label data-i18n="docFileLabel">PDF fayl</label>
+          <label class="file-btn" for="hrFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            <span id="hrFileBtnText" data-i18n="docFileChoose">PDF fayl tanlash</span>
+          </label>
+          <input type="file" id="hrFile" accept="application/pdf,.pdf" style="display:none;" onchange="onHrFileChange(event)">
+          <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="docFileHint">Faqat PDF, maksimal 25MB</div>
+        </div>
+        <button class="modal-submit" type="button" id="hrSubmitBtn" onclick="submitHrDocument()" data-i18n="hrSendBtn">Yuborish</button>
+        <div class="modal-msg" id="hrUploadMsg"></div>
+      </div>
+    </div>
+
+    <div id="hrInfoPanel" style="display:none;">
+      <div class="hr-panel-card">
+        <h3 data-i18n="menuInfo">Mening ma'lumotlarim</h3>
+        <table class="hr-info-table">
+          <tr><td data-i18n="fishLabel">F.I.Sh</td><td id="hrInfoFish">—</td></tr>
+          <tr><td data-i18n="thBirthDate">Tug'ilgan sana</td><td id="hrInfoBirth">—</td></tr>
+          <tr><td data-i18n="posLabel">Lavozim</td><td id="hrInfoPos">—</td></tr>
+          <tr><td data-i18n="deptLabel">Bo'linma</td><td id="hrInfoDept">—</td></tr>
+          <tr><td data-i18n="phoneLabel">Telefon</td><td id="hrInfoPhone">—</td></tr>
+        </table>
+      </div>
+      <div class="hr-badge" id="hrBadge">
+        <div class="hr-badge-photo"><img id="hrBadgeAvatar" src="" alt=""></div>
+        <div class="hr-badge-name" id="hrBadgeName">—</div>
+        <div class="hr-badge-role" id="hrBadgePos">—</div>
+        <div class="hr-badge-divider"></div>
+        <div class="hr-badge-company">«O'zbektelekom» AK</div>
+        <div class="hr-badge-id" id="hrBadgeId">—</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -851,9 +958,16 @@ const dict = {
     homeTitle:"Bosh sahifa", homeGreeting:"Xush kelibsiz, {name}!",
     homeAnticorDesc:"Hujjatlar, testlar va holatingizni shu yerdan kuzating",
     homeHrDesc:"Tez orada ishga tushiriladi", homeAdminDesc:"Xodimlar, hisobotlar va tizim sozlamalari",
+    hrDesc2:"Hujjat yuboring yoki shaxsiy ma'lumotlaringizni ko'ring.",
+    hrTabUpload:"Hujjat yuborish", hrTabInfo:"Mening ma'lumotlarim", hrUploadTitle:"Hujjat yuborish",
+    hrSendBtn:"Yuborish", hrFileRequiredErr:"PDF fayl tanlang", hrSentOk:"Hujjat muvaffaqiyatli yuborildi ✓",
+    hrBadgeNoPos:"Lavozim ko'rsatilmagan", thBirthDate:"Tug'ilgan sana",
+    docFileChoose:"PDF fayl tanlash", docFileHint:"Faqat PDF, maksimal 25MB",
+    docFileTooLargeErr:"Fayl hajmi juda katta (maksimal 25MB)", docFileTypeErr:"Fayl formati noto'g'ri, faqat PDF qabul qilinadi",
     checkBtn:"Tekshirish", statusErrText:"Bu raqam topilmadi", notYourNumber:"Ushbu raqam sizga tegishli emas",
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
     docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Test natijasi",
+    declLabel:"Deklaratsiya to'ldirilgan",
     oldPassLabel:"Eski parol", newPassLabel:"Yangi parol", confirmPassLabel:"Yangi parolni tasdiqlash",
     saveBtn:"Saqlash", fishLabel:"F.I.Sh", posLabel:"Lavozim", deptLabel:"Bo'linma", phoneLabel:"Telefon",
     menuLogout:"Chiqish", changePassMenu:"Parolni almashtirish", backLabel:"Orqaga",
@@ -894,9 +1008,16 @@ const dict = {
     homeTitle:"Главная", homeGreeting:"Добро пожаловать, {name}!",
     homeAnticorDesc:"Следите за документами, тестами и своим статусом",
     homeHrDesc:"Скоро будет запущено", homeAdminDesc:"Сотрудники, отчёты и настройки системы",
+    hrDesc2:"Отправьте документ или посмотрите свои личные данные.",
+    hrTabUpload:"Отправить документ", hrTabInfo:"Мои данные", hrUploadTitle:"Отправить документ",
+    hrSendBtn:"Отправить", hrFileRequiredErr:"Выберите PDF файл", hrSentOk:"Документ успешно отправлен ✓",
+    hrBadgeNoPos:"Должность не указана", thBirthDate:"Дата рождения",
+    docFileChoose:"Выбрать PDF файл", docFileHint:"Только PDF, максимум 25MB",
+    docFileTooLargeErr:"Размер файла слишком большой (максимум 25MB)", docFileTypeErr:"Неверный формат файла, принимается только PDF",
     checkBtn:"Проверить", statusErrText:"Номер не найден", notYourNumber:"Этот номер вам не принадлежит",
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
     docLabel:"Ознакомлен с внутренними документами", testLabel:"Результат теста",
+    declLabel:"Декларация заполнена",
     oldPassLabel:"Старый пароль", newPassLabel:"Новый пароль", confirmPassLabel:"Подтвердите новый пароль",
     saveBtn:"Сохранить", fishLabel:"ФИО", posLabel:"Должность", deptLabel:"Подразделение", phoneLabel:"Телефон",
     menuLogout:"Выйти", changePassMenu:"Изменить пароль", backLabel:"Назад",
@@ -1148,7 +1269,101 @@ function sidebarShowSection(name){
     const frame = document.getElementById('adminFrame');
     if(frame && !frame.src){ frame.src = 'admin.html'; }
   }
+  if(name === 'hr'){ renderHrInfo(); }
   return false;
+}
+
+/* ---------- Inson resurslari: Hujjat yuborish + Mening ma'lumotlarim ---------- */
+function formatBirthDate(v){
+  if(!v) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : v;
+}
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('read-failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function showHrTab(tab){
+  document.getElementById('hrTabUpload').classList.toggle('active', tab === 'upload');
+  document.getElementById('hrTabInfo').classList.toggle('active', tab === 'info');
+  document.getElementById('hrUploadPanel').style.display = tab === 'upload' ? 'block' : 'none';
+  document.getElementById('hrInfoPanel').style.display = tab === 'info' ? 'block' : 'none';
+  if(tab === 'info') renderHrInfo();
+}
+
+const HR_FILE_MAX_BYTES = 25 * 1024 * 1024;
+let pendingHrFileDataUrl = null;
+let pendingHrFileName = '';
+
+async function onHrFileChange(e){
+  const file = e.target.files[0];
+  pendingHrFileDataUrl = null; pendingHrFileName = '';
+  if(!file) return;
+  const msg = document.getElementById('hrUploadMsg'); msg.className = 'modal-msg';
+  if(file.size > HR_FILE_MAX_BYTES){
+    msg.textContent = dict[currentLang].docFileTooLargeErr; msg.classList.add('err');
+    e.target.value = ''; document.getElementById('hrFileBtnText').textContent = dict[currentLang].docFileChoose;
+    return;
+  }
+  if(file.type !== 'application/pdf'){
+    msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    e.target.value = ''; document.getElementById('hrFileBtnText').textContent = dict[currentLang].docFileChoose;
+    return;
+  }
+  try{
+    pendingHrFileDataUrl = await readFileAsDataUrl(file);
+    pendingHrFileName = file.name;
+    document.getElementById('hrFileBtnText').textContent = file.name;
+  } catch(ex){
+    msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    e.target.value = ''; document.getElementById('hrFileBtnText').textContent = dict[currentLang].docFileChoose;
+  }
+}
+
+async function submitHrDocument(){
+  const msg = document.getElementById('hrUploadMsg'); msg.className = 'modal-msg';
+  if(!pendingHrFileDataUrl){
+    msg.textContent = dict[currentLang].hrFileRequiredErr; msg.classList.add('err');
+    return;
+  }
+  const btn = document.getElementById('hrSubmitBtn'); btn.disabled = true;
+  try{
+    const data = await apiCall({ action:'submitHrDocument', token: currentUser.token, file: pendingHrFileDataUrl, fileName: pendingHrFileName });
+    btn.disabled = false;
+    if(data.success){
+      msg.textContent = dict[currentLang].hrSentOk; msg.classList.add('ok');
+      pendingHrFileDataUrl = null; pendingHrFileName = '';
+      document.getElementById('hrFile').value = '';
+      document.getElementById('hrFileBtnText').textContent = dict[currentLang].docFileChoose;
+    } else if(data.code === 'FILE_TOO_LARGE'){
+      msg.textContent = dict[currentLang].docFileTooLargeErr; msg.classList.add('err');
+    } else if(data.code === 'INVALID_FILE'){
+      msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    } else {
+      msg.textContent = dict[currentLang].savingErr; msg.classList.add('err');
+    }
+  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+}
+
+function renderHrInfo(){
+  if(!currentUser) return;
+  document.getElementById('hrInfoFish').textContent = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || '—';
+  document.getElementById('hrInfoBirth').textContent = formatBirthDate(currentUser.tugilganSana) || '—';
+  document.getElementById('hrInfoPos').textContent = currentUser.lavozim || '—';
+  document.getElementById('hrInfoDept').textContent = currentUser.bolinma || '—';
+  document.getElementById('hrInfoPhone').textContent = currentUser.telefon || '—';
+
+  const fullName = [currentUser.familiya, currentUser.ism].filter(Boolean).join(' ') || currentUser.login;
+  document.getElementById('hrBadgeName').textContent = fullName;
+  document.getElementById('hrBadgePos').textContent = currentUser.lavozim || dict[currentLang].hrBadgeNoPos;
+  document.getElementById('hrBadgeId').textContent = 'ID-' + String(currentUser.id || '').padStart(5, '0');
+  document.getElementById('hrBadgeAvatar').src = currentUser.rasm || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(fullName) + '&backgroundColor=00A3E0';
 }
 
 function logout(){
@@ -1486,6 +1701,10 @@ async function checkStatus(){
       } else {
         testBadge.textContent = dict[currentLang].no; testBadge.className = 'badge no';
       }
+
+      const declBadge = document.getElementById('declBadge');
+      if(data.deklaratsiyaSana){ declBadge.textContent = data.deklaratsiyaSana; declBadge.className = 'badge ok'; }
+      else { declBadge.textContent = dict[currentLang].no; declBadge.className = 'badge no'; }
       result.classList.add('show');
     } else {
       errBox.textContent = data.code === 'NOT_YOUR_NUMBER' ? dict[currentLang].notYourNumber : dict[currentLang].statusErrText;

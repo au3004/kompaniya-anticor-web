@@ -12,6 +12,19 @@ use App\Validate;
 
 final class ProfileController
 {
+    // "Deklaratsiya to'ldirish" funksiyasining o'zi hali ishga tushirilmagan
+    // (bosh sahifada "Tez orada" sifatida turibdi) — lekin holat tekshirish
+    // jadvali shu yozuvni oldindan kutib turishi uchun jadval endi tayyor;
+    // funksiya ishga tushgach, shu yerga to'g'ridan-to'g'ri yozadi va sana
+    // avtomatik chiqa boshlaydi.
+    private const DECLARATIONS_DDL = 'CREATE TABLE IF NOT EXISTS declarations (
+        id            INT AUTO_INCREMENT PRIMARY KEY,
+        user_id       INT NOT NULL,
+        submitted_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_user (user_id)
+    ) ENGINE=InnoDB';
+
     public static function checkStatus(array $input): void
     {
         $user = Auth::requireUser($input);
@@ -23,6 +36,7 @@ final class ProfileController
         }
 
         $db = Database::connection();
+        Util::ensureSchema($db, self::DECLARATIONS_DDL);
 
         $docStmt = $db->prepare(
             'SELECT read_at FROM doc_reads WHERE user_id = :id ORDER BY read_at DESC LIMIT 1'
@@ -38,11 +52,19 @@ final class ProfileController
         $testStmt->execute(['id' => $user['id']]);
         $testRow = $testStmt->fetch();
 
+        $declStmt = $db->prepare(
+            'SELECT submitted_at FROM declarations WHERE user_id = :id ORDER BY submitted_at DESC LIMIT 1'
+        );
+        $declStmt->execute(['id' => $user['id']]);
+        $declRow = $declStmt->fetch();
+        $deklaratsiyaSana = $declRow ? date('Y-m-d', strtotime((string) $declRow['submitted_at'])) : null;
+
         Response::success([
             'hujjatSana' => $hujjatSana,
             'testPoints' => $testRow ? (int) $testRow['points'] : null,
             'testPercent' => $testRow ? (int) $testRow['percent'] : null,
             'passed' => $testRow ? (bool) $testRow['passed'] : null,
+            'deklaratsiyaSana' => $deklaratsiyaSana,
         ]);
     }
 

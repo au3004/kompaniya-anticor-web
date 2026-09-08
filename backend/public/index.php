@@ -16,6 +16,7 @@ use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\BackupController;
 use App\Controllers\DocsController;
+use App\Controllers\HrDocumentController;
 use App\Controllers\NotificationController;
 use App\Controllers\ProfileController;
 use App\Controllers\ReportsController;
@@ -78,6 +79,10 @@ $routes = [
     'addDocument' => [DocsController::class, 'add'],
     'editDocument' => [DocsController::class, 'edit'],
     'deleteDocument' => [DocsController::class, 'delete'],
+
+    'submitHrDocument' => [HrDocumentController::class, 'submit'],
+    'getHrDocuments' => [HrDocumentController::class, 'list'],
+    'deleteHrDocument' => [HrDocumentController::class, 'delete'],
 
     'getTestQuestions' => [TestController::class, 'getQuestions'],
     'submitTest' => [TestController::class, 'submit'],

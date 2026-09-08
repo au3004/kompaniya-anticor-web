@@ -88,6 +88,7 @@ final class BackupController
 
         self::zipUploads($backupPath . '/uploads.zip');
         self::zipDirectory(dirname(__DIR__, 2) . '/documents', $backupPath . '/documents.zip');
+        self::zipDirectory(dirname(__DIR__, 2) . '/hr_documents', $backupPath . '/hr_documents.zip');
 
         self::cleanupOld($dir);
 

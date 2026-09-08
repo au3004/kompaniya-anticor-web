@@ -5,3 +5,5 @@ backups/*
 !backups/.gitkeep
 documents/*
 !documents/.gitkeep
+hr_documents/*
+!hr_documents/.gitkeep

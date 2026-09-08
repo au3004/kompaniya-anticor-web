@@ -519,6 +519,11 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <h3 data-i18n="hubEmployeesMain">Xodimlar</h3>
         <p data-i18n="hubEmployeesMainDesc">Xodimlar ro'yxati va yangi xodim qo'shish</p>
       </button>
+      <button class="hub-card" id="hrDocsCard" onclick="openSection('hrDocsView'); loadHrDocuments();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg></div>
+        <h3 data-i18n="hubHrDocs">Yuborilgan hujjatlar</h3>
+        <p data-i18n="hubHrDocsDesc">Xodimlar Inson resurslariga yuborgan hujjatlar</p>
+      </button>
       <button class="hub-card soon" id="conflictCard" onclick="alert(dict[currentLang].soonMsg)" style="display:none; position:relative;">
         <span style="position:absolute; top:16px; right:16px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px; padding:3px 9px;" data-i18n="soonTag">Tez orada</span>
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></div>
@@ -972,6 +977,35 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
   </div>
 
   <!-- Yordam so'rovlari (gl-admin + admin) -->
+  <!-- Xodimlar Inson resurslari bo'limi orqali yuborgan hujjatlar -->
+  <div id="hrDocsView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubHrDocs">Yuborilgan hujjatlar</div>
+        <h1 data-i18n="hubHrDocs">Yuborilgan hujjatlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thFish">F.I.Sh</th>
+            <th data-i18n="thPhone">Telefon</th>
+            <th data-i18n="posLabel">Lavozim</th>
+            <th data-i18n="deptLabel">Bo'linma</th>
+            <th data-i18n="thSana">Sana</th>
+            <th style="width:90px;" data-i18n="thAmal">Amal</th>
+          </tr>
+        </thead>
+        <tbody id="hrDocsTbody"><tr><td colspan="6" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
   <div id="supportView" style="display:none;">
     <div class="page-head">
       <div>
@@ -1222,6 +1256,8 @@ const dict = {
     hubTests:"Test savollari", hubTestsDesc:"Test savollarini qo'shish, tahrirlash, o'chirish",
     hubDocs:"Hujjat qo'shish", hubDocsDesc:"Normativ hujjatlarni qo'shish, tahrirlash, o'chirish",
     soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish", downloadBtn:"Hisobotni yuklab olish",
+    hubHrDocs:"Yuborilgan hujjatlar", hubHrDocsDesc:"Xodimlar Inson resurslariga yuborgan hujjatlar",
+    confirmDeleteHrDoc:"Ushbu hujjatni butunlay o'chirmoqchimisiz?",
     xlsxLibErr:"Excel fayl yaratish kutubxonasi yuklanmadi. Internet ulanishini tekshirib, sahifani qayta yuklang.",
     hubSupport:"Yordam so'rovlari", hubSupportDesc:"Xodimlardan kelgan murojaatlar",
     hubReports:"Hisobotlar", hubReportsDesc:"Barcha ma'lumotlarni Excel fayl sifatida yuklab olish",
@@ -1313,6 +1349,8 @@ const dict = {
     hubTests:"Тестовые вопросы", hubTestsDesc:"Добавление, редактирование, удаление вопросов",
     hubDocs:"Добавить документ", hubDocsDesc:"Добавление, редактирование, удаление документов",
     soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена", downloadBtn:"Скачать отчёт",
+    hubHrDocs:"Полученные документы", hubHrDocsDesc:"Документы, отправленные сотрудниками через раздел кадров",
+    confirmDeleteHrDoc:"Удалить этот документ навсегда?",
     xlsxLibErr:"Библиотека для создания Excel-файла не загрузилась. Проверьте интернет-соединение и обновите страницу.",
     hubSupport:"Обращения", hubSupportDesc:"Обращения от сотрудников",
     hubReports:"Отчёты", hubReportsDesc:"Скачать все данные в формате Excel",
@@ -2725,6 +2763,51 @@ let supportData = null;
 let currentSupportDetailId = null;
 let supportSelected = new Set();
 
+/* ---------- Xodimlar yuborgan hujjatlar (Inson resurslari) ---------- */
+let hrDocsData = null;
+
+async function loadHrDocuments(){
+  const tbody = document.getElementById('hrDocsTbody');
+  try{
+    const data = await apiCall({ action:'getHrDocuments', token: currentUserForKpi.token });
+    if(data.success){ hrDocsData = data.documents; renderHrDocsTable(); }
+    else if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Xatolik</td></tr>`;
+  } catch(ex){
+    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
+  }
+}
+
+function renderHrDocsTable(){
+  const tbody = document.getElementById('hrDocsTbody');
+  if(!tbody) return;
+  if(!hrDocsData || hrDocsData.length === 0){
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = hrDocsData.map(d => `
+    <tr>
+      <td title="${escapeHtml(d.fish)}">${escapeHtml(d.fish)}</td>
+      <td>${escapeHtml(d.telefon)||'—'}</td>
+      <td>${escapeHtml(d.lavozim)||'—'}</td>
+      <td>${escapeHtml(d.bolinma)||'—'}</td>
+      <td>${escapeHtml(d.sana)}</td>
+      <td>
+        <button type="button" class="icon-btn" title="${dict[currentLang].downloadBtn}" onclick="window.open('hr-document-download.php?id=${d.id}', '_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button>
+        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteHrDocumentRow(${d.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function deleteHrDocumentRow(id){
+  if(!confirm(dict[currentLang].confirmDeleteHrDoc)) return;
+  try{
+    const data = await apiCall({ action:'deleteHrDocument', token: currentUserForKpi.token, id });
+    if(data.success){ loadHrDocuments(); }
+    else alert(dict[currentLang].savedErr);
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
 async function loadSupportRequests(){
   const tbody = document.getElementById('supportTbody');
   try{
@@ -2888,6 +2971,7 @@ function init(){
   const canEmployees = HR_VIEW.includes(rol) || rol === 'anticor-admin';
   const canAddEmployee = HR_MANAGE.includes(rol) || rol === 'anticor-admin';
   const canEmployeesManage = HR_MANAGE.includes(rol); // tahrirlash/o'chirish — bootstrap bunga tegishli emas
+  const canHrDocs = ['hr-admin', 'hr', 'super-admin'].includes(rol); // Yuborilgan hujjatlar — rahbariyat bunga kirmaydi
   const canManage = canAnticorManage; // Test savollari, Hujjat qo'shish — faqat anticor-admin/super-admin
   const canSurvey = canAnticor; // Anonim so'rovnoma — ichki huquqlar canAnticorManage'ga qarab farqlanadi (openSurveyEntry)
   const canNotifSend = NOTIFY_SEND.includes(rol);
@@ -2903,6 +2987,7 @@ function init(){
 
   document.getElementById('anticorCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('employeesCard').style.display = canEmployees ? 'block' : 'none';
+  document.getElementById('hrDocsCard').style.display = canHrDocs ? 'block' : 'none';
   document.getElementById('conflictCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
