@@ -7,12 +7,19 @@ final class Cors
 {
     public static function handle(): void
     {
-        $allowed = Config::get('ALLOWED_ORIGINS', '*');
+        // MUHIM: standart holat — hech qanday tashqi domenga ruxsat berilmaydi
+        // ("bo'sh" = xavfsiz standart). Frontend va backend odatda bitta domenda
+        // xizmat qiladi (shu sabab CORS umuman kerak emas — brauzer bir xil
+        // manba so'rovlarida CORS'ni tekshirmaydi ham). Faqat frontend va backend
+        // ATAYLAB turli domenlarda joylashtirilganda, .env'da ALLOWED_ORIGINS
+        // orqali aniq domen(lar)ni ko'rsating. "*" ATAYLAB qo'llab-quvvatlanmaydi —
+        // aks holda har qanday tashqi sayt API'ga so'rov yubora oladigan bo'lib
+        // qolardi (masalan kelajakda avtorizatsiya tekshiruvi unutilgan biror
+        // amal bo'lsa, uni istalgan sayt darhol tashqi hujum uchun ishlata olardi).
+        $allowed = Config::get('ALLOWED_ORIGINS', '');
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-        if ($allowed === '*') {
-            header('Access-Control-Allow-Origin: *');
-        } else {
+        if ($allowed !== '' && $allowed !== '*') {
             $list = array_map('trim', explode(',', $allowed));
             if ($origin !== '' && in_array($origin, $list, true)) {
                 header('Access-Control-Allow-Origin: ' . $origin);

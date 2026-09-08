@@ -12,6 +12,7 @@ final class DocsController
 {
     public static function getDocuments(array $input): void
     {
+        Auth::requireUser($input);
         $db = Database::connection();
         $rows = $db->query('SELECT id, nomi_uz, nomi_ru, url FROM documents ORDER BY id ASC')->fetchAll();
 

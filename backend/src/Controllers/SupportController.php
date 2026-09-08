@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Auth;
 use App\Database;
+use App\RateLimit;
 use App\Response;
 use App\Validate;
 
@@ -13,6 +14,12 @@ final class SupportController
     public static function submit(array $input): void
     {
         $user = Auth::requireUser($input);
+
+        // Avtorizatsiyalangan, lekin baribir suiiste'mol qilinishi mumkin
+        // bo'lgan amal — bitta foydalanuvchi (IP) navbatni cheksiz murojaat
+        // bilan to'ldirib yubormasligi uchun cheklov.
+        RateLimit::enforce('submitSupport', 20, 3600);
+
         $murojaat = Validate::requiredStr($input, 'murojaat', 4000);
 
         $db = Database::connection();

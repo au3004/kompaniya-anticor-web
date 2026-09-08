@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Auth;
 use App\Config;
 use App\Database;
+use App\RateLimit;
 use App\Response;
 use App\Util;
 use App\Validate;
@@ -112,6 +113,10 @@ final class AuthController
      */
     public static function requestPasswordReset(array $input): void
     {
+        // Avtorizatsiyasiz amal — Yordam navbatini soxta so'rovlar bilan
+        // to'ldirib yuborilishining oldini olish uchun IP bo'yicha cheklov.
+        RateLimit::enforce('requestPasswordReset', 5, 3600);
+
         $login = Validate::requiredStr($input, 'login', 100);
         $telefon = Validate::requiredStr($input, 'telefon', 20);
 

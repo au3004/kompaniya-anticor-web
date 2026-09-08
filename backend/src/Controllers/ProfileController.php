@@ -49,7 +49,16 @@ final class ProfileController
     public static function updateProfilePhoto(array $input): void
     {
         $user = Auth::requireUser($input);
+        $maxBytes = Config::int('UPLOAD_MAX_BYTES', 2 * 1024 * 1024);
+
+        // base64_decode()'ga yuborishdan oldin xom qatorning o'zi (base64 kodlash
+        // hajmni ~4/3 ga oshiradi) haddan tashqari katta bo'lmasligini tekshiramiz —
+        // aks holda juda katta matnni xotiraga yuklab dekodlash xotira sarflovchi
+        // (DoS) hujumga eshik ochib qo'yardi.
         $dataUrl = (string) ($input['rasm'] ?? '');
+        if (strlen($dataUrl) > (int) ($maxBytes * 1.4) + 100) {
+            Response::error('Rasm hajmi juda katta', 'PHOTO_TOO_LARGE', 422);
+        }
 
         if (!preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i', $dataUrl, $m)) {
             Response::error("Rasm formati noto'g'ri", 'INVALID_PHOTO', 422);
@@ -61,7 +70,6 @@ final class ProfileController
             Response::error("Rasmni o'qib bo'lmadi", 'INVALID_PHOTO', 422);
         }
 
-        $maxBytes = Config::int('UPLOAD_MAX_BYTES', 2 * 1024 * 1024);
         if (strlen($binary) > $maxBytes) {
             Response::error('Rasm hajmi juda katta', 'PHOTO_TOO_LARGE', 422);
         }

@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Auth;
 use App\Database;
+use App\RateLimit;
 use App\Response;
 use App\Validate;
 
@@ -47,6 +48,10 @@ final class SurveyController
      */
     public static function submit(array $input): void
     {
+        // Anonim (avtorizatsiyasiz) amal — soxta javoblar bilan bombardimon
+        // qilinishining oldini olish uchun IP bo'yicha cheklov: 10 ta/soatiga.
+        RateLimit::enforce('submitSurveyAnswers', 10, 3600);
+
         if (!self::isActive()) {
             Response::error("So'rovnoma hozircha faol emas", 'SURVEY_INACTIVE');
         }
