@@ -2853,7 +2853,7 @@ function renderHrDocsTable(){
       <td>${escapeHtml(d.bolinma)||'—'}</td>
       <td>${escapeHtml(d.sana)}</td>
       <td>
-        <button type="button" class="icon-btn" title="${dict[currentLang].downloadBtn}" onclick="window.open('hr-document-download.php?id=${d.id}', '_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button>
+        <a class="icon-btn" style="text-decoration:none;" title="${dict[currentLang].downloadBtn}" href="${API_BASE_URL.replace('backend/public/index.php','backend/public/hr-document-download.php')}?id=${encodeURIComponent(d.id)}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></a>
         <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteHrDocumentRow(${d.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
       </td>
     </tr>
