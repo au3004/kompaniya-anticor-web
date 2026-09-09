@@ -405,11 +405,15 @@ final class AdminController
      * qo'shishda yoki mavjud xodimning rolini o'zgartirishda), o'zgarish
      * DARHOL saqlanmaydi — to'liq so'rov (barcha maydon + so'ralgan rol)
      * `employee_pending_requests`da "pending" holatda kutib turadi.
-     * Kvorum: kamida bitta rahbariyat VA kamida bitta anticor-admin
-     * "tasdiqlash" bosishi shart (ikki mustaqil nazorat nuqtasi) —
-     * ulardan BIRI "rad etish" bossa, so'rov darhol yakuniy rad etiladi.
-     * super-admin yakka o'zi (kvorumdan tashqari) darhol tasdiqlashi
-     * yoki rad etishi mumkin — bu yakuniy zaxira (override) mexanizmi.
+     * Kvorum: tizimda HOZIR kamida bitta a'zosi bor rahbariyat/anticor-admin
+     * tomonlarning HAR BIRIDAN kamida bitta "tasdiqlash" kerak (qarang:
+     * requiredApproverRoles()) — masalan, rahbariyat rolida hali hech kim
+     * yo'q bo'lsa, faqat anticor-admin tasdig'i yetarli (aks holda, ovoz
+     * beradigan hech kim yo'q bo'lgani uchun so'rov abadiy "kutilmoqda"
+     * holatda "qotib" qolar edi). Majburiy tomonlardan BIRI "rad etish"
+     * bossa, so'rov darhol yakuniy rad etiladi. super-admin yakka o'zi
+     * (kvorumdan tashqari) darhol tasdiqlashi yoki rad etishi mumkin —
+     * bu har doim ishlaydigan yakuniy zaxira (override) mexanizmi.
      * ================================================================ */
 
     private const PENDING_REQUEST_DDL = "CREATE TABLE IF NOT EXISTS employee_pending_requests (
@@ -443,6 +447,29 @@ final class AdminController
     {
         Util::ensureSchema($db, self::PENDING_REQUEST_DDL);
         Util::ensureSchema($db, self::PENDING_APPROVAL_DDL);
+    }
+
+    /**
+     * Kelishuv uchun HOZIR majburiy bo'lgan tomonlar — faqat tizimda HOZIR
+     * kamida bitta a'zosi bor rollar talab qilinadi. Masalan, rahbariyat
+     * rolida hali hech kim yo'q bo'lsa (masalan, birinchi rahbariyat
+     * xodimini tayinlashda), ular ovoz bera olmaydi — shu holatda ularning
+     * tasdig'i talab qilinmaydi, aks holda so'rov hech qachon tasdiqlanmay
+     * "qotib" qolar edi. Ikkalasi ham bo'sh bo'lsa, ro'yxat bo'sh qaytadi —
+     * bunday holda faqat super-admin (kvorumdan tashqari, yakka o'zi) hal
+     * qila oladi.
+     */
+    private static function requiredApproverRoles(\PDO $db): array
+    {
+        $required = [];
+        foreach ([Roles::ANTICOR_ADMIN, Roles::RAHBARIYAT] as $rol) {
+            $stmt = $db->prepare('SELECT COUNT(*) FROM users WHERE rol = :rol');
+            $stmt->execute(['rol' => $rol]);
+            if ((int) $stmt->fetchColumn() > 0) {
+                $required[] = $rol;
+            }
+        }
+        return $required;
     }
 
     /**
@@ -728,7 +755,15 @@ final class AdminController
             );
             $votesStmt->execute(['id' => $requestId]);
             $approvedRoles = $votesStmt->fetchAll(\PDO::FETCH_COLUMN);
-            if (in_array(Roles::ANTICOR_ADMIN, $approvedRoles, true) && in_array(Roles::RAHBARIYAT, $approvedRoles, true)) {
+            $requiredRoles = self::requiredApproverRoles($db);
+            $allVoted = true;
+            foreach ($requiredRoles as $r) {
+                if (!in_array($r, $approvedRoles, true)) {
+                    $allVoted = false;
+                    break;
+                }
+            }
+            if ($allVoted) {
                 $finalStatus = 'approved';
             }
         }
