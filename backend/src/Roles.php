@@ -63,4 +63,13 @@ final class Roles
 
     /** Xodimlar yuborgan shaxsiy hujjatlarni (Inson resurslari bo'limi orqali) ko'radi/yuklab oladi/o'chiradi — rahbariyat bunga kirmaydi. */
     public const HR_DOCS = [self::HR_ADMIN, self::HR, self::SUPER_ADMIN];
+
+    /**
+     * hr-admin xodimga "user"dan boshqa rol berayotganda so'ralgan kelishuv
+     * (approval) so'rovini ko'rib chiqa/tasdiqlay/rad eta oladigan rollar.
+     * Kvorum: kamida bitta rahbariyat VA kamida bitta anticor-admin
+     * tasdiqlashi shart (ikki mustaqil nazorat nuqtasi); super-admin esa
+     * yakka o'zi darhol yakuniy qaror (tasdiqlash yoki rad etish) bera oladi.
+     */
+    public const REQUEST_APPROVE = [self::ANTICOR_ADMIN, self::RAHBARIYAT, self::SUPER_ADMIN];
 }

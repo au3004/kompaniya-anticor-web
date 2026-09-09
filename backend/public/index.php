@@ -112,6 +112,8 @@ $routes = [
     'deleteEmployee' => [AdminController::class, 'deleteEmployee'],
     'unlockLogin' => [AdminController::class, 'unlockLogin'],
     'getErrorLog' => [AdminController::class, 'getErrorLog'],
+    'getPendingEmployeeRequests' => [AdminController::class, 'getPendingEmployeeRequests'],
+    'decidePendingEmployeeRequest' => [AdminController::class, 'decidePendingEmployeeRequest'],
 
     'getSupportRequests' => [ReportsController::class, 'getSupportRequests'],
     'addSupportComment' => [ReportsController::class, 'addSupportComment'],
