@@ -244,15 +244,70 @@ body{
   padding:100px 20px 40px;
 }
 
+/* ===== Aylanuvchi (flip) kirish/ro'yxatdan o'tish kartasi =====
+   Uslub manbasi: github.com/Nazia-99/Neumorphic-Login-Form (kod to'liq
+   o'qib chiqilgan — faqat rotateY(180deg) 3D-aylanish texnikasi, tashqi
+   so'rov/skript yo'q). Manbada doira (glass-circle) shaklida, lekin bizda
+   ko'p qatorli va uzunroq (o'zbek/rus) matnli forma bo'lgani uchun to'g'ri
+   burchakli (yumaloq qirrali) ramka saqlab qolindi — doira shaklda matn
+   burchaklarga sig'may qolib, ko'p bo'sh joy qoldirar edi. Faqat
+   aylanish animatsiyasi va orqa tomon g'oyasi olib, ro'yxatdan o'tish
+   hozircha "tez orada" ekanini shu animatsiya bilan ko'rsatish uchun
+   qayta yozilgan. */
+.flip-scene{
+  width:100%; max-width:400px; perspective:1800px;
+  /* Sahifa ochilishidagi "ko'tarilib chiqish" animatsiyasi ataylab .card
+     emas, shu tashqi qatlamga qo'yilgan — .card ikkala (old/orqa) tomon
+     tomonidan bo'lishiladigan preserve-3d ierarxiyaning ICHIDA bo'lgani
+     uchun, animatsiya opacity'ni o'zgartirsa ba'zi brauzerlarda backface
+     hisob-kitobi bilan to'qnashib, ikkala tomon ham ko'rinmay qolishi
+     mumkin edi. */
+  animation:rise .7s cubic-bezier(.2,.9,.25,1) both;
+}
+.flip-card{
+  position:relative; width:100%;
+  transition:transform .8s cubic-bezier(.22,1,.36,1);
+  transform-style:preserve-3d;
+}
+.flip-scene.flipped .flip-card{ transform:rotateY(180deg); }
+
 .card{
-  width:100%; max-width:400px;
+  width:100%;
   background:var(--bg);
   border-radius:32px;
   padding:38px 34px 32px;
   box-shadow:var(--neu-out);
   transition:box-shadow .5s ease, background .5s ease;
-  animation:rise .7s cubic-bezier(.2,.9,.25,1) both;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
 }
+/* Ikkala tomon ham "position"lashtirilgan (relative/absolute) bo'lishi
+   shart — aks holda bittasi oddiy (static) oqimda, ikkinchisi absolute
+   bo'lib qolsa, brauzer ularni bitta 3D tekislikda emas, alohida
+   qatlamlarda chizadi va backface-visibility to'g'ri ishlamay qoladi. */
+.card-front{ position:relative; }
+.card-back{
+  position:absolute; inset:0;
+  transform:rotateY(180deg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; gap:14px;
+  /* backface-visibility yashirsa ham, ba'zi brauzerlarda orqa tomon hali
+     ham sichqoncha bosishlarini "tutib qolishi" mumkin — shu sabab qaysi
+     tomon ko'rinmasa, o'sha tomon uchun pointer-events ham o'chiriladi. */
+  pointer-events:none;
+}
+.flip-scene.flipped .card-back{ pointer-events:auto; }
+.flip-scene.flipped .card-front{ pointer-events:none; }
+.card-back h1{ margin-bottom:0; }
+.card-back .sub{ margin-bottom:0; padding:0 6px; line-height:1.55; }
+.card-back .submit-btn{ margin-top:8px; }
+.signup-icon{
+  width:60px; height:60px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg); box-shadow:var(--neu-out-sm);
+  color:var(--azure);
+}
+.signup-icon svg{ width:26px; height:26px; }
+
 @keyframes rise{
   from{ opacity:0; transform:translateY(24px) scale(.98); }
   to{ opacity:1; transform:translateY(0) scale(1); }
@@ -333,18 +388,21 @@ body{
 .eye-toggle:hover{ color:var(--text); }
 .eye-toggle svg{ width:18px; height:18px; }
 
-.secondary-btn{
-  width:100%; padding:13px; margin-top:10px;
-  border:none; border-radius:14px; cursor:pointer;
-  background:var(--bg); color:var(--text); font-family:'Inter'; font-weight:700; font-size:14.5px;
-  letter-spacing:.2px; box-shadow:var(--neu-out-sm);
-  transition:box-shadow .2s ease, color .2s ease;
+.forgot-row{
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:8px 14px; margin:-2px 0 20px;
 }
-.secondary-btn:hover{ color:var(--azure); }
-.secondary-btn:active{ box-shadow:var(--neu-in); }
+.remember-inline{ display:flex; align-items:center; gap:9px; }
+.remember-inline span{ font-size:12px; font-weight:600; color:var(--text-dim); cursor:pointer; user-select:none; }
+.forgot-row > a{
+  color:var(--azure); font-size:12px; font-weight:600; text-decoration:none; cursor:pointer; white-space:nowrap;
+}
+.forgot-row > a:hover{ text-decoration:underline; }
 
-.remember-row{ display:flex; align-items:center; justify-content:space-between; margin:-2px 0 18px; }
-.remember-row span{ font-size:12.5px; font-weight:600; color:var(--text-dim); cursor:pointer; user-select:none; }
+.signup-text{ text-align:center; margin-top:20px; font-size:12.5px; color:var(--text-dim); }
+.signup-text a{ color:var(--azure); font-weight:700; text-decoration:none; cursor:pointer; }
+.signup-text a:hover{ text-decoration:underline; }
+
 .remember-toggle{
   --rt-w:44px; --rt-h:24px; --rt-thumb:18px; --rt-pad:3px;
   position:relative; width:var(--rt-w); height:var(--rt-h); border:none; padding:0;
@@ -418,77 +476,90 @@ body{
 </div>
 
 <div class="wrap">
-  <div class="card">
-    <div id="loginView">
-      <h1 data-i18n="loginTitle">Tizimga kirish</h1>
+  <div class="flip-scene" id="flipScene">
+    <div class="flip-card">
+      <div class="card card-front">
+        <div id="loginView">
+          <h1 data-i18n="loginTitle">Tizimga kirish</h1>
 
-      <div class="error-msg" id="errorBox">⚠ <span id="errorText" data-i18n="errText">Login yoki parol noto'g'ri kiritilgan</span></div>
+          <div class="error-msg" id="errorBox">⚠ <span id="errorText" data-i18n="errText">Login yoki parol noto'g'ri kiritilgan</span></div>
 
-      <form id="loginForm" onsubmit="return handleLogin(event)">
-        <div class="field">
-          <label data-i18n="loginLabel">Login</label>
-          <input type="text" id="loginInput" autocomplete="username" required>
-        </div>
-        <div class="field">
-          <label data-i18n="passLabel">Parol</label>
-          <div class="field-eye-wrap">
-            <input type="password" id="passInput" autocomplete="current-password" required placeholder="••••••••" style="padding-right:42px;">
-            <button type="button" class="eye-toggle" id="passEyeBtn" onclick="togglePasswordVisibility()" aria-label="Parolni ko'rsatish/yashirish"></button>
-          </div>
-        </div>
-        <div class="remember-row">
-          <span onclick="toggleRememberMe()" data-i18n="rememberLabel">Meni eslab qol</span>
-          <button type="button" class="remember-toggle" id="rememberToggle" role="switch" aria-checked="false" onclick="toggleRememberMe()" aria-label="Meni eslab qol">
-            <span class="rt-thumb"></span>
-          </button>
-        </div>
-        <button class="submit-btn" type="submit" id="submitBtn" data-i18n="submitBtn">Kirish</button>
-        <button type="button" class="secondary-btn" id="registerBtn" onclick="showRegisterStub()" data-i18n="registerBtn">Ro'yxatdan o'tish</button>
-      </form>
+          <form id="loginForm" onsubmit="return handleLogin(event)">
+            <div class="field">
+              <label data-i18n="loginLabel">Login</label>
+              <input type="text" id="loginInput" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label data-i18n="passLabel">Parol</label>
+              <div class="field-eye-wrap">
+                <input type="password" id="passInput" autocomplete="current-password" required placeholder="••••••••" style="padding-right:42px;">
+                <button type="button" class="eye-toggle" id="passEyeBtn" onclick="togglePasswordVisibility()" aria-label="Parolni ko'rsatish/yashirish"></button>
+              </div>
+            </div>
+            <div class="forgot-row">
+              <div class="remember-inline">
+                <button type="button" class="remember-toggle" id="rememberToggle" role="switch" aria-checked="false" onclick="toggleRememberMe()" aria-label="Meni eslab qol">
+                  <span class="rt-thumb"></span>
+                </button>
+                <span onclick="toggleRememberMe()" data-i18n="rememberLabel">Meni eslab qol</span>
+              </div>
+              <a onclick="showForgotForm()" data-i18n="forgotLink">Parolni unutdim</a>
+            </div>
+            <button class="submit-btn" type="submit" id="submitBtn" data-i18n="submitBtn">Kirish</button>
+          </form>
 
-      <div class="link-row"><a onclick="showForgotForm()" data-i18n="forgotLink">Parolni unutdim</a></div>
+          <div class="signup-text"><span data-i18n="noAccountText">Hisobingiz yo'qmi?</span> <a id="toSignup" onclick="flipToSignup()" data-i18n="registerBtn">Ro'yxatdan o'tish</a></div>
+        </div>
+
+        <div id="forgotView" style="display:none;">
+          <h1 data-i18n="forgotTitle">Parolni tiklash</h1>
+          <p class="sub" data-i18n="forgotSub">Login va telefon raqamingizni kiriting</p>
+
+          <div class="error-msg" id="forgotErrorBox">⚠ <span id="forgotErrorText"></span></div>
+          <div class="success-msg" id="forgotSuccessBox">✓ <span id="forgotSuccessText"></span></div>
+
+          <form id="forgotForm" onsubmit="return handleForgotPassword(event)">
+            <div class="field">
+              <label data-i18n="loginLabel">Login</label>
+              <input type="text" id="forgotLoginInput" required>
+            </div>
+            <div class="field">
+              <label data-i18n="phoneLabel">Telefon raqam</label>
+              <input type="text" id="forgotPhoneInput" required placeholder="+998 XX XXX XX XX">
+            </div>
+            <button class="submit-btn" type="submit" id="forgotSubmitBtn" data-i18n="forgotSubmitBtn">Yuborish</button>
+          </form>
+
+          <div class="link-row"><a onclick="showLoginForm()" data-i18n="backToLoginLink">Kirishga qaytish</a></div>
+        </div>
+
+        <div id="totpView" style="display:none;">
+          <h1 data-i18n="totpTitle">Ikki bosqichli tasdiqlash</h1>
+          <p class="sub" data-i18n="totpSub">Avtentifikator ilovasidagi 6 xonali kodni kiriting</p>
+
+          <div class="error-msg" id="totpErrorBox">⚠ <span id="totpErrorText"></span></div>
+
+          <form id="totpForm" onsubmit="return handleTotpVerify(event)">
+            <div class="field">
+              <label data-i18n="totpCodeLabel">Tasdiqlash kodi</label>
+              <input type="text" id="totpCodeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
+            </div>
+            <button class="submit-btn" type="submit" id="totpSubmitBtn" data-i18n="submitBtn">Kirish</button>
+          </form>
+
+          <div class="link-row"><a onclick="showLoginForm()" data-i18n="backToLoginLink">Kirishga qaytish</a></div>
+        </div>
+
+        <div class="foot" data-i18n="footText">© «O'zbektelekom» AK — Ichki portal</div>
+      </div>
+
+      <div class="card card-back">
+        <div class="signup-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 3"/></svg></div>
+        <h1 data-i18n="registerBtn">Ro'yxatdan o'tish</h1>
+        <p class="sub" data-i18n="registerStubMsg">Bu funksiya tez orada ishga tushiriladi</p>
+        <button type="button" class="submit-btn" onclick="flipToLogin()" data-i18n="backToLoginLink">Kirishga qaytish</button>
+      </div>
     </div>
-
-    <div id="forgotView" style="display:none;">
-      <h1 data-i18n="forgotTitle">Parolni tiklash</h1>
-      <p class="sub" data-i18n="forgotSub">Login va telefon raqamingizni kiriting</p>
-
-      <div class="error-msg" id="forgotErrorBox">⚠ <span id="forgotErrorText"></span></div>
-      <div class="success-msg" id="forgotSuccessBox">✓ <span id="forgotSuccessText"></span></div>
-
-      <form id="forgotForm" onsubmit="return handleForgotPassword(event)">
-        <div class="field">
-          <label data-i18n="loginLabel">Login</label>
-          <input type="text" id="forgotLoginInput" required>
-        </div>
-        <div class="field">
-          <label data-i18n="phoneLabel">Telefon raqam</label>
-          <input type="text" id="forgotPhoneInput" required placeholder="+998 XX XXX XX XX">
-        </div>
-        <button class="submit-btn" type="submit" id="forgotSubmitBtn" data-i18n="forgotSubmitBtn">Yuborish</button>
-      </form>
-
-      <div class="link-row"><a onclick="showLoginForm()" data-i18n="backToLoginLink">Kirishga qaytish</a></div>
-    </div>
-
-    <div id="totpView" style="display:none;">
-      <h1 data-i18n="totpTitle">Ikki bosqichli tasdiqlash</h1>
-      <p class="sub" data-i18n="totpSub">Avtentifikator ilovasidagi 6 xonali kodni kiriting</p>
-
-      <div class="error-msg" id="totpErrorBox">⚠ <span id="totpErrorText"></span></div>
-
-      <form id="totpForm" onsubmit="return handleTotpVerify(event)">
-        <div class="field">
-          <label data-i18n="totpCodeLabel">Tasdiqlash kodi</label>
-          <input type="text" id="totpCodeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
-        </div>
-        <button class="submit-btn" type="submit" id="totpSubmitBtn" data-i18n="submitBtn">Kirish</button>
-      </form>
-
-      <div class="link-row"><a onclick="showLoginForm()" data-i18n="backToLoginLink">Kirishga qaytish</a></div>
-    </div>
-
-    <div class="foot" data-i18n="footText">© «O'zbektelekom» AK — Ichki portal</div>
   </div>
 </div>
 
@@ -501,6 +572,7 @@ const dict = {
     loginLabel:"Login",
     passLabel:"Parol",
     rememberLabel:"Meni eslab qol",
+    noAccountText:"Hisobingiz yo'qmi?",
     submitBtn:"Kirish",
     registerBtn:"Ro'yxatdan o'tish",
     registerStubMsg:"Bu funksiya tez orada ishga tushiriladi",
@@ -527,6 +599,7 @@ const dict = {
     loginLabel:"Логин",
     passLabel:"Пароль",
     rememberLabel:"Запомнить меня",
+    noAccountText:"Нет аккаунта?",
     submitBtn:"Войти",
     registerBtn:"Регистрация",
     registerStubMsg:"Эта функция скоро будет запущена",
@@ -633,8 +706,12 @@ function showTotpForm(){
   document.getElementById('totpErrorBox').classList.remove('show');
   setTimeout(() => document.getElementById('totpCodeInput').focus(), 50);
 }
-function showRegisterStub(){
-  alert(dict[currentLang].registerStubMsg);
+/* ---------- Ro'yxatdan o'tish — aylanish (flip) animatsiyasi ---------- */
+function flipToSignup(){
+  document.getElementById('flipScene').classList.add('flipped');
+}
+function flipToLogin(){
+  document.getElementById('flipScene').classList.remove('flipped');
 }
 
 async function handleForgotPassword(e){
