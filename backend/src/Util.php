@@ -84,4 +84,31 @@ final class Util
             // bilan ishlashda davom etadi va shu joyda aniq xato chiqadi.
         }
     }
+
+    /**
+     * "xarid" rolini (Xaridlar reyestri) users.rol ENUM'iga bir martalik
+     * qo'shadi — eski (allaqachon ishlab turgan) bazalarda bu qiymat
+     * ENUM'da yo'q bo'lgani uchun, aks holda rol='xarid' bilan yozish/
+     * o'qishga urinish MySQL xatoligiga olib kelardi. Har ulanishda arzon
+     * SHOW COLUMNS bilan tekshiriladi, faqat kerak bo'lgandagina ALTER
+     * ishga tushadi.
+     */
+    public static function ensureXaridRole(\PDO $db): void
+    {
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM users LIKE 'rol'");
+            $col = $stmt->fetch();
+            if ($col && str_contains((string) $col['Type'], "'xarid'")) {
+                return;
+            }
+            $db->exec(
+                "ALTER TABLE users MODIFY COLUMN rol " .
+                "ENUM('user','anticor-admin','anticor','hr-admin','hr','super-admin','rahbariyat','xarid') " .
+                "NOT NULL DEFAULT 'user'"
+            );
+        } catch (\Throwable $e) {
+            // Best-effort — bajarilmasa, "xarid" roli bilan bog'liq amal
+            // pastda o'zining aniq DB xatoligini beradi.
+        }
+    }
 }

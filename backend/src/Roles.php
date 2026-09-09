@@ -21,6 +21,8 @@ namespace App;
  *   hr             — xodimlar ro'yxatini faqat ko'radi
  *   rahbariyat     — faqat xodimlar ro'yxatini ko'radi + xabarnoma yuboradi,
  *                    boshqa hech narsaga kirmaydi
+ *   xarid          — "Xaridlar reyestri"ga yozuv kiritadi va uni ko'radi;
+ *                    anticor-admin reyestrni faqat ko'rish uchun ham kira oladi
  *   super-admin    — barcha bo'limlarga to'liq kirish huquqiga ega, tizimda
  *                    doim FAQAT bitta shu roldagi xodim bo'lishi shart
  *                    (AdminController::assertSuperAdminSingleton() orqali
@@ -36,9 +38,10 @@ final class Roles
     public const HR = 'hr';
     public const SUPER_ADMIN = 'super-admin';
     public const RAHBARIYAT = 'rahbariyat';
+    public const XARID = 'xarid';
 
     /** Xodim qo'shish/tahrirlashda tanlash mumkin bo'lgan barcha rollar (super-admin bundan mustasno — u alohida, cheklangan yo'l bilan beriladi). */
-    public const ASSIGNABLE = [self::USER, self::ANTICOR_ADMIN, self::ANTICOR, self::HR_ADMIN, self::HR, self::RAHBARIYAT];
+    public const ASSIGNABLE = [self::USER, self::ANTICOR_ADMIN, self::ANTICOR, self::HR_ADMIN, self::HR, self::RAHBARIYAT, self::XARID];
 
     /** "Korrupsiyaga qarshi kurashish" bo'limini ko'radi (stats, test/hujjat/so'rovnoma ro'yxati, xabarnoma, yordam so'rovlari, hisobotlar, tizim jurnali). */
     public const ANTICOR_VIEW = [self::ANTICOR_ADMIN, self::ANTICOR, self::SUPER_ADMIN];
@@ -59,7 +62,13 @@ final class Roles
     public const NOTIFY_SEND = [self::ANTICOR_ADMIN, self::ANTICOR, self::HR_ADMIN, self::HR, self::RAHBARIYAT, self::SUPER_ADMIN];
 
     /** Boshqaruv paneliga umuman kirish huquqi bor rollar ro'yxati (hub sahifasida "kirish yo'q" xabarini ko'rsatish/kirmaslik uchun). */
-    public const ANY_PANEL_ACCESS = [self::ANTICOR_ADMIN, self::ANTICOR, self::HR_ADMIN, self::HR, self::RAHBARIYAT, self::SUPER_ADMIN];
+    public const ANY_PANEL_ACCESS = [self::ANTICOR_ADMIN, self::ANTICOR, self::HR_ADMIN, self::HR, self::RAHBARIYAT, self::SUPER_ADMIN, self::XARID];
+
+    /** "Xaridlar reyestri"ni ko'radi — ro'yxat, qidiruv, Excel eksport, shartnoma faylini yuklab olish (o'zi yozuv kirita olmaydi). */
+    public const PURCHASE_VIEW = [self::XARID, self::ANTICOR_ADMIN, self::SUPER_ADMIN];
+
+    /** "Reyestrga kiritish" — yangi xarid yozuvini (shartnoma ma'lumotlari + fayl) kirita oladi. */
+    public const PURCHASE_ENTRY = [self::XARID, self::SUPER_ADMIN];
 
     /** Xodimlar yuborgan shaxsiy hujjatlarni (Inson resurslari bo'limi orqali) ko'radi/yuklab oladi/o'chiradi — rahbariyat bunga kirmaydi. */
     public const HR_DOCS = [self::HR_ADMIN, self::HR, self::SUPER_ADMIN];

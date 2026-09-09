@@ -19,6 +19,7 @@ use App\Controllers\DocsController;
 use App\Controllers\HrDocumentController;
 use App\Controllers\NotificationController;
 use App\Controllers\ProfileController;
+use App\Controllers\PurchaseController;
 use App\Controllers\ReportsController;
 use App\Controllers\SupportController;
 use App\Controllers\SurveyController;
@@ -114,6 +115,9 @@ $routes = [
     'getErrorLog' => [AdminController::class, 'getErrorLog'],
     'getPendingEmployeeRequests' => [AdminController::class, 'getPendingEmployeeRequests'],
     'decidePendingEmployeeRequest' => [AdminController::class, 'decidePendingEmployeeRequest'],
+
+    'addPurchase' => [PurchaseController::class, 'addPurchase'],
+    'getPurchases' => [PurchaseController::class, 'getPurchases'],
 
     'getSupportRequests' => [ReportsController::class, 'getSupportRequests'],
     'addSupportComment' => [ReportsController::class, 'addSupportComment'],

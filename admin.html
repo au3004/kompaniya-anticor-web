@@ -509,6 +509,11 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <h3 data-i18n="hubEmployeesMain">Xodimlar</h3>
         <p data-i18n="hubEmployeesMainDesc">Xodimlar ro'yxati va yangi xodim qo'shish</p>
       </button>
+      <button class="hub-card" id="purchasesCard" onclick="openPurchasesEntry()" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+        <h3 data-i18n="hubPurchasesMain">Xaridlar</h3>
+        <p data-i18n="hubPurchasesMainDesc">Xaridlar reyestri va reyestrga kiritish</p>
+      </button>
       <button class="hub-card" id="hrDocsCard" onclick="openSection('hrDocsView'); loadHrDocuments();" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg></div>
         <h3 data-i18n="hubHrDocs">Yuborilgan hujjatlar</h3>
@@ -703,6 +708,108 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <button type="button" class="back-btn" id="empCancelBtn" onclick="cancelEmployeeEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
         <div class="msg" id="empFormMsg"></div>
       </form>
+    </div>
+  </div>
+
+  <!-- Xaridlar: ichki hub (reyestr / reyestrga kiritish) -->
+  <div id="purchasesHubView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubPurchasesMain">Xaridlar</div>
+        <h1 data-i18n="hubPurchasesMain">Xaridlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="hub-grid">
+      <button class="hub-card" id="purchasesRegistryCard" onclick="openSection('purchasesRegistryView'); loadPurchases();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg></div>
+        <h3 data-i18n="hubPurchasesRegistry">Xaridlar reyestri</h3>
+        <p data-i18n="hubPurchasesRegistryDesc">Barcha kiritilgan xaridlar ro'yxati</p>
+      </button>
+      <button class="hub-card" id="purchaseEntrySubCard" onclick="cancelPurchaseForm(); openSection('purchaseEntryView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 5v14M5 12h14"/></svg></div>
+        <h3 data-i18n="hubPurchaseEntry">Reyestrga kiritish</h3>
+        <p data-i18n="hubPurchaseEntryDesc">Yangi xarid (shartnoma) yozuvini kiritish</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- Reyestrga kiritish (faqat xarid/super-admin) -->
+  <div id="purchaseEntryView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubPurchaseEntry">Reyestrga kiritish</div>
+        <h1 data-i18n="hubPurchaseEntry">Reyestrga kiritish</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('purchasesHubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="form-card" style="max-width:640px;">
+      <form onsubmit="return submitPurchaseForm(event)">
+        <div class="field"><label data-i18n="pShartnomaSanaLabel">Shartnoma sanasi</label><input type="date" id="pShartnomaSana" required></div>
+        <div class="field"><label data-i18n="pShartnomaRaqamiLabel">Shartnoma raqami</label><input type="text" id="pShartnomaRaqami" required></div>
+        <div class="field"><label data-i18n="pKontragentLabel">Kontragent</label><input type="text" id="pKontragent" required></div>
+        <div class="field"><label data-i18n="pShartnomaPredmetiLabel">Shartnoma predmeti</label><textarea id="pShartnomaPredmeti" rows="3" required></textarea></div>
+        <div class="field"><label data-i18n="pShartnomaSummasiLabel">Shartnoma summasi</label><input type="number" id="pShartnomaSummasi" min="0.01" step="0.01" required></div>
+        <div class="field"><label data-i18n="pXaridTuriLabel">Xarid turi</label><input type="text" id="pXaridTuri" required></div>
+        <div class="field"><label data-i18n="pIzohLabel">Izoh</label><textarea id="pIzoh" rows="3"></textarea></div>
+        <div class="field">
+          <label data-i18n="pFileLabel">Shartnoma fayli (PDF)</label>
+          <label class="file-btn" for="pFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            <span id="pFileBtnText" data-i18n="docFileChoose">PDF fayl tanlash</span>
+          </label>
+          <input type="file" id="pFile" accept="application/pdf,.pdf" style="display:none;" onchange="onPurchaseFileChange(event)">
+          <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="docFileHint">Faqat PDF, maksimal 25MB</div>
+        </div>
+        <button class="submit-btn" type="submit" id="purchaseSubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <div class="msg" id="purchaseFormMsg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Xaridlar reyestri (xarid/anticor-admin/super-admin) -->
+  <div id="purchasesRegistryView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubPurchasesRegistry">Xaridlar reyestri</div>
+        <h1 data-i18n="hubPurchasesRegistry">Xaridlar reyestri</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('purchasesHubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="purchaseSearchInput" placeholder="Shartnoma raqami yoki kontragent bo'yicha qidirish..." data-i18n-ph="purchaseSearchPh" oninput="onPurchaseSearch()">
+      <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="exportPurchasesReport()"><span data-i18n="purchaseExportBtn">Excel'ga yuklab olish</span></button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thTartibRaqam">T/r</th>
+            <th data-i18n="pShartnomaSanaLabel">Shartnoma sanasi</th>
+            <th data-i18n="pShartnomaRaqamiLabel">Shartnoma raqami</th>
+            <th data-i18n="pKontragentLabel">Kontragent</th>
+            <th data-i18n="pShartnomaPredmetiLabel">Shartnoma predmeti</th>
+            <th data-i18n="pShartnomaSummasiLabel">Shartnoma summasi</th>
+            <th data-i18n="pXaridTuriLabel">Xarid turi</th>
+            <th data-i18n="pIzohLabel">Izoh</th>
+            <th style="width:60px;" data-i18n="thFile">Fayl</th>
+          </tr>
+        </thead>
+        <tbody id="purchasesTbody"><tr><td colspan="9" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
     </div>
   </div>
 
@@ -1284,6 +1391,14 @@ const dict = {
     soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish", downloadBtn:"Hisobotni yuklab olish",
     hubHrDocs:"Yuborilgan hujjatlar", hubHrDocsDesc:"Xodimlar Inson resurslariga yuborgan hujjatlar",
     confirmDeleteHrDoc:"Ushbu hujjatni butunlay o'chirmoqchimisiz?",
+    hubPurchasesMain:"Xaridlar", hubPurchasesMainDesc:"Xaridlar reyestri va reyestrga kiritish",
+    hubPurchasesRegistry:"Xaridlar reyestri", hubPurchasesRegistryDesc:"Barcha kiritilgan xaridlar ro'yxati",
+    hubPurchaseEntry:"Reyestrga kiritish", hubPurchaseEntryDesc:"Yangi xarid (shartnoma) yozuvini kiritish",
+    pShartnomaSanaLabel:"Shartnoma sanasi", pShartnomaRaqamiLabel:"Shartnoma raqami", pKontragentLabel:"Kontragent",
+    pShartnomaPredmetiLabel:"Shartnoma predmeti", pShartnomaSummasiLabel:"Shartnoma summasi", pXaridTuriLabel:"Xarid turi",
+    pIzohLabel:"Izoh", pFileLabel:"Shartnoma fayli (PDF)", purchaseSearchPh:"Shartnoma raqami yoki kontragent bo'yicha qidirish...",
+    purchaseExportBtn:"Excel'ga yuklab olish", thTartibRaqam:"T/r", thFile:"Fayl",
+    purchaseFileRequiredErr:"Shartnoma faylini (PDF) yuklang",
     xlsxLibErr:"Excel fayl yaratish kutubxonasi yuklanmadi. Internet ulanishini tekshirib, sahifani qayta yuklang.",
     hubSupport:"Yordam so'rovlari", hubSupportDesc:"Xodimlardan kelgan murojaatlar",
     hubReports:"Hisobotlar", hubReportsDesc:"Barcha ma'lumotlarni Excel fayl sifatida yuklab olish",
@@ -1354,6 +1469,7 @@ const dict = {
     cannotDeleteSelfErr:"O'zingizni o'chira olmaysiz", lastGlAdminErr:"Tizimda kamida bitta bosh administrator qolishi shart",
     role_user:"Xodim", role_anticor_admin:"Anticor — Admin", role_anticor:"Anticor",
     role_hr_admin:"HR — Admin", role_hr:"HR", role_rahbariyat:"Rahbariyat", role_super_admin:"Super-admin",
+    role_xarid:"Xarid",
     empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Ushbu login band, iltimos qayta kiriting",
     empPendingApproval:"Yuborildi — rahbariyat va anticor-admin tasdig'ini kutmoqda",
     hubApprovals:"Tasdiqlash so'rovlari", hubApprovalsDesc:"Yuqori rol berilishi kutilayotgan so'rovlar",
@@ -1385,6 +1501,14 @@ const dict = {
     soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена", downloadBtn:"Скачать отчёт",
     hubHrDocs:"Полученные документы", hubHrDocsDesc:"Документы, отправленные сотрудниками через раздел кадров",
     confirmDeleteHrDoc:"Удалить этот документ навсегда?",
+    hubPurchasesMain:"Закупки", hubPurchasesMainDesc:"Реестр закупок и внесение в реестр",
+    hubPurchasesRegistry:"Реестр закупок", hubPurchasesRegistryDesc:"Список всех внесённых закупок",
+    hubPurchaseEntry:"Внесение в реестр", hubPurchaseEntryDesc:"Внесение новой записи о закупке (договор)",
+    pShartnomaSanaLabel:"Дата договора", pShartnomaRaqamiLabel:"Номер договора", pKontragentLabel:"Контрагент",
+    pShartnomaPredmetiLabel:"Предмет договора", pShartnomaSummasiLabel:"Сумма договора", pXaridTuriLabel:"Вид закупки",
+    pIzohLabel:"Комментарий", pFileLabel:"Файл договора (PDF)", purchaseSearchPh:"Поиск по номеру договора или контрагенту...",
+    purchaseExportBtn:"Скачать в Excel", thTartibRaqam:"№", thFile:"Файл",
+    purchaseFileRequiredErr:"Загрузите файл договора (PDF)",
     xlsxLibErr:"Библиотека для создания Excel-файла не загрузилась. Проверьте интернет-соединение и обновите страницу.",
     hubSupport:"Обращения", hubSupportDesc:"Обращения от сотрудников",
     hubReports:"Отчёты", hubReportsDesc:"Скачать все данные в формате Excel",
@@ -1455,6 +1579,7 @@ const dict = {
     cannotDeleteSelfErr:"Вы не можете удалить себя", lastGlAdminErr:"В системе должен остаться хотя бы один главный администратор",
     role_user:"Сотрудник", role_anticor_admin:"Антикор — Админ", role_anticor:"Антикор",
     role_hr_admin:"HR — Админ", role_hr:"HR", role_rahbariyat:"Руководство", role_super_admin:"Супер-админ",
+    role_xarid:"Закупки",
     empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, пожалуйста, введите другой",
     empPendingApproval:"Отправлено — ожидает подтверждения руководства и anticor-admin",
     hubApprovals:"Заявки на утверждение", hubApprovalsDesc:"Заявки на присвоение более высокой роли",
@@ -1984,6 +2109,148 @@ function openEmployeesEntry(){
   openSection('employeesHubView');
 }
 
+/* ---------- Xaridlar reyestri ---------- */
+function openPurchasesEntry(){
+  openSection('purchasesHubView');
+}
+
+let purchasesData = [];
+let filteredPurchases = [];
+let pendingPurchaseFileDataUrl = null;
+const PURCHASE_FILE_MAX_BYTES = 25 * 1024 * 1024;
+
+async function loadPurchases(){
+  const tbody = document.getElementById('purchasesTbody');
+  try{
+    const data = await apiCall({ action:'getPurchases', token: currentUserForKpi.token });
+    if(data.success){
+      purchasesData = data.purchases;
+      filteredPurchases = purchasesData;
+      renderPurchasesTable();
+    } else {
+      tbody.innerHTML = `<tr><td colspan="9" class="loading-row">${dict[currentLang].savedErr}</td></tr>`;
+    }
+  } catch(ex){
+    tbody.innerHTML = `<tr><td colspan="9" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
+  }
+}
+
+function onPurchaseSearch(){
+  const q = document.getElementById('purchaseSearchInput').value.trim().toLowerCase();
+  filteredPurchases = !q ? purchasesData : purchasesData.filter(p =>
+    (p.shartnomaRaqami||'').toLowerCase().includes(q) || (p.kontragent||'').toLowerCase().includes(q)
+  );
+  renderPurchasesTable();
+}
+
+function formatSumma(v){
+  const n = Number(v) || 0;
+  return n.toLocaleString('ru-RU', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function renderPurchasesTable(){
+  const tbody = document.getElementById('purchasesTbody');
+  if(!filteredPurchases || filteredPurchases.length === 0){
+    tbody.innerHTML = `<tr><td colspan="9" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filteredPurchases.map(p => `
+    <tr>
+      <td>${p.id}</td>
+      <td>${escapeHtml(formatBirthDate(p.shartnomaSana))}</td>
+      <td>${escapeHtml(p.shartnomaRaqami)}</td>
+      <td>${escapeHtml(p.kontragent)}</td>
+      <td>${escapeHtml(p.shartnomaPredmeti)}</td>
+      <td>${formatSumma(p.shartnomaSummasi)}</td>
+      <td>${escapeHtml(p.xaridTuri)}</td>
+      <td>${escapeHtml(p.izoh || '') || '—'}</td>
+      <td><a class="icon-btn" style="text-decoration:none;" title="${dict[currentLang].downloadBtn}" href="${API_BASE_URL.replace('backend/public/index.php','backend/public/purchase-download.php')}?id=${encodeURIComponent(p.id)}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></a></td>
+    </tr>
+  `).join('');
+}
+
+function exportPurchasesReport(){
+  if(!filteredPurchases || filteredPurchases.length === 0){
+    alert(dict[currentLang].savedErr);
+    return;
+  }
+  const rows = [['T/r','Shartnoma sanasi','Shartnoma raqami','Kontragent','Shartnoma predmeti','Shartnoma summasi','Xarid turi','Izoh']];
+  filteredPurchases.forEach(p => {
+    rows.push([p.id, formatBirthDate(p.shartnomaSana), p.shartnomaRaqami, p.kontragent, p.shartnomaPredmeti, p.shartnomaSummasi, p.xaridTuri, p.izoh || '']);
+  });
+  downloadXlsx(`xaridlar_${todayStamp()}.xlsx`, rows, 'Xaridlar');
+}
+
+async function onPurchaseFileChange(e){
+  const file = e.target.files[0];
+  pendingPurchaseFileDataUrl = null;
+  if(!file) return;
+  const msg = document.getElementById('purchaseFormMsg'); msg.className = 'msg';
+  if(file.size > PURCHASE_FILE_MAX_BYTES){
+    msg.textContent = dict[currentLang].docFileTooLargeErr; msg.classList.add('err');
+    e.target.value = ''; document.getElementById('pFileBtnText').textContent = dict[currentLang].docFileChoose;
+    return;
+  }
+  if(file.type !== 'application/pdf'){
+    msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    e.target.value = ''; document.getElementById('pFileBtnText').textContent = dict[currentLang].docFileChoose;
+    return;
+  }
+  try{
+    pendingPurchaseFileDataUrl = await readFileAsDataUrl(file);
+    document.getElementById('pFileBtnText').textContent = file.name;
+  } catch(ex){
+    msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    e.target.value = ''; document.getElementById('pFileBtnText').textContent = dict[currentLang].docFileChoose;
+  }
+}
+
+function cancelPurchaseForm(){
+  pendingPurchaseFileDataUrl = null;
+  document.querySelector('#purchaseEntryView form').reset();
+  document.getElementById('pFileBtnText').textContent = dict[currentLang].docFileChoose;
+  document.getElementById('purchaseFormMsg').className = 'msg';
+}
+
+async function submitPurchaseForm(e){
+  e.preventDefault();
+  const msg = document.getElementById('purchaseFormMsg'); msg.className = 'msg';
+  if(!pendingPurchaseFileDataUrl){
+    msg.textContent = dict[currentLang].purchaseFileRequiredErr; msg.classList.add('err');
+    return false;
+  }
+  const payload = {
+    action: 'addPurchase', token: currentUserForKpi.token,
+    shartnomaSana: document.getElementById('pShartnomaSana').value,
+    shartnomaRaqami: document.getElementById('pShartnomaRaqami').value.trim(),
+    kontragent: document.getElementById('pKontragent').value.trim(),
+    shartnomaPredmeti: document.getElementById('pShartnomaPredmeti').value.trim(),
+    shartnomaSummasi: document.getElementById('pShartnomaSummasi').value,
+    xaridTuri: document.getElementById('pXaridTuri').value.trim(),
+    izoh: document.getElementById('pIzoh').value.trim(),
+    file: pendingPurchaseFileDataUrl
+  };
+  const btn = document.getElementById('purchaseSubmitBtn'); btn.disabled = true;
+  try{
+    const data = await apiCall(payload);
+    btn.disabled = false;
+    if(data.success){
+      cancelPurchaseForm();
+      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
+    } else if(data.code === 'FILE_TOO_LARGE'){
+      msg.textContent = dict[currentLang].docFileTooLargeErr; msg.classList.add('err');
+    } else if(data.code === 'INVALID_FILE'){
+      msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    } else {
+      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
+    }
+  } catch(ex){
+    btn.disabled = false;
+    msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err');
+  }
+  return false;
+}
+
 function onEmpSearch(){
   const q = document.getElementById('empSearchInput').value.trim().toLowerCase();
   filteredUsers = !q ? usersData : usersData.filter(u => (u.familiya+' '+u.ism+' '+(u.otasi||'')).toLowerCase().includes(q) || u.login.toLowerCase().includes(q));
@@ -2021,8 +2288,8 @@ function renderUsersTable(){
  */
 function populateRoleSelect(currentValue){
   const rol = currentUserForKpi && currentUserForKpi.rol;
-  const withSuper = ['user','anticor-admin','anticor','hr-admin','hr','rahbariyat','super-admin'];
-  const withoutSuper = ['user','anticor-admin','anticor','hr-admin','hr','rahbariyat'];
+  const withSuper = ['user','anticor-admin','anticor','hr-admin','hr','rahbariyat','xarid','super-admin'];
+  const withoutSuper = ['user','anticor-admin','anticor','hr-admin','hr','rahbariyat','xarid'];
   const options = rol === 'super-admin' ? withSuper : withoutSuper;
   const sel = document.getElementById('eRol');
   sel.innerHTML = options.map(r => `<option value="${r}">${escapeHtml(dict[currentLang]['role_' + r.replace(/-/g,'_')] || r)}</option>`).join('');
@@ -3089,6 +3356,10 @@ const NOTIFY_SEND = ['anticor-admin', 'anticor', 'hr-admin', 'hr', 'rahbariyat',
 // shu so'rovlarni ko'ra/tasdiqlay oladigan rollar (rahbariyat + anticor-admin,
 // ikkalasi ham kerak — super-admin esa yakka o'zi zaxira huquq sifatida).
 const REQUEST_APPROVE = ['anticor-admin', 'rahbariyat', 'super-admin'];
+// Xaridlar reyestri: xarid rolidagilar ko'radi/kirita oladi, anticor-admin
+// esa faqat nazorat maqsadida ko'ra oladi (o'zi yozuv kirita olmaydi).
+const PURCHASE_VIEW = ['xarid', 'anticor-admin', 'super-admin'];
+const PURCHASE_ENTRY = ['xarid', 'super-admin'];
 
 function init(){
   const user = getCurrentUser();
@@ -3107,8 +3378,11 @@ function init(){
   const canReports = canAnticor; // Hisobotlar/Tizim jurnali — faqat ko'rish, shu bois anticor ham kiradi
   const canBackup = canAnticorManage; // Zaxira nusxada barcha xodimlarning parol hash'lari bor — qat'iyroq daraja
   const canApprovals = HR_MANAGE.includes(rol) || REQUEST_APPROVE.includes(rol); // hr-admin (o'z so'rovlari) + rahbariyat/anticor-admin/super-admin (tasdiqlash)
+  const canPurchaseView = PURCHASE_VIEW.includes(rol);
+  const canPurchaseEntry = PURCHASE_ENTRY.includes(rol);
+  const canPurchases = canPurchaseView || canPurchaseEntry;
 
-  if(!canAnticor && !canEmployees && !canNotifSend){
+  if(!canAnticor && !canEmployees && !canNotifSend && !canPurchases){
     document.querySelector('.hub-grid').style.display = 'none';
     document.getElementById('noAccessMsg').style.display = 'block';
     return;
@@ -3117,6 +3391,9 @@ function init(){
   document.getElementById('anticorCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('employeesCard').style.display = canEmployees ? 'block' : 'none';
   document.getElementById('hrDocsCard').style.display = canHrDocs ? 'block' : 'none';
+  document.getElementById('purchasesCard').style.display = canPurchases ? 'block' : 'none';
+  document.getElementById('purchasesRegistryCard').style.display = canPurchaseView ? 'block' : 'none';
+  document.getElementById('purchaseEntrySubCard').style.display = canPurchaseEntry ? 'block' : 'none';
   document.getElementById('approvalsCard').style.display = canApprovals ? 'block' : 'none';
   document.getElementById('conflictCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';

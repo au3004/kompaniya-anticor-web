@@ -43,6 +43,7 @@ final class Database
             // har bir ulanishda tekshiriladi (arzon SELECT), faqat kerak
             // bo'lgandagina haqiqiy ALTER/UPDATE ishga tushadi.
             Util::ensureRoleMigration(self::$pdo);
+            Util::ensureXaridRole(self::$pdo);
         } catch (PDOException $e) {
             Response::error('Bazaga ulanishda xatolik', 'DB_ERROR', 500);
         }

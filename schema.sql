@@ -26,7 +26,7 @@ CREATE TABLE users (
   bolinma_ru        VARCHAR(200),
   telefon           VARCHAR(20),
   rasm_url          VARCHAR(500),        -- endi base64 emas, haqiqiy fayl yo'li (masalan /uploads/photos/12.jpg)
-  rol               ENUM('user','anticor-admin','anticor','hr-admin','hr','super-admin','rahbariyat') NOT NULL DEFAULT 'user',
+  rol               ENUM('user','anticor-admin','anticor','hr-admin','hr','super-admin','rahbariyat','xarid') NOT NULL DEFAULT 'user',
   totp_secret       VARCHAR(64) NULL,    -- ikki bosqichli tasdiqlash (2FA) kaliti, ixtiyoriy
   totp_enabled      TINYINT(1) NOT NULL DEFAULT 0,
   created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -264,4 +264,28 @@ CREATE TABLE employee_pending_approvals (
   FOREIGN KEY (request_id) REFERENCES employee_pending_requests(id) ON DELETE CASCADE,
   FOREIGN KEY (approver_id) REFERENCES users(id) ON DELETE CASCADE,
   UNIQUE KEY uniq_request_approver (request_id, approver_id)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 12) XARIDLAR REYESTRI — "xarid" roli (+ anticor-admin/super-admin
+-- faqat ko'rish uchun) tomonidan kiritiladigan shartnoma yozuvlari.
+-- Shartnoma fayli backend/purchase_contracts/ papkasida (public/ papkadan
+-- tashqarida, hr_documents kabi) saqlanadi.
+-- ---------------------------------------------------------------------
+CREATE TABLE purchases (
+  id                  INT AUTO_INCREMENT PRIMARY KEY,
+  shartnoma_sana      DATE NOT NULL,
+  shartnoma_raqami    VARCHAR(100) NOT NULL,
+  kontragent          VARCHAR(255) NOT NULL,
+  shartnoma_predmeti  VARCHAR(500) NOT NULL,
+  shartnoma_summasi   DECIMAL(18,2) NOT NULL,
+  xarid_turi          VARCHAR(150) NOT NULL,
+  izoh                TEXT NULL,
+  file_name           VARCHAR(255) NOT NULL,
+  original_name       VARCHAR(255) NULL,
+  created_by          INT NOT NULL,
+  created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_shartnoma_raqami (shartnoma_raqami),
+  INDEX idx_kontragent (kontragent)
 ) ENGINE=InnoDB;
