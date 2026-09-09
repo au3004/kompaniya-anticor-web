@@ -298,60 +298,63 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
    Manba: github.com/Nazia-99/Neumorphic-ON-OFF-Toggle-Switch — kod to'liq
    o'qib chiqilgan (faqat CSS: checkbox o'zi ichki "trek" + ON/OFF matnli
    psevdo-elementlar, alohida <label> esa siljiydigan panel sifatida
-   ishlatiladi; tashqi so'rov/skript yo'q). Bu safar rang, o'lcham va
-   animatsiya QIYMATLARI ASL MANBADAN 1:1 KO'CHIRILGAN (faqat class nomi
-   ".switcher-1" -> ".switch" ga moslashtirilgan, chunki loyihada bitta
-   variant yetarli) — asl namunadagi kabi och kulrang fon + yashil (ON) /
-   qizil (OFF) matn ataylab saqlanadi, umumiy sahifa mavzusidan mustaqil. */
+   ishlatiladi; tashqi so'rov/skript yo'q). Rang, animatsiya vaqtlari va
+   barcha nisbatlar (soya/burchak/pozitsiya) ASL MANBADAN 1:1 KO'CHIRILGAN
+   — faqat mutlaq o'lcham ekran/joylashuvga (toggle-row) mos sig'ishi
+   uchun ~2 barobar kichraytirilgan (barcha piksel qiymatlar bir xil
+   koeffitsientda proportsional qisqartirilgan, shu bois asl dizayn aynan
+   saqlanadi, faqat kichikroq). Asl namunadagi kabi och kulrang fon +
+   yashil (ON) / qizil (OFF) matn ataylab saqlanadi, sahifa mavzusidan
+   mustaqil (class nomi ham ".switcher-1" -> ".switch" ga moslashtirilgan). */
 .switch{
-  position:relative; width:220px; height:60px; flex:none;
-  border-radius:30px;
+  position:relative; width:110px; height:30px; flex:none;
+  border-radius:15px;
   background:#e6e6e6;
   box-shadow:
-    -10px -10px 15px #f8f8f8,
-     10px 10px 15px #c9c9c9;
+    -5px -5px 8px #f8f8f8,
+     5px 5px 8px #c9c9c9;
 }
 .switch input{
   appearance:none; -webkit-appearance:none; margin:0;
-  position:absolute; inset:5px; width:calc(100% - 10px); height:calc(100% - 10px);
-  border:none; outline:none; cursor:pointer; border-radius:25px;
+  position:absolute; inset:3px; width:calc(100% - 6px); height:calc(100% - 6px);
+  border:none; outline:none; cursor:pointer; border-radius:13px;
   background:#e6e6e6;
   box-shadow:
-    inset -6px -6px 10px rgba(255,255,255,.95),
-    inset 6px 6px 10px rgba(184,190,204,.45);
+    inset -3px -3px 5px rgba(255,255,255,.95),
+    inset 3px 3px 5px rgba(184,190,204,.45);
   transition:.25s -.1s;
   font-family:'Oswald', 'Inter', sans-serif;
 }
 .switch input::before,
 .switch input::after{
   position:absolute; top:50%; transform:translateY(-50%); z-index:2;
-  font-size:17px; font-weight:600; letter-spacing:.5px;
+  font-size:10px; font-weight:600; letter-spacing:.3px;
   transition:.45s;
 }
-.switch input::before{ content:"ON"; left:38px; }
-.switch input::after{ content:"OFF"; right:38px; }
+.switch input::before{ content:"ON"; left:16px; }
+.switch input::after{ content:"OFF"; right:13px; }
 .switch label{
-  position:absolute; top:10px; bottom:10px;
-  border-radius:20px;
+  position:absolute; top:5px; bottom:5px;
+  border-radius:10px;
   pointer-events:none; z-index:1;
   box-shadow:
-    -5px -5px 8px #f8f8f8,
-     5px 5px 8px #c8c8c8;
+    -3px -3px 4px #f8f8f8,
+     3px 3px 4px #c8c8c8;
 }
 .switch input:checked{
   background:#e6e6e6;
   transition:background .4s;
   box-shadow:
-    inset -7px -7px 7px #f8f8f8,
-    inset 7px 7px 7px #cfcfcf;
+    inset -4px -4px 4px #f8f8f8,
+    inset 4px 4px 4px #cfcfcf;
 }
 .switch input:checked::before{ color:#43ca37; transition:color .45s .2s; }
 .switch input:checked::after{ color:#9d9d9d; transition:color .45s; }
 .switch input:checked + label{
-  left:10px; right:110px;
+  left:5px; right:55px;
   box-shadow:
-    -4px -4px 8px #f8f8f8,
-     4px 4px 8px #c8c8c8;
+    -2px -2px 4px #f8f8f8,
+     2px 2px 4px #c8c8c8;
   transition:
     left .5s,
     right .4s .2s,
@@ -361,17 +364,17 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
   background:#e6e6e6;
   transition:background .4s;
   box-shadow:
-    inset -7px -7px 7px #f8f8f8,
-    inset 7px 7px 7px #cfcfcf;
+    inset -4px -4px 4px #f8f8f8,
+    inset 4px 4px 4px #cfcfcf;
 }
 .switch input:not(:checked)::before{ color:#7a7a7a; }
 .switch input:not(:checked)::after{ color:#b72c2cdb; }
 .switch input:not(:checked) + label{
-  left:110px; right:10px;
+  left:55px; right:5px;
   background:#e6e6e6;
   box-shadow:
-    -5px -5px 8px #f8f8f8,
-     5px 5px 8px #c8c8c8;
+    -3px -3px 4px #f8f8f8,
+     3px 3px 4px #c8c8c8;
   transition:
     left .4s .2s,
     right .5s,
@@ -708,7 +711,7 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <div class="eyebrow" id="empFormEyebrow" data-i18n="hubAddEmployee">Yangi xodim qo'shish</div>
         <h1 id="empFormTitle" data-i18n="hubAddEmployee">Yangi xodim qo'shish</h1>
       </div>
-      <button class="back-btn" onclick="openSection('employeesHubView')">
+      <button class="back-btn" onclick="backFromEmployeeForm()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
         <span data-i18n="backBtn">Ortga</span>
       </button>
@@ -2138,6 +2141,14 @@ function renderAll(){
 /* ---------- Xodimlar ---------- */
 function openEmployeesEntry(){
   openSection('employeesHubView');
+}
+
+/* "Ortga" bitta qadam orqaga qaytishi kerak: agar mavjud xodim
+   tahrirlanayotgan bo'lsa (ro'yxatdan "tahrirlash" orqali kelingan) —
+   ro'yxatga, aks holda (hub kartasidan "Yangi xodim qo'shish" orqali
+   kelingan) — Xodimlar bo'limiga qaytadi. */
+function backFromEmployeeForm(){
+  openSection(editingEmployeeId ? 'employeesView' : 'employeesHubView');
 }
 
 /* ---------- Xaridlar reyestri ---------- */
