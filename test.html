@@ -8,13 +8,25 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root{
-  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
+  --navy-950:#071B33; --navy-900:#0B2545;
+  /* Rang tili tugma (Neumorphic-ON-OFF-Toggle-Switch) va login.html neomorfizmidan
+     ilhomlangan: --azure/--teal endi yashil (ON) tomon siljigan, --coral qizil (OFF)
+     tomon kuchaytirilgan. */
+  --azure:#43CA37; --teal:#2ED9A3; --amber:#FFB020; --coral:#E5484D; --white:#FFFFFF;
   --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
   --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.035), 10px 10px 26px rgba(0,0,0,0.55);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.035), 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.03), inset 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.025), inset 5px 5px 13px rgba(0,0,0,0.6);
 }
 [data-theme="light"]{
-  --bg:#EAF3FA; --bg-deep:#DCEAF5; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
-  --text:#0B2545; --text-dim:#4E6A88; --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
+  --bg:#E9EBEE; --bg-deep:#DBDEE3; --card:rgba(255,255,255,0.75); --card-border:rgba(20,30,45,0.10);
+  --text:#1C2531; --text-dim:#5B6472; --input-bg:rgba(20,30,45,0.04); --input-border:rgba(20,30,45,0.14);
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.9), 10px 10px 26px rgba(163,177,198,0.5);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.85), 6px 6px 16px rgba(163,177,198,0.45);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.75), inset 6px 6px 16px rgba(163,177,198,0.55);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.7), inset 5px 5px 13px rgba(163,177,198,0.65);
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .5s ease, color .5s ease; }
@@ -29,10 +41,8 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .lang-picker{ position:relative; }
 .lang-picker-btn{
   display:flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px;
-  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
-  backdrop-filter:blur(16px);
-  border:1px solid var(--card-border);
-  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  background:var(--bg);
+  box-shadow:var(--neu-out-sm);
   cursor:pointer; color:var(--text-dim); font-family:'Inter'; font-weight:700; font-size:12px;
   transition:border-color .25s ease, color .25s ease;
 }
@@ -62,21 +72,19 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   transition:background .25s ease, border-color .25s ease, color .25s ease;
 }
 .lang-row-check svg{ width:11px; height:11px; }
-.lang-row.active{ background:rgba(0,163,224,.10); }
+.lang-row.active{ background:rgba(67,202,55,.10); }
 .lang-row.active .lang-row-name{ color:var(--azure); }
 .lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#00263F; }
 .home-icon-btn{
   position:relative; width:32px; height:32px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
-  backdrop-filter:blur(16px);
-  border:1px solid var(--card-border);
-  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  background:var(--bg);
+  box-shadow:var(--neu-out-sm);
   cursor:pointer; color:var(--text-dim); text-decoration:none;
   transition:border-color .25s ease, color .25s ease, transform .2s ease, box-shadow .25s ease;
   margin-left:2px;
 }
-.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,163,224,.28); }
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(67,202,55,.28); }
 /* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
    Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
    — kod to'liq o'qib chiqilgan (faqat CSS animatsiya + oddiy klass
@@ -109,7 +117,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   filter:blur(30px); opacity:.55; transition:.7s ease;
   background:radial-gradient(circle, rgba(255,200,0,.35), transparent 70%);
 }
-.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,163,224,.4), transparent 70%); }
+.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(67,202,55,.4), transparent 70%); }
 
 .tt-glow{
   position:absolute; left:-15%; top:-30%; width:65%; height:160%; border-radius:50%;
@@ -119,7 +127,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 }
 .theme-toggle.active .tt-glow{
   left:50%;
-  background:radial-gradient(circle at center, rgba(0,163,224,.95), rgba(0,163,224,.55) 45%, transparent 80%);
+  background:radial-gradient(circle at center, rgba(67,202,55,.95), rgba(67,202,55,.55) 45%, transparent 80%);
 }
 
 .tt-label{
@@ -155,8 +163,8 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   box-shadow:
     inset 0 6px 14px rgba(255,255,255,.15),
     inset 0 -14px 22px rgba(0,0,0,.15),
-    0 0 26px rgba(0,163,224,.5),
-    0 0 48px rgba(0,163,224,.25);
+    0 0 26px rgba(67,202,55,.5),
+    0 0 48px rgba(67,202,55,.25);
 }
 .theme-toggle:not(.active) .tt-thumb{
   box-shadow:
@@ -184,7 +192,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .main{ max-width:680px; margin:0 auto; padding:120px 24px 80px; }
 .page-head{ margin-bottom:10px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
 .back-btn{
-  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--card-border);
+  display:inline-flex; align-items:center; gap:6px; background:var(--bg); box-shadow:var(--neu-out-sm);
   color:var(--text); font-size:13px; font-weight:600; padding:9px 16px; border-radius:11px; cursor:pointer;
   text-decoration:none; transition:border-color .2s ease; white-space:nowrap; flex-shrink:0;
 }
@@ -196,7 +204,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--azure), var(--teal)); transition:width .3s ease; }
 
 .q-card{
-  background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:24px; margin-bottom:16px;
+  background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:16px; padding:24px; margin-bottom:16px;
   transition:box-shadow .2s ease; opacity:0; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both;
 }
 .q-card:hover{ box-shadow:0 16px 32px -18px rgba(0,0,0,0.4); }
@@ -211,7 +219,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   font-size:13.5px; transition:border-color .15s ease, background .15s ease, transform .1s ease;
 }
 .opt:hover{ border-color:var(--azure); transform:translateX(2px); }
-.opt.selected{ border-color:var(--teal); background:rgba(0,217,192,0.12); }
+.opt.selected{ border-color:var(--teal); background:rgba(46,217,163,0.12); }
 .opt input{ accent-color:var(--teal); width:16px; height:16px; }
 
 .submit-wrap{ text-align:center; margin-top:24px; }
@@ -220,12 +228,12 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:14.5px;
   transition:transform .15s ease, box-shadow .2s ease;
 }
-.submit-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,163,224,0.6); }
+.submit-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(67,202,55,0.6); }
 .submit-btn:active:not(:disabled){ transform:translateY(0) scale(.98); }
 .submit-btn:disabled{ opacity:.4; cursor:default; }
 
 .result-card{
-  display:none; text-align:center; background:var(--card); border:1px solid var(--card-border);
+  display:none; text-align:center; background:var(--bg); box-shadow:var(--neu-out-sm);
   border-radius:20px; padding:40px 30px;
 }
 .result-card.show{ display:block; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both; }
@@ -247,7 +255,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 }
 .result-card a:hover{ transform:translateY(-2px); }
 #quizForm.hidden{ display:none; }
-.inactive-card{ display:none; text-align:center; background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:40px 30px; }
+.inactive-card{ display:none; text-align:center; background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:20px; padding:40px 30px; }
 .inactive-card.show{ display:block; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both; }
 .inactive-card .icon{ width:52px; height:52px; margin:0 auto 16px; color:var(--text-dim); }
 .inactive-card .msg{ font-size:15px; font-weight:600; margin-bottom:22px; }
@@ -272,7 +280,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 }
 .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
 .modal-head h3{ font-family:'Unbounded', sans-serif; font-size:17px; }
-.modal-close{ background:var(--card); border:1px solid var(--card-border); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
+.modal-close{ background:var(--bg); box-shadow:var(--neu-out-sm); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
 .notif-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:12px; padding:13px 14px; position:relative; }
 .notif-item.unread{ border-color:var(--azure); }
 .notif-item.unread::before{ content:''; position:absolute; top:14px; left:-6px; width:8px; height:8px; border-radius:50%; background:var(--azure); }
