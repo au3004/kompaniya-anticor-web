@@ -49,8 +49,11 @@ final class Roles
     /** Xodimlar ro'yxatini ko'radi (o'zi tahrirlay olmaydi). */
     public const HR_VIEW = [self::HR_ADMIN, self::HR, self::RAHBARIYAT, self::SUPER_ADMIN];
 
-    /** Xodimlarni qo'sha/tahrirlay/o'chira oladi. */
+    /** Xodimlarni qo'sha/o'chira oladi (rolni ham istalgancha o'zgartira oladi). */
     public const HR_MANAGE = [self::HR_ADMIN, self::SUPER_ADMIN];
+
+    /** Xodim ma'lumotlarini tahrirlay oladi (F.I.Sh, telefon va h.k.) — "hr" rol maydonini o'zgartira olmaydi (AdminController::editEmployee'da alohida tekshiriladi). */
+    public const HR_EDIT = [self::HR_ADMIN, self::HR, self::SUPER_ADMIN];
 
     /** Xabarnoma yubora oladi — boshqaruv paneliga kiruvchi barcha rollar (oddiy "user"dan tashqari). */
     public const NOTIFY_SEND = [self::ANTICOR_ADMIN, self::ANTICOR, self::HR_ADMIN, self::HR, self::RAHBARIYAT, self::SUPER_ADMIN];

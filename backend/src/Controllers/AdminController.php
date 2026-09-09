@@ -126,7 +126,7 @@ final class AdminController
 
     public static function editEmployee(array $input): void
     {
-        $me = Auth::requireRole($input, Roles::HR_MANAGE);
+        $me = Auth::requireRole($input, Roles::HR_EDIT);
 
         $id = Validate::int($input, 'id');
         if (!$id) {
@@ -167,7 +167,14 @@ final class AdminController
         }
 
         self::assertCanEditTarget($me, $existing);
-        $rol = self::sanitizeEditedRole($db, $me, $existing, $rol);
+        if ($me['rol'] === Roles::HR) {
+            // "hr" xodim ma'lumotlarini (F.I.Sh, telefon va h.k.) tahrirlay oladi,
+            // lekin rolni o'zgartira olmaydi — yuborilgan qiymatdan qat'i nazar,
+            // mavjud rol saqlanib qoladi.
+            $rol = $existing['rol'];
+        } else {
+            $rol = self::sanitizeEditedRole($db, $me, $existing, $rol);
+        }
 
         $params = [
             'id' => $id,
@@ -268,8 +275,13 @@ final class AdminController
         return $value;
     }
 
-    /** hr-admin faqat past darajali rollarni (oddiy xodim, anticor, hr, rahbariyat) tayinlashi mumkin. */
-    private const HR_ASSIGNABLE_ROLES = [Roles::USER, Roles::ANTICOR, Roles::HR, Roles::RAHBARIYAT];
+    /**
+     * hr-admin/hr faqat shu (past darajali) rollardagi MAVJUD xodimlarni
+     * tahrira/o'chira oladi — anticor-admin/hr-admin/super-admin darajasidagi
+     * xodim yozuviga tegilmaydi (rolni o'zgartirish huquqidan mustaqil
+     * cheklov — qarang: allowedRolesFor()).
+     */
+    private const EDITABLE_TARGET_ROLES = [Roles::USER, Roles::ANTICOR, Roles::HR, Roles::RAHBARIYAT];
 
     /**
      * Tizimda hozir kamida bitta super-admin bor-yo'qligini tekshiradi —
@@ -285,18 +297,21 @@ final class AdminController
 
     /**
      * Chaqiruvchining rolidan kelib chiqib, u xodimga qaysi rollarni
-     * tayinlashi mumkinligini aniqlaydi. Xodim qo'shish/tahrirlash
-     * Roles::HR_MANAGE (hr-admin/super-admin) bilan cheklangani uchun
-     * bu yerga faqat shu ikki rol keladi: super-admin istalgan rolni,
-     * jumladan super-admin'ni ham beradi; hr-admin esa faqat past
-     * darajali rollarni.
+     * tayinlashi mumkinligini aniqlaydi (bu yerga faqat addEmployee/
+     * editEmployee'ning rol-o'zgartirish yo'li orqali, ya'ni hr-admin
+     * yoki super-admin kelishi mumkin — "hr" rolni umuman o'zgartirmaydi,
+     * qarang: editEmployee()). super-admin istalgan rolni, jumladan
+     * super-admin'ning o'zini ham beradi (rolni topshirish/transfer).
+     * hr-admin esa super-admin'dan boshqa BARCHA rolni beradi — bu keng
+     * huquq ataylab shunday: yuqori (anticor-admin/hr-admin) rol berilishi
+     * alohida kelishuv (approval) jarayoni bilan nazorat qilinadi.
      */
     private static function allowedRolesFor(string $callerRol): array
     {
         if ($callerRol === Roles::SUPER_ADMIN) {
             return array_merge(Roles::ASSIGNABLE, [Roles::SUPER_ADMIN]);
         }
-        return self::HR_ASSIGNABLE_ROLES;
+        return Roles::ASSIGNABLE;
     }
 
     /** super-admin rolini faqat hozirgi super-adminning o'zi boshqa xodimga bera oladi. */
@@ -336,7 +351,7 @@ final class AdminController
     }
 
     /**
-     * hr-admin o'zidan yuqori yoki teng darajadagi xodimni (anticor-admin/
+     * hr-admin/hr o'zidan yuqori yoki teng darajadagi xodimni (anticor-admin/
      * hr-admin/super-admin) tahrirlay olmaydi — bu boshqaruv paneli orqali
      * yuqori huquqli hisoblarni tasodifan yoki niyat bilan "egallab olish"
      * dan himoya qiladi. super-admin uchun cheklov yo'q.
@@ -346,7 +361,7 @@ final class AdminController
         if ($me['rol'] === Roles::SUPER_ADMIN) {
             return;
         }
-        if (!in_array($existing['rol'], self::HR_ASSIGNABLE_ROLES, true)) {
+        if (!in_array($existing['rol'], self::EDITABLE_TARGET_ROLES, true)) {
             Response::error("Sizda bu xodimni tahrirlash huquqi yo'q", 'FORBIDDEN', 403);
         }
     }
@@ -392,7 +407,7 @@ final class AdminController
         if ($me['rol'] === Roles::SUPER_ADMIN) {
             return;
         }
-        if (!in_array($existing['rol'], self::HR_ASSIGNABLE_ROLES, true)) {
+        if (!in_array($existing['rol'], self::EDITABLE_TARGET_ROLES, true)) {
             Response::error("Sizda bu xodimni o'chirish huquqi yo'q", 'FORBIDDEN', 403);
         }
     }
