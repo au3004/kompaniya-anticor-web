@@ -1467,7 +1467,6 @@ function getCurrentUser(){
 let statsData = null;
 let filteredEmployees = [];
 let usersData = null;
-let superAdminExists = false;
 let filteredUsers = [];
 let currentUserForKpi = null;
 let testsData = null;
@@ -1970,21 +1969,15 @@ function renderUsersTable(){
 
 /**
  * Rol tanlash ro'yxatini chaqiruvchining huquq darajasiga qarab quradi:
- * super-admin barcha rollarni, jumladan super-admin'ni ham beradi.
- * anticor-admin FAQAT tizimda hali birorta ham super-admin yo'q bo'lgan
- * (vaqtinchalik bootstrap) paytda xuddi shunday to'liq huquqqa ega
- * bo'ladi — aks holda (superAdminExists === true) hr-admin bilan bir xil,
- * faqat past darajali rollarni beradi. Bu backend/src/Controllers/
- * AdminController.php'dagi allowedRolesFor() bilan bir xil mantiq —
- * aks holda anticor-admin o'zini yoki boshqa birortasini cheksiz muddat
- * anticor-admin/hr-admin/super-admin qilib tayinlab, begona boshqaruv
- * panellariga kirish huquqini olishi mumkin bo'lardi.
+ * super-admin barcha rollarni, jumladan super-admin'ni ham beradi;
+ * hr-admin esa faqat past darajali rollarni (backend/src/Controllers/
+ * AdminController.php'dagi allowedRolesFor() bilan bir xil mantiq).
  */
 function populateRoleSelect(currentValue){
   const rol = currentUserForKpi && currentUserForKpi.rol;
   const full = ['user','anticor-admin','anticor','hr-admin','hr','rahbariyat','super-admin'];
   const restricted = ['user','anticor','hr','rahbariyat'];
-  const options = (rol === 'super-admin' || (rol === 'anticor-admin' && !superAdminExists)) ? full : restricted;
+  const options = rol === 'super-admin' ? full : restricted;
   const sel = document.getElementById('eRol');
   sel.innerHTML = options.map(r => `<option value="${r}">${escapeHtml(dict[currentLang]['role_' + r.replace(/-/g,'_')] || r)}</option>`).join('');
   if(currentValue && options.includes(currentValue)) sel.value = currentValue;
@@ -2065,7 +2058,6 @@ async function loadUsersList(user){
       // shu tartibdagi joriy pozitsiya (1,2,3...): xodim o'chirilsa, qolganlar avtomatik
       // siljib, bo'shliq qolmaydi. Haqiqiy baza id'si (u.id) tahrirlash/o'chirish uchun ishlatiladi.
       usersData = data.users.map((u, i) => ({ ...u, displayId: i + 1 }));
-      superAdminExists = !!data.superAdminExists;
       if(document.getElementById('employeesView').style.display !== 'none') { filteredUsers = usersData; renderUsersTable(); }
     }
   } catch(ex){}
@@ -2969,15 +2961,9 @@ function init(){
 
   const canAnticor = ANTICOR_VIEW.includes(rol);
   const canAnticorManage = ANTICOR_MANAGE.includes(rol);
-  // VAQTINCHALIK BOOTSTRAP: backend/src/Controllers/AdminController.php'dagi
-  // ADD_EMPLOYEE_ROLES bilan bir xil — anticor-admin ham hozircha "Xodimlar"
-  // bo'limini (faqat ro'yxatni ko'rish + yangi xodim qo'shish, birinchi
-  // super-adminni tayinlash uchun) ochadi. Foydalanuvchi birinchi
-  // super-adminni tayinlagach, quyidagi ikkala qatordan ham
-  // "|| rol === 'anticor-admin'" qismini olib tashlash so'ralgan edi.
-  const canEmployees = HR_VIEW.includes(rol) || rol === 'anticor-admin';
-  const canAddEmployee = HR_MANAGE.includes(rol) || rol === 'anticor-admin';
-  const canEmployeesManage = HR_MANAGE.includes(rol); // tahrirlash/o'chirish — bootstrap bunga tegishli emas
+  const canEmployees = HR_VIEW.includes(rol);
+  const canAddEmployee = HR_MANAGE.includes(rol);
+  const canEmployeesManage = HR_MANAGE.includes(rol);
   const canHrDocs = ['hr-admin', 'hr', 'super-admin'].includes(rol); // Yuborilgan hujjatlar — rahbariyat bunga kirmaydi
   const canManage = canAnticorManage; // Test savollari, Hujjat qo'shish — faqat anticor-admin/super-admin
   const canSurvey = canAnticor; // Anonim so'rovnoma — ichki huquqlar canAnticorManage'ga qarab farqlanadi (openSurveyEntry)

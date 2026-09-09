@@ -16,20 +16,9 @@ final class AdminController
 {
     private const TUGILGAN_SANA_DDL = "ALTER TABLE users ADD COLUMN IF NOT EXISTS tugilgan_sana DATE AFTER otasining_ismi";
 
-    /**
-     * VAQTINCHALIK BOOTSTRAP: bazada hali super-admin bo'lmagan paytda,
-     * anticor-adminga birinchi super-adminni (odatda o'ziga alohida hisob
-     * sifatida) tayinlash imkonini beradi — aks holda buni hech kim qila
-     * olmas edi (faqat super-adminning o'zi bu rolni bera oladi, lekin
-     * hali birortasi yo'q). Foydalanuvchi birinchi super-adminni
-     * tayinlagach, BU QATORNI olib tashlab, pastdagi Auth::requireRole
-     * chaqiruvini shunchaki Roles::HR_MANAGE'ga qaytarish so'ralgan edi.
-     */
-    private const ADD_EMPLOYEE_ROLES = [Roles::HR_ADMIN, Roles::SUPER_ADMIN, Roles::ANTICOR_ADMIN];
-
     public static function addEmployee(array $input): void
     {
-        $me = Auth::requireRole($input, self::ADD_EMPLOYEE_ROLES);
+        $me = Auth::requireRole($input, Roles::HR_MANAGE);
 
         $login = Validate::requiredStr($input, 'login', 100);
         $parol = Validate::requiredStr($input, 'parol', 255);
@@ -132,10 +121,7 @@ final class AdminController
             ];
         }, $rows);
 
-        // Frontend'dagi rol tanlash ro'yxati (populateRoleSelect) anticor-admin
-        // uchun to'liq/qisqartirilgan variantni shu bayroqqa qarab tanlaydi —
-        // backend'dagi allowedRolesFor() bilan bir xil bootstrap mantig'i.
-        Response::success(['users' => $users, 'superAdminExists' => self::superAdminExists($db)]);
+        Response::success(['users' => $users]);
     }
 
     public static function editEmployee(array $input): void
@@ -299,33 +285,21 @@ final class AdminController
 
     /**
      * Chaqiruvchining rolidan kelib chiqib, u xodimga qaysi rollarni
-     * tayinlashi mumkinligini aniqlaydi. super-admin — istalgan rolni,
-     * jumladan super-admin'ni ham beradi. anticor-admin FAQAT tizimda
-     * hali birorta ham super-admin yo'q bo'lgan (vaqtinchalik bootstrap)
-     * paytda xuddi shunday to'liq huquqqa ega bo'ladi — birinchi
-     * super-admin tayinlangach, bu maxsus huquq avtomatik yopiladi va
-     * anticor-admin ham hr-admin kabi faqat past darajali rollarni
-     * beradi. Aks holda anticor-admin cheksiz muddat o'zini yoki
-     * boshqa birortasini anticor-admin/hr-admin/super-admin qilib
-     * tayinlab, begona boshqaruv panellariga kirish huquqini "sotib
-     * olishi" mumkin bo'lardi.
+     * tayinlashi mumkinligini aniqlaydi. Xodim qo'shish/tahrirlash
+     * Roles::HR_MANAGE (hr-admin/super-admin) bilan cheklangani uchun
+     * bu yerga faqat shu ikki rol keladi: super-admin istalgan rolni,
+     * jumladan super-admin'ni ham beradi; hr-admin esa faqat past
+     * darajali rollarni.
      */
-    private static function allowedRolesFor(\PDO $db, string $callerRol): array
+    private static function allowedRolesFor(string $callerRol): array
     {
         if ($callerRol === Roles::SUPER_ADMIN) {
-            return array_merge(Roles::ASSIGNABLE, [Roles::SUPER_ADMIN]);
-        }
-        if ($callerRol === Roles::ANTICOR_ADMIN && !self::superAdminExists($db)) {
             return array_merge(Roles::ASSIGNABLE, [Roles::SUPER_ADMIN]);
         }
         return self::HR_ASSIGNABLE_ROLES;
     }
 
-    /**
-     * super-admin rolini faqat hozirgi super-adminning o'zi (yoki hali
-     * hech kim super-admin bo'lmagan paytda, vaqtinchalik bootstrap sifatida
-     * anticor-admin) bera oladi.
-     */
+    /** super-admin rolini faqat hozirgi super-adminning o'zi boshqa xodimga bera oladi. */
     private static function assertCanGrantSuperAdmin(\PDO $db, string $callerRol): void
     {
         if ($callerRol === Roles::SUPER_ADMIN) {
@@ -350,7 +324,7 @@ final class AdminController
     /** addEmployee uchun: ruxsat etilmagan rol yuborilsa, xavfsiz standart holatga ("user") tushiriladi. */
     private static function sanitizeAssignedRole(\PDO $db, array $me, string $rol, ?string $unused = null): string
     {
-        $allowed = self::allowedRolesFor($db, $me['rol']);
+        $allowed = self::allowedRolesFor($me['rol']);
         if (!in_array($rol, $allowed, true)) {
             return Roles::USER;
         }
@@ -387,7 +361,7 @@ final class AdminController
         if ($rol === $existing['rol']) {
             return $rol;
         }
-        $allowed = self::allowedRolesFor($db, $me['rol']);
+        $allowed = self::allowedRolesFor($me['rol']);
         if (!in_array($rol, $allowed, true)) {
             Response::error('Bu rolni tayinlashga sizda huquq yo\'q', 'FORBIDDEN', 403);
         }
