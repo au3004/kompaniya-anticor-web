@@ -308,6 +308,29 @@ body{
 }
 .signup-icon svg{ width:26px; height:26px; }
 
+/* ===== "Parolni unutdim" — kirish/tiklash formalari orasidagi ichki
+   aylanish (mini-flip). Tashqi flip-scene bilan bir xil rotateY(180deg)
+   texnikasi, faqat .card fon/padding qayta qo'llanmaydi — bu ikkalasi
+   allaqachon tashqi .card-front ichida turibdi. ===== */
+.pw-flip-scene{ width:100%; perspective:1800px; }
+.pw-flip-card{
+  position:relative; width:100%;
+  transition:transform .7s cubic-bezier(.22,1,.36,1);
+  transform-style:preserve-3d;
+}
+.pw-flip-scene.flipped .pw-flip-card{ transform:rotateY(180deg); }
+.pw-flip-front,.pw-flip-back{
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+}
+.pw-flip-front{ position:relative; }
+.pw-flip-back{
+  position:absolute; inset:0;
+  transform:rotateY(180deg);
+  pointer-events:none;
+}
+.pw-flip-scene.flipped .pw-flip-back{ pointer-events:auto; }
+.pw-flip-scene.flipped .pw-flip-front{ pointer-events:none; }
+
 @keyframes rise{
   from{ opacity:0; transform:translateY(24px) scale(.98); }
   to{ opacity:1; transform:translateY(0) scale(1); }
@@ -479,7 +502,9 @@ body{
   <div class="flip-scene" id="flipScene">
     <div class="flip-card">
       <div class="card card-front">
-        <div id="loginView">
+        <div class="pw-flip-scene" id="pwFlipScene">
+        <div class="pw-flip-card">
+        <div class="pw-flip-front" id="loginView">
           <h1 data-i18n="loginTitle">Tizimga kirish</h1>
 
           <div class="error-msg" id="errorBox">⚠ <span id="errorText" data-i18n="errText">Login yoki parol noto'g'ri kiritilgan</span></div>
@@ -511,7 +536,7 @@ body{
           <div class="signup-text"><span data-i18n="noAccountText">Akkauntingiz yo'qmi?</span> <a id="toSignup" onclick="flipToSignup()" data-i18n="registerBtn">Ro'yxatdan o'tish</a></div>
         </div>
 
-        <div id="forgotView" style="display:none;">
+        <div class="pw-flip-back" id="forgotView">
           <h1 data-i18n="forgotTitle">Parolni tiklash</h1>
           <p class="sub" data-i18n="forgotSub">Login va telefon raqamingizni kiriting</p>
 
@@ -531,6 +556,9 @@ body{
           </form>
 
           <div class="link-row"><a onclick="showLoginForm()" data-i18n="backToLoginLink">Kirishga qaytish</a></div>
+        </div>
+
+        </div>
         </div>
 
         <div id="totpView" style="display:none;">
@@ -689,18 +717,17 @@ function toggleRememberMe(){
 
 /* ---------- Parolni unutdim / Ro'yxatdan o'tish ---------- */
 function showForgotForm(){
-  document.getElementById('loginView').style.display = 'none';
-  document.getElementById('forgotView').style.display = 'block';
+  document.getElementById('pwFlipScene').classList.add('flipped');
 }
 function showLoginForm(){
-  document.getElementById('forgotView').style.display = 'none';
+  document.getElementById('pwFlipScene').style.display = '';
+  document.getElementById('pwFlipScene').classList.remove('flipped');
   document.getElementById('totpView').style.display = 'none';
-  document.getElementById('loginView').style.display = 'block';
   document.getElementById('forgotErrorBox').classList.remove('show');
   document.getElementById('forgotSuccessBox').classList.remove('show');
 }
 function showTotpForm(){
-  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('pwFlipScene').style.display = 'none';
   document.getElementById('totpView').style.display = 'block';
   document.getElementById('totpCodeInput').value = '';
   document.getElementById('totpErrorBox').classList.remove('show');
