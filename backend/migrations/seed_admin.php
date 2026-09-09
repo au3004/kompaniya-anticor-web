@@ -5,9 +5,9 @@ declare(strict_types=1);
  * CLI skript: birinchi "super-admin" (yagona, barcha bo'limlarga to'liq kirish
  * huquqiga ega) xodimni yaratadi/yangilaydi — faqat bo'sh (yangi) bazada
  * ishlatish uchun mo'ljallangan, chunki super-admin faqat bitta bo'lishi
- * shart. Bazada allaqachon xodimlar bo'lsa, o'rniga anticor-admin rolidagi
- * xodim orqali (Xodimlar bo'limidan) kerakli kishiga super-admin rolini
- * qo'lda tayinlang.
+ * shart. Bazada allaqachon super-admin mavjud bo'lsa, kerakli kishiga bu
+ * rolni faqat mavjud super-adminning o'zi (Xodimlar bo'limidan) qo'lda
+ * topshira oladi — bu skript endi rad etadi.
  *
  * Ishlatish:
  *   php backend/migrations/seed_admin.php <login> <parol> <familiya> <ism> [otasi] [lavozim] [bolinma] [telefon]
