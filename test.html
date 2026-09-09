@@ -8,7 +8,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root{
-  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
+  --navy-950:#071B33; --navy-900:#0B2545; --azure:#004491; --teal:#1D6FBF; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
   --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
   --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
   /* Embossed (neomorfik) soya texnikasi — login.html'dagi bilan bir xil,
@@ -20,7 +20,7 @@
   --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.025), inset 5px 5px 13px rgba(0,0,0,0.6);
 }
 [data-theme="light"]{
-  --bg:#EAF3FA; --bg-deep:#DCEAF5; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
+  --bg:#F1F2F4; --bg-deep:#E4E6E9; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
   --text:#0B2545; --text-dim:#4E6A88; --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
   --neu-out:-10px -10px 22px rgba(255,255,255,0.9), 10px 10px 26px rgba(163,177,198,0.5);
   --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.85), 6px 6px 16px rgba(163,177,198,0.45);
@@ -71,9 +71,9 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   transition:background .25s ease, border-color .25s ease, color .25s ease;
 }
 .lang-row-check svg{ width:11px; height:11px; }
-.lang-row.active{ background:rgba(0,163,224,.10); }
+.lang-row.active{ background:rgba(0,68,145,.10); }
 .lang-row.active .lang-row-name{ color:var(--azure); }
-.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#00263F; }
+.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#FFFFFF; }
 .home-icon-btn{
   position:relative; width:32px; height:32px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
@@ -83,7 +83,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   transition:border-color .25s ease, color .25s ease, transform .2s ease, box-shadow .25s ease;
   margin-left:2px;
 }
-.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,163,224,.28); }
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,68,145,.28); }
 /* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
    Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
    — kod to'liq o'qib chiqilgan (faqat CSS animatsiya + oddiy klass
@@ -121,7 +121,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   filter:blur(30px); opacity:.55; transition:.7s ease;
   background:radial-gradient(circle, rgba(255,200,0,.35), transparent 70%);
 }
-.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,163,224,.4), transparent 70%); }
+.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,68,145,.4), transparent 70%); }
 
 .tt-glow{
   position:absolute; left:-15%; top:-30%; width:65%; height:160%; border-radius:50%;
@@ -131,7 +131,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 }
 .theme-toggle.active .tt-glow{
   left:50%;
-  background:radial-gradient(circle at center, rgba(0,163,224,.95), rgba(0,163,224,.55) 45%, transparent 80%);
+  background:radial-gradient(circle at center, rgba(0,68,145,.95), rgba(0,68,145,.55) 45%, transparent 80%);
 }
 
 .tt-label{
@@ -167,8 +167,8 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   box-shadow:
     inset 0 6px 14px rgba(255,255,255,.15),
     inset 0 -14px 22px rgba(0,0,0,.15),
-    0 0 26px rgba(0,163,224,.5),
-    0 0 48px rgba(0,163,224,.25);
+    0 0 26px rgba(0,68,145,.5),
+    0 0 48px rgba(0,68,145,.25);
 }
 .theme-toggle:not(.active) .tt-thumb{
   box-shadow:
@@ -223,16 +223,16 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   font-size:13.5px; transition:border-color .15s ease, background .15s ease, transform .1s ease;
 }
 .opt:hover{ border-color:var(--azure); transform:translateX(2px); }
-.opt.selected{ border-color:var(--teal); background:rgba(0,217,192,0.12); }
+.opt.selected{ border-color:var(--teal); background:rgba(29,111,191,0.12); }
 .opt input{ accent-color:var(--teal); width:16px; height:16px; }
 
 .submit-wrap{ text-align:center; margin-top:24px; }
 .submit-btn{
   padding:14px 32px; border:none; border-radius:12px; cursor:pointer;
-  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:14.5px;
+  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; font-weight:700; font-size:14.5px;
   transition:transform .15s ease, box-shadow .2s ease;
 }
-.submit-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,163,224,0.6); }
+.submit-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,68,145,0.6); }
 .submit-btn:active:not(:disabled){ transform:translateY(0) scale(.98); }
 .submit-btn:disabled{ opacity:.4; cursor:default; }
 
@@ -254,7 +254,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .wrong-list li::before{ content:"✕"; position:absolute; left:0; color:var(--coral); font-size:11px; top:3px; }
 .result-card a{
   display:inline-block; padding:12px 24px; border-radius:11px; text-decoration:none;
-  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px;
+  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; font-weight:700; font-size:13.5px;
   transition:transform .15s ease;
 }
 .result-card a:hover{ transform:translateY(-2px); }

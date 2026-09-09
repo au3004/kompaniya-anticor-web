@@ -11,7 +11,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&family=Oswald:wght@600&display=swap');
 :root{
-  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
+  --navy-950:#071B33; --navy-900:#0B2545; --azure:#004491; --teal:#1D6FBF; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
   --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
   --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
   /* Embossed (neomorfik) soya texnikasi — login.html'dagi bilan bir xil,
@@ -23,7 +23,7 @@
   --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.025), inset 5px 5px 13px rgba(0,0,0,0.6);
 }
 [data-theme="light"]{
-  --bg:#EAF3FA; --bg-deep:#DCEAF5; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
+  --bg:#F1F2F4; --bg-deep:#E4E6E9; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
   --text:#0B2545; --text-dim:#4E6A88; --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
   --neu-out:-10px -10px 22px rgba(255,255,255,0.9), 10px 10px 26px rgba(163,177,198,0.5);
   --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.85), 6px 6px 16px rgba(163,177,198,0.45);
@@ -44,7 +44,7 @@ body{ font-family:'Inter', sans-serif; background:radial-gradient(ellipse at 70%
   cursor:pointer; color:var(--text-dim); text-decoration:none;
   transition:border-color .25s ease, color .25s ease, transform .2s ease, box-shadow .25s ease;
 }
-.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,163,224,.28); }
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,68,145,.28); }
 .controls{ display:flex; align-items:center; gap:12px; }
 /* ===== Til almashtirgich: kichik tugma + belgilash ro'yxati (checkmark list)
    uslubidagi ochiluvchi menyu — bosilganda tillar ro'yxati ochiladi, tanlangani
@@ -83,9 +83,9 @@ body{ font-family:'Inter', sans-serif; background:radial-gradient(ellipse at 70%
   transition:background .25s ease, border-color .25s ease, color .25s ease;
 }
 .lang-row-check svg{ width:11px; height:11px; }
-.lang-row.active{ background:rgba(0,163,224,.10); }
+.lang-row.active{ background:rgba(0,68,145,.10); }
 .lang-row.active .lang-row-name{ color:var(--azure); }
-.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#00263F; }
+.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#FFFFFF; }
 /* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
    Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
    — kod to'liq o'qib chiqilgan (faqat CSS animatsiya + oddiy klass
@@ -123,7 +123,7 @@ body{ font-family:'Inter', sans-serif; background:radial-gradient(ellipse at 70%
   filter:blur(30px); opacity:.55; transition:.7s ease;
   background:radial-gradient(circle, rgba(255,200,0,.35), transparent 70%);
 }
-.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,163,224,.4), transparent 70%); }
+.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,68,145,.4), transparent 70%); }
 
 .tt-glow{
   position:absolute; left:-15%; top:-30%; width:65%; height:160%; border-radius:50%;
@@ -133,7 +133,7 @@ body{ font-family:'Inter', sans-serif; background:radial-gradient(ellipse at 70%
 }
 .theme-toggle.active .tt-glow{
   left:50%;
-  background:radial-gradient(circle at center, rgba(0,163,224,.95), rgba(0,163,224,.55) 45%, transparent 80%);
+  background:radial-gradient(circle at center, rgba(0,68,145,.95), rgba(0,68,145,.55) 45%, transparent 80%);
 }
 
 .tt-label{
@@ -169,8 +169,8 @@ body{ font-family:'Inter', sans-serif; background:radial-gradient(ellipse at 70%
   box-shadow:
     inset 0 6px 14px rgba(255,255,255,.15),
     inset 0 -14px 22px rgba(0,0,0,.15),
-    0 0 26px rgba(0,163,224,.5),
-    0 0 48px rgba(0,163,224,.25);
+    0 0 26px rgba(0,68,145,.5),
+    0 0 48px rgba(0,68,145,.25);
 }
 .theme-toggle:not(.active) .tt-thumb{
   box-shadow:
@@ -221,7 +221,7 @@ body.embedded #hubView .back-btn{ display:none; }
   cursor:pointer; transition:transform .2s ease, border-color .2s ease; text-align:left;
 }
 .hub-card:hover{ transform:translateY(-3px); box-shadow:var(--neu-out); }
-.hub-card .icon{ width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, var(--azure), var(--teal)); display:flex; align-items:center; justify-content:center; color:#00263F; margin-bottom:16px; }
+.hub-card .icon{ width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, var(--azure), var(--teal)); display:flex; align-items:center; justify-content:center; color:#FFFFFF; margin-bottom:16px; }
 .hub-card h3{ font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:6px; }
 .hub-card p{ font-size:13px; color:var(--text-dim); }
 .hub-card.soon{ opacity:.55; cursor:default; }
@@ -263,7 +263,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 #testsView th:nth-child(1), #testsView td:nth-child(1),
 #docsView th:nth-child(1), #docsView td:nth-child(1){ width:48px; }
 .badge{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; }
-.badge.ok{ background:rgba(0,217,192,0.15); color:var(--teal); }
+.badge.ok{ background:rgba(29,111,191,0.15); color:var(--teal); }
 .badge.no{ background:rgba(255,107,107,0.15); color:var(--coral); }
 .badge.wait{ background:rgba(255,176,32,0.15); color:var(--amber); }
 .loading-row{ padding:30px; text-align:center; color:var(--text-dim); }
@@ -296,7 +296,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .field-warning svg{ flex-shrink:0; width:15px; height:15px; }
 .field-group-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--azure); margin-bottom:10px; padding-top:6px; border-top:1px solid var(--card-border); }
 .field-group-title:first-child{ border-top:none; padding-top:0; }
-.submit-btn{ padding:12px 24px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px; }
+.submit-btn{ padding:12px 24px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; font-weight:700; font-size:13.5px; }
 .submit-btn.secondary{ background:var(--bg); box-shadow:var(--neu-out-sm); border:none; color:var(--text); }
 .submit-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .row-actions{ display:flex; gap:6px; }
@@ -423,7 +423,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .gauge-hole .g-sub{ font-size:9px; color:var(--text-dim); margin-top:2px; }
 .section-divider{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; font-weight:700; margin:16px 0 10px; }
 .msg{ margin-top:12px; font-size:13px; display:none; padding:9px 14px; border-radius:9px; }
-.msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); }
+.msg.ok{ display:block; background:rgba(29,111,191,0.12); color:var(--teal); }
 .msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); }
 
 .notif-user-opt{ display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:8px; font-size:13px; cursor:pointer; }
@@ -2933,7 +2933,7 @@ function starsSvg(filled){
   return `<svg viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"/></svg>`;
 }
 
-const CHART_COLORS = ['#00A3E0', '#00D9C0', '#FFB020', '#FF6B6B'];
+const CHART_COLORS = ['#004491', '#1D6FBF', '#FFB020', '#FF6B6B'];
 
 // CSS conic-gradient asosida oddiy "donut" doiraviy diagramma quradi — tashqi
 // kutubxonasiz, faqat bitta div orqali.

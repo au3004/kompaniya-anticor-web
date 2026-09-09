@@ -11,8 +11,8 @@
   --navy-950:#071B33;
   --navy-900:#0B2545;
   --navy-800:#12356b;
-  --azure:#00A3E0;
-  --teal:#00D9C0;
+  --azure:#004491;
+  --teal:#1D6FBF;
   --amber:#FFB020;
   --white:#FFFFFF;
 
@@ -41,8 +41,8 @@
 }
 
 [data-theme="light"]{
-  --bg:#EAF3FA;
-  --bg-deep:#DCEAF5;
+  --bg:#F1F2F4;
+  --bg-deep:#E4E6E9;
   --card:rgba(255,255,255,0.75);
   --card-border:rgba(11,37,69,0.10);
   --text:#0B2545;
@@ -129,9 +129,9 @@ body{
   transition:background .25s ease, border-color .25s ease, color .25s ease;
 }
 .lang-row-check svg{ width:11px; height:11px; }
-.lang-row.active{ background:rgba(0,163,224,.10); }
+.lang-row.active{ background:rgba(0,68,145,.10); }
 .lang-row.active .lang-row-name{ color:var(--azure); }
-.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#00263F; }
+.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#FFFFFF; }
 
 /* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
    Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
@@ -171,7 +171,7 @@ body{
   filter:blur(30px); opacity:.55; transition:.7s ease;
   background:radial-gradient(circle, rgba(255,200,0,.35), transparent 70%);
 }
-.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,163,224,.4), transparent 70%); }
+.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,68,145,.4), transparent 70%); }
 
 .tt-glow{
   position:absolute; left:-15%; top:-30%; width:65%; height:160%; border-radius:50%;
@@ -181,7 +181,7 @@ body{
 }
 .theme-toggle.active .tt-glow{
   left:50%;
-  background:radial-gradient(circle at center, rgba(0,163,224,.95), rgba(0,163,224,.55) 45%, transparent 80%);
+  background:radial-gradient(circle at center, rgba(0,68,145,.95), rgba(0,68,145,.55) 45%, transparent 80%);
 }
 
 .tt-label{
@@ -217,8 +217,8 @@ body{
   box-shadow:
     inset 0 6px 14px rgba(255,255,255,.15),
     inset 0 -14px 22px rgba(0,0,0,.15),
-    0 0 26px rgba(0,163,224,.5),
-    0 0 48px rgba(0,163,224,.25);
+    0 0 26px rgba(0,68,145,.5),
+    0 0 48px rgba(0,68,145,.25);
 }
 .theme-toggle:not(.active) .tt-thumb{
   box-shadow:
@@ -366,20 +366,20 @@ body{
 }
 .field input::placeholder{ color:var(--text-dim); opacity:.6; }
 .field input:focus{
-  box-shadow:var(--neu-in-deep), 0 0 0 3px rgba(0,163,224,0.18);
+  box-shadow:var(--neu-in-deep), 0 0 0 3px rgba(0,68,145,0.18);
 }
 
 .submit-btn{
   width:100%; padding:13px; margin-top:6px;
   border:none; border-radius:14px; cursor:pointer;
   background:linear-gradient(135deg, var(--azure), var(--teal));
-  color:#00263F; font-family:'Inter'; font-weight:700; font-size:14.5px;
+  color:#FFFFFF; font-family:'Inter'; font-weight:700; font-size:14.5px;
   letter-spacing:.2px;
   transition:transform .15s ease, box-shadow .2s ease;
-  box-shadow:var(--neu-out-sm), 0 10px 22px -10px rgba(0,163,224,0.55);
+  box-shadow:var(--neu-out-sm), 0 10px 22px -10px rgba(0,68,145,0.55);
 }
-.submit-btn:active{ transform:translateY(1px) scale(.99); box-shadow:var(--neu-in-deep), 0 4px 10px -6px rgba(0,163,224,0.4); }
-.submit-btn:hover{ box-shadow:var(--neu-out-sm), 0 14px 28px -10px rgba(0,163,224,0.7); }
+.submit-btn:active{ transform:translateY(1px) scale(.99); box-shadow:var(--neu-in-deep), 0 4px 10px -6px rgba(0,68,145,0.4); }
+.submit-btn:hover{ box-shadow:var(--neu-out-sm), 0 14px 28px -10px rgba(0,68,145,0.7); }
 .submit-btn:disabled{ opacity:.6; cursor:default; }
 
 .error-msg{
@@ -398,8 +398,8 @@ body{
 
 .success-msg{
   display:none; align-items:center; gap:8px;
-  background:rgba(0,217,192,0.12);
-  border:1px solid rgba(0,217,192,0.35);
+  background:rgba(29,111,191,0.12);
+  border:1px solid rgba(29,111,191,0.35);
   color:var(--teal);
   font-size:13px; font-weight:500;
   padding:10px 12px; border-radius:10px; margin-bottom:16px;
@@ -448,7 +448,7 @@ body{
 .remember-toggle.active .rt-thumb{
   left:calc(var(--rt-w) - var(--rt-thumb) - var(--rt-pad));
   background:linear-gradient(135deg, var(--azure), var(--teal));
-  box-shadow:0 0 10px rgba(0,163,224,.6), var(--neu-out-sm);
+  box-shadow:0 0 10px rgba(0,68,145,.6), var(--neu-out-sm);
 }
 
 .link-row{ text-align:center; margin-top:16px; }
