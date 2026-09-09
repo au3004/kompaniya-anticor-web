@@ -132,7 +132,10 @@ final class AdminController
             ];
         }, $rows);
 
-        Response::success(['users' => $users]);
+        // Frontend'dagi rol tanlash ro'yxati (populateRoleSelect) anticor-admin
+        // uchun to'liq/qisqartirilgan variantni shu bayroqqa qarab tanlaydi —
+        // backend'dagi allowedRolesFor() bilan bir xil bootstrap mantig'i.
+        Response::success(['users' => $users, 'superAdminExists' => self::superAdminExists($db)]);
     }
 
     public static function editEmployee(array $input): void
@@ -283,15 +286,36 @@ final class AdminController
     private const HR_ASSIGNABLE_ROLES = [Roles::USER, Roles::ANTICOR, Roles::HR, Roles::RAHBARIYAT];
 
     /**
-     * Chaqiruvchining rolidan kelib chiqib, u xodimga qaysi rollarni
-     * tayinlashi mumkinligini aniqlaydi. super-admin va (vaqtinchalik
-     * bootstrap uchun) anticor-admin — istalgan rolni, jumladan
-     * super-admin'ni ham beradi; hr-admin esa faqat past darajali
-     * rollarni.
+     * Tizimda hozir kamida bitta super-admin bor-yo'qligini tekshiradi —
+     * bootstrap oynasi (birinchi super-adminni tayinlash imkoniyati) hali
+     * ochiq yoki yopilganini aniqlash uchun ishlatiladi.
      */
-    private static function allowedRolesFor(string $callerRol): array
+    private static function superAdminExists(\PDO $db): bool
     {
-        if ($callerRol === Roles::SUPER_ADMIN || $callerRol === Roles::ANTICOR_ADMIN) {
+        $stmt = $db->prepare('SELECT COUNT(*) FROM users WHERE rol = :rol');
+        $stmt->execute(['rol' => Roles::SUPER_ADMIN]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * Chaqiruvchining rolidan kelib chiqib, u xodimga qaysi rollarni
+     * tayinlashi mumkinligini aniqlaydi. super-admin — istalgan rolni,
+     * jumladan super-admin'ni ham beradi. anticor-admin FAQAT tizimda
+     * hali birorta ham super-admin yo'q bo'lgan (vaqtinchalik bootstrap)
+     * paytda xuddi shunday to'liq huquqqa ega bo'ladi — birinchi
+     * super-admin tayinlangach, bu maxsus huquq avtomatik yopiladi va
+     * anticor-admin ham hr-admin kabi faqat past darajali rollarni
+     * beradi. Aks holda anticor-admin cheksiz muddat o'zini yoki
+     * boshqa birortasini anticor-admin/hr-admin/super-admin qilib
+     * tayinlab, begona boshqaruv panellariga kirish huquqini "sotib
+     * olishi" mumkin bo'lardi.
+     */
+    private static function allowedRolesFor(\PDO $db, string $callerRol): array
+    {
+        if ($callerRol === Roles::SUPER_ADMIN) {
+            return array_merge(Roles::ASSIGNABLE, [Roles::SUPER_ADMIN]);
+        }
+        if ($callerRol === Roles::ANTICOR_ADMIN && !self::superAdminExists($db)) {
             return array_merge(Roles::ASSIGNABLE, [Roles::SUPER_ADMIN]);
         }
         return self::HR_ASSIGNABLE_ROLES;
@@ -307,9 +331,7 @@ final class AdminController
         if ($callerRol === Roles::SUPER_ADMIN) {
             return;
         }
-        $stmt = $db->prepare('SELECT COUNT(*) FROM users WHERE rol = :rol');
-        $stmt->execute(['rol' => Roles::SUPER_ADMIN]);
-        if ((int) $stmt->fetchColumn() > 0) {
+        if (self::superAdminExists($db)) {
             Response::error("Faqat super-adminning o'zi bu rolni boshqa xodimga bera oladi", 'FORBIDDEN', 403);
         }
     }
@@ -328,7 +350,7 @@ final class AdminController
     /** addEmployee uchun: ruxsat etilmagan rol yuborilsa, xavfsiz standart holatga ("user") tushiriladi. */
     private static function sanitizeAssignedRole(\PDO $db, array $me, string $rol, ?string $unused = null): string
     {
-        $allowed = self::allowedRolesFor($me['rol']);
+        $allowed = self::allowedRolesFor($db, $me['rol']);
         if (!in_array($rol, $allowed, true)) {
             return Roles::USER;
         }
@@ -365,7 +387,7 @@ final class AdminController
         if ($rol === $existing['rol']) {
             return $rol;
         }
-        $allowed = self::allowedRolesFor($me['rol']);
+        $allowed = self::allowedRolesFor($db, $me['rol']);
         if (!in_array($rol, $allowed, true)) {
             Response::error('Bu rolni tayinlashga sizda huquq yo\'q', 'FORBIDDEN', 403);
         }
