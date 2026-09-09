@@ -14,10 +14,21 @@
   --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
   --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
   --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
+  /* Embossed (neomorfik) soya texnikasi — login.html'dagi bilan bir xil,
+     rang o'zgartirilmagan, faqat sirtlarga chuqurlik (bosib chiqqan/
+     botirilgan ko'rinish) qo'shiladi. */
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.035), 10px 10px 26px rgba(0,0,0,0.55);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.035), 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.03), inset 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.025), inset 5px 5px 13px rgba(0,0,0,0.6);
 }
 [data-theme="light"]{
   --bg:#EAF3FA; --bg-deep:#DCEAF5; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
   --text:#0B2545; --text-dim:#4E6A88; --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.9), 10px 10px 26px rgba(163,177,198,0.5);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.85), 6px 6px 16px rgba(163,177,198,0.45);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.75), inset 6px 6px 16px rgba(163,177,198,0.55);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.7), inset 5px 5px 13px rgba(163,177,198,0.65);
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 body{ font-family:'Inter', sans-serif; background:radial-gradient(ellipse at 70% 10%, var(--bg-deep), var(--bg) 70%); color:var(--text); min-height:100vh; transition:background .5s ease, color .5s ease; }
@@ -28,10 +39,8 @@ body{ font-family:'Inter', sans-serif; background:radial-gradient(ellipse at 70%
 .home-icon-btn{
   position:relative; width:32px; height:32px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
-  backdrop-filter:blur(16px);
-  border:1px solid var(--card-border);
-  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  background:var(--bg);
+  box-shadow:var(--neu-out-sm);
   cursor:pointer; color:var(--text-dim); text-decoration:none;
   transition:border-color .25s ease, color .25s ease, transform .2s ease, box-shadow .25s ease;
 }
@@ -43,10 +52,8 @@ body{ font-family:'Inter', sans-serif; background:radial-gradient(ellipse at 70%
 .lang-picker{ position:relative; }
 .lang-picker-btn{
   display:flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px;
-  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
-  backdrop-filter:blur(16px);
-  border:1px solid var(--card-border);
-  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  background:var(--bg);
+  box-shadow:var(--neu-out-sm);
   cursor:pointer; color:var(--text-dim); font-family:'Inter'; font-weight:700; font-size:12px;
   transition:border-color .25s ease, color .25s ease;
 }
@@ -200,7 +207,7 @@ body.embedded #hubView .back-btn{ display:none; }
 .page-head h1{ font-family:'Unbounded', sans-serif; font-size:clamp(20px,4vw,28px); margin-top:8px; }
 
 .back-btn{
-  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--card-border);
+  display:inline-flex; align-items:center; gap:6px; background:var(--bg); box-shadow:var(--neu-out-sm);
   color:var(--text); font-size:13px; font-weight:600; padding:9px 16px; border-radius:11px; cursor:pointer;
   text-decoration:none; transition:border-color .2s ease; white-space:nowrap; flex-shrink:0;
 }
@@ -210,10 +217,10 @@ body.embedded #hubView .back-btn{ display:none; }
 .hub-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px; margin-top:10px; }
 .hub-card{
   position:relative;
-  background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:28px;
+  background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:20px; padding:28px;
   cursor:pointer; transition:transform .2s ease, border-color .2s ease; text-align:left;
 }
-.hub-card:hover{ transform:translateY(-3px); border-color:var(--azure); }
+.hub-card:hover{ transform:translateY(-3px); box-shadow:var(--neu-out); }
 .hub-card .icon{ width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, var(--azure), var(--teal)); display:flex; align-items:center; justify-content:center; color:#00263F; margin-bottom:16px; }
 .hub-card h3{ font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:6px; }
 .hub-card p{ font-size:13px; color:var(--text-dim); }
@@ -222,7 +229,7 @@ body.embedded #hubView .back-btn{ display:none; }
 .soon-tag{ display:inline-block; font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--amber); background:rgba(255,176,32,0.12); padding:3px 9px; border-radius:999px; margin-top:10px; }
 
 .cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:14px; margin-bottom:20px; }
-.stat-card{ background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:20px; }
+.stat-card{ background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:16px; padding:20px; }
 .stat-card .num{ font-family:'Unbounded', sans-serif; font-size:28px; font-weight:800; }
 .stat-card .lbl{ font-size:12.5px; color:var(--text-dim); margin-top:4px; }
 .stat-card.teal .num{ color:var(--teal); }
@@ -238,7 +245,7 @@ body.embedded #hubView .back-btn{ display:none; }
 
 /* Skroll qilinadigan ro'yxat oynasi (pager tugmalari o'rniga) */
 .table-wrap{
-  background:var(--card); border:1px solid var(--card-border); border-radius:16px;
+  background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:16px;
   max-height:640px; overflow-y:auto; overflow-x:auto; -webkit-overflow-scrolling:touch;
   scrollbar-width:thin; scrollbar-color:var(--azure) transparent;
 }
@@ -262,7 +269,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .loading-row{ padding:30px; text-align:center; color:var(--text-dim); }
 .denied{ text-align:center; padding:100px 20px; color:var(--text-dim); }
 
-.form-card{ background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:26px; max-width:520px; }
+.form-card{ background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:16px; padding:26px; max-width:520px; }
 .field{ margin-bottom:14px; }
 .field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; }
 .field input, .field select, .field textarea{ width:100%; padding:11px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; }
@@ -290,13 +297,13 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .field-group-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--azure); margin-bottom:10px; padding-top:6px; border-top:1px solid var(--card-border); }
 .field-group-title:first-child{ border-top:none; padding-top:0; }
 .submit-btn{ padding:12px 24px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px; }
-.submit-btn.secondary{ background:var(--card); border:1px solid var(--card-border); color:var(--text); }
+.submit-btn.secondary{ background:var(--bg); box-shadow:var(--neu-out-sm); color:var(--text); }
 .submit-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .row-actions{ display:flex; gap:6px; }
 .icon-btn{ width:30px; height:30px; border-radius:9px; border:1px solid var(--card-border); background:var(--card); color:var(--text-dim); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
 .icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
 .icon-btn.danger:hover{ border-color:var(--coral); color:var(--coral); }
-.toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:14px 18px; margin-bottom:22px; }
+.toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:14px; padding:14px 18px; margin-bottom:22px; }
 .toggle-row .ttitle{ font-size:13.5px; font-weight:700; }
 .toggle-row .tsub{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
 /* ===== "Faol/nofaol" almashtirgich =====
@@ -385,7 +392,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
     right .5s,
     background .35s;
 }
-.result-q{ background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:18px 20px; margin-bottom:14px; }
+.result-q{ background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:14px; padding:18px 20px; margin-bottom:14px; }
 .result-q .rq-text{ font-size:14px; font-weight:600; margin-bottom:14px; }
 .result-opt-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:12.5px; }
 .result-opt-row .ro-label{ width:110px; flex:none; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -421,7 +428,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 
 .notif-user-opt{ display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:8px; font-size:13px; cursor:pointer; }
 .notif-user-opt:hover{ background:var(--card); }
-.notif-hist-item{ background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:16px; cursor:pointer; }
+.notif-hist-item{ background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:14px; padding:16px; cursor:pointer; }
 .notif-hist-item .h-meta{ display:flex; justify-content:space-between; font-size:11.5px; color:var(--text-dim); margin-bottom:6px; }
 .notif-hist-item .h-text{ font-size:13.5px; margin-bottom:8px; white-space:pre-wrap; }
 .notif-hist-item .h-stat{ font-size:12px; color:var(--teal); font-weight:600; }
@@ -454,7 +461,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 }
 .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
 .modal-head h3{ font-family:'Unbounded', sans-serif; font-size:17px; }
-.modal-close{ background:var(--card); border:1px solid var(--card-border); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
+.modal-close{ background:var(--bg); box-shadow:var(--neu-out-sm); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
 .notif-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:12px; padding:13px 14px; position:relative; }
 .notif-item.unread{ border-color:var(--azure); }
 .notif-item.unread::before{ content:''; position:absolute; top:14px; left:-6px; width:8px; height:8px; border-radius:50%; background:var(--azure); }

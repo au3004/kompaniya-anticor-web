@@ -15,12 +15,22 @@
   --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
   --text:#F3F7FB; --text-dim:#A9BBD1;
   --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
+  /* Embossed (neomorfik) soya texnikasi — login.html'dagi bilan bir xil,
+     rang o'zgartirilmagan, faqat sirtlarga chuqurlik qo'shiladi. */
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.035), 10px 10px 26px rgba(0,0,0,0.55);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.035), 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.03), inset 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.025), inset 5px 5px 13px rgba(0,0,0,0.6);
 }
 [data-theme="light"]{
   --bg:#EAF3FA; --bg-deep:#DCEAF5;
   --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
   --text:#0B2545; --text-dim:#4E6A88;
   --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.9), 10px 10px 26px rgba(163,177,198,0.5);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.85), 6px 6px 16px rgba(163,177,198,0.45);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.75), inset 6px 6px 16px rgba(163,177,198,0.55);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.7), inset 5px 5px 13px rgba(163,177,198,0.65);
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 body{
@@ -73,10 +83,8 @@ body{
 .home-icon-btn{
   position:relative; width:32px; height:32px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
-  backdrop-filter:blur(16px);
-  border:1px solid var(--card-border);
-  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  background:var(--bg);
+  box-shadow:var(--neu-out-sm);
   cursor:pointer; color:var(--text-dim); text-decoration:none;
   transition:border-color .25s ease, color .25s ease, transform .2s ease, box-shadow .25s ease;
   margin-left:2px;
@@ -280,7 +288,7 @@ body{
 .home-tiles{ position:relative; z-index:5; max-width:920px; margin:0 auto; padding:0 32px 60px; display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:16px; }
 .home-tile{
   position:relative; display:flex; flex-direction:column; gap:8px; text-align:left; text-decoration:none; color:var(--text);
-  background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:20px;
+  background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:16px; padding:20px;
   transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 .home-tile:hover{ transform:translateY(-3px); border-color:var(--azure); box-shadow:0 14px 30px -12px rgba(0,163,224,0.35); }
@@ -325,7 +333,7 @@ body{
 /* ===== Status check card ===== */
 .status-section{ position:relative; z-index:5; max-width:560px; margin:0 auto; padding:0 24px 100px; opacity:0; animation:rise .7s cubic-bezier(.2,.9,.25,1) .5s both; }
 .status-card{
-  background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:32px;
+  background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:20px; padding:32px;
   backdrop-filter:blur(16px); box-shadow:0 30px 60px -25px rgba(0,0,0,0.4);
   transition:box-shadow .3s ease, transform .3s ease;
 }
@@ -368,7 +376,7 @@ body{
 }
 .hr-tab.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; border-color:transparent; }
 .hr-panel-card{
-  background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:28px;
+  background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:20px; padding:28px;
   backdrop-filter:blur(16px); box-shadow:0 30px 60px -25px rgba(0,0,0,0.4); margin-bottom:20px;
 }
 .hr-panel-card h3{ font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:18px; }
@@ -403,7 +411,7 @@ body{
 .hr-badge-company{ position:relative; z-index:1; color:rgba(255,255,255,.55); font-size:10.5px; text-transform:uppercase; letter-spacing:.6px; }
 .hr-badge-id{ position:relative; z-index:1; color:rgba(255,255,255,.85); font-size:11px; font-family:monospace; margin-top:4px; }
 .hr-table-wrap{
-  background:var(--card); border:1px solid var(--card-border); border-radius:16px;
+  background:var(--bg); box-shadow:var(--neu-out-sm); border-radius:16px;
   max-height:560px; overflow:auto; -webkit-overflow-scrolling:touch;
 }
 .hr-table{ width:100%; border-collapse:collapse; font-size:13px; min-width:640px; }
@@ -430,7 +438,7 @@ body{
 }
 .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
 .modal-head h3{ font-family:'Unbounded', sans-serif; font-size:17px; }
-.modal-close{ background:var(--card); border:1px solid var(--card-border); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
+.modal-close{ background:var(--bg); box-shadow:var(--neu-out-sm); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
 
 .info-row{ display:flex; justify-content:space-between; padding:13px 0; border-bottom:1px solid var(--card-border); font-size:14px; }
 .notif-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:12px; padding:13px 14px; position:relative; }
