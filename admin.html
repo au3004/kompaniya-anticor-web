@@ -543,21 +543,10 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <h3 data-i18n="hubEmployeesMain">Xodimlar</h3>
         <p data-i18n="hubEmployeesMainDesc">Xodimlar ro'yxati va yangi xodim qo'shish</p>
       </button>
-      <button class="hub-card" id="purchasesCard" onclick="openPurchasesEntry()" style="display:none;">
-        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
-        <h3 data-i18n="hubPurchasesMain">Xaridlar</h3>
-        <p data-i18n="hubPurchasesMainDesc">Xaridlar reyestri va reyestrga kiritish</p>
-      </button>
       <button class="hub-card" id="hrDocsCard" onclick="openSection('hrDocsView'); loadHrDocuments();" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg></div>
         <h3 data-i18n="hubHrDocs">Yuborilgan hujjatlar</h3>
         <p data-i18n="hubHrDocsDesc">Xodimlar Inson resurslariga yuborgan hujjatlar</p>
-      </button>
-      <button class="hub-card" id="approvalsCard" onclick="openSection('approvalsView'); loadPendingRequests();" style="display:none; position:relative;">
-        <span id="approvalsBadge" style="display:none; position:absolute; top:16px; right:16px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:11px; font-weight:700; line-height:17px; text-align:center;"></span>
-        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-        <h3 data-i18n="hubApprovals">Tasdiqlash so'rovlari</h3>
-        <p data-i18n="hubApprovalsDesc">Yuqori rol berilishi kutilayotgan so'rovlar</p>
       </button>
       <button class="hub-card soon" id="conflictCard" onclick="alert(dict[currentLang].soonMsg)" style="display:none; position:relative;">
         <span style="position:absolute; top:16px; right:16px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px; padding:3px 9px;" data-i18n="soonTag">Tez orada</span>
@@ -585,11 +574,22 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <h3 data-i18n="hubNotif">Xabarnoma yuborish</h3>
         <p data-i18n="hubNotifDesc">Xodimlarga xabarnoma yuborish va hisobot</p>
       </button>
+      <button class="hub-card" id="approvalsCard" onclick="openSection('approvalsView'); loadPendingRequests();" style="display:none; position:relative;">
+        <span id="approvalsBadge" style="display:none; position:absolute; top:16px; right:16px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:11px; font-weight:700; line-height:17px; text-align:center;"></span>
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <h3 data-i18n="hubApprovals">Tasdiqlash so'rovlari</h3>
+        <p data-i18n="hubApprovalsDesc">Yuqori rol berilishi kutilayotgan so'rovlar</p>
+      </button>
       <button class="hub-card" id="supportCard" onclick="openSection('supportView'); loadSupportRequests();" style="display:none;">
         <span id="supportBadge" style="display:none; position:absolute; top:16px; right:16px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:11px; font-weight:700; line-height:17px; text-align:center;"></span>
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg></div>
         <h3 data-i18n="hubSupport">Yordam so'rovlari</h3>
         <p data-i18n="hubSupportDesc">Xodimlardan kelgan murojaatlar</p>
+      </button>
+      <button class="hub-card" id="purchasesCard" onclick="openPurchasesEntry()" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+        <h3 data-i18n="hubPurchasesMain">Xaridlar</h3>
+        <p data-i18n="hubPurchasesMainDesc">Xaridlar reyestri va reyestrga kiritish</p>
       </button>
       <button class="hub-card" id="reportsCard" onclick="openSection('reportsView')" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg></div>
@@ -831,15 +831,15 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
       <table>
         <thead>
           <tr>
-            <th data-i18n="thTartibRaqam">T/r</th>
-            <th data-i18n="pShartnomaSanaLabel">Shartnoma sanasi</th>
-            <th data-i18n="pShartnomaRaqamiLabel">Shartnoma raqami</th>
-            <th data-i18n="pKontragentLabel">Kontragent</th>
-            <th data-i18n="pShartnomaPredmetiLabel">Shartnoma predmeti</th>
-            <th data-i18n="pShartnomaSummasiLabel">Shartnoma summasi</th>
-            <th data-i18n="pXaridTuriLabel">Xarid turi</th>
-            <th data-i18n="pIzohLabel">Izoh</th>
-            <th style="width:60px;" data-i18n="thFile">Fayl</th>
+            <th style="width:52px;" data-i18n="thTartibRaqam">T/r</th>
+            <th style="width:11%;" data-i18n="pShartnomaSanaLabel">Shartnoma sanasi</th>
+            <th style="width:13%;" data-i18n="pShartnomaRaqamiLabel">Shartnoma raqami</th>
+            <th style="width:15%;" data-i18n="pKontragentLabel">Kontragent</th>
+            <th style="width:23%;" data-i18n="pShartnomaPredmetiLabel">Shartnoma predmeti</th>
+            <th style="width:13%;" data-i18n="pShartnomaSummasiLabel">Shartnoma summasi</th>
+            <th style="width:11%;" data-i18n="pXaridTuriLabel">Xarid turi</th>
+            <th style="width:14%;" data-i18n="pIzohLabel">Izoh</th>
+            <th style="width:64px;" data-i18n="thFile">Fayl</th>
           </tr>
         </thead>
         <tbody id="purchasesTbody"><tr><td colspan="9" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
