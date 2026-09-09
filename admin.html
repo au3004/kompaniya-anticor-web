@@ -9,7 +9,7 @@
      vergul/nuqta-vergul ajratkich muammosisiz — ustunlar har doim to'g'ri ajraladi). -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&family=Oswald:wght@600&display=swap');
 :root{
   --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
   --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
@@ -294,57 +294,88 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:14px 18px; margin-bottom:22px; }
 .toggle-row .ttitle{ font-size:13.5px; font-weight:700; }
 .toggle-row .tsub{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
-/* ===== "Faol/nofaol" almashtirgich: neomorfik ON/OFF uslub =====
-   Dizayn g'oyasi manbasi: github.com/Nazia-99/Neumorphic-ON-OFF-Toggle-Switch
-   — kod to'liq o'qib chiqilgan (faqat CSS emboss/soya texnikasi: checkbox
-   o'zi ichki "trek" sifatida, alohida <label> esa siljiydigan tugma
-   sifatida ishlatiladi; tashqi so'rov/skript yo'q). Asl namunada och
-   kulrang tekis fon va matnli ON/OFF yorliqlar bor edi — loyihaning
-   to'q-ko'k emboss va teal "yoniq" nurlanish palitrasiga, kichikroq
-   o'lchamga moslab qayta yozildi (yorliq matni shart emas, chunki
-   yonida alohida sarlavha/holat matni bor). Bu boshqaruv ataylab har
-   doim to'q (dark) uslubda qoladi — neomorfizm faqat shu kontrastda
-   to'g'ri o'qiladi, shuning uchun kunduzgi rejimda ham o'zgarmaydi. */
+/* ===== "Faol/nofaol" almashtirgich =====
+   Manba: github.com/Nazia-99/Neumorphic-ON-OFF-Toggle-Switch — kod to'liq
+   o'qib chiqilgan (faqat CSS: checkbox o'zi ichki "trek" + ON/OFF matnli
+   psevdo-elementlar, alohida <label> esa siljiydigan panel sifatida
+   ishlatiladi; tashqi so'rov/skript yo'q). Bu safar rang, o'lcham va
+   animatsiya QIYMATLARI ASL MANBADAN 1:1 KO'CHIRILGAN (faqat class nomi
+   ".switcher-1" -> ".switch" ga moslashtirilgan, chunki loyihada bitta
+   variant yetarli) — asl namunadagi kabi och kulrang fon + yashil (ON) /
+   qizil (OFF) matn ataylab saqlanadi, umumiy sahifa mavzusidan mustaqil. */
 .switch{
-  position:relative; width:64px; height:34px; flex:none; border-radius:999px;
-  background:linear-gradient(145deg, #1c2838 0%, #0a121d 55%, #1c2838 100%);
+  position:relative; width:220px; height:60px; flex:none;
+  border-radius:30px;
+  background:#e6e6e6;
   box-shadow:
-    4px 5px 8px rgba(2,5,10,.55),
-    -3px -3px 7px rgba(60,90,130,.18);
+    -10px -10px 15px #f8f8f8,
+     10px 10px 15px #c9c9c9;
 }
 .switch input{
   appearance:none; -webkit-appearance:none; margin:0;
-  position:absolute; inset:4px; width:calc(100% - 8px); height:calc(100% - 8px);
-  border:none; outline:none; cursor:pointer; border-radius:999px;
-  background:linear-gradient(145deg, #0a121d 0%, #16202f 100%);
+  position:absolute; inset:5px; width:calc(100% - 10px); height:calc(100% - 10px);
+  border:none; outline:none; cursor:pointer; border-radius:25px;
+  background:#e6e6e6;
   box-shadow:
-    inset 3px 3px 6px rgba(0,0,0,.55),
-    inset -2px -2px 5px rgba(60,90,130,.16);
-  transition:box-shadow .35s ease;
+    inset -6px -6px 10px rgba(255,255,255,.95),
+    inset 6px 6px 10px rgba(184,190,204,.45);
+  transition:.25s -.1s;
+  font-family:'Oswald', 'Inter', sans-serif;
+}
+.switch input::before,
+.switch input::after{
+  position:absolute; top:50%; transform:translateY(-50%); z-index:2;
+  font-size:17px; font-weight:600; letter-spacing:.5px;
+  transition:.45s;
+}
+.switch input::before{ content:"ON"; left:38px; }
+.switch input::after{ content:"OFF"; right:38px; }
+.switch label{
+  position:absolute; top:10px; bottom:10px;
+  border-radius:20px;
+  pointer-events:none; z-index:1;
+  box-shadow:
+    -5px -5px 8px #f8f8f8,
+     5px 5px 8px #c8c8c8;
 }
 .switch input:checked{
+  background:#e6e6e6;
+  transition:background .4s;
   box-shadow:
-    inset 3px 3px 6px rgba(0,0,0,.4),
-    inset -2px -2px 5px rgba(0,217,192,.16),
-    0 0 12px rgba(0,217,192,.22);
+    inset -7px -7px 7px #f8f8f8,
+    inset 7px 7px 7px #cfcfcf;
 }
-.switch label{
-  position:absolute; top:4px; bottom:4px; left:4px; width:26px; border-radius:50%;
-  pointer-events:none; z-index:1;
-  background:linear-gradient(145deg, #4a5568 0%, #202a3a 60%, #131b27 100%);
-  box-shadow:
-    3px 4px 6px rgba(2,4,8,.6),
-    -2px -2px 5px rgba(70,95,130,.24),
-    inset 2px 2px 3px rgba(255,255,255,.14);
-  transition:left .4s cubic-bezier(.65,0,.35,1), background .35s ease, box-shadow .35s ease;
-}
+.switch input:checked::before{ color:#43ca37; transition:color .45s .2s; }
+.switch input:checked::after{ color:#9d9d9d; transition:color .45s; }
 .switch input:checked + label{
-  left:calc(100% - 30px);
-  background:radial-gradient(circle at 35% 30%, #baffef 0%, #4dedd1 30%, #16c9ac 60%, #0d9e88 100%);
+  left:10px; right:110px;
   box-shadow:
-    0 0 4px 1px rgba(0,217,192,.9),
-    0 0 10px 5px rgba(0,217,192,.22),
-    inset 2px 2px 3px rgba(255,255,255,.5);
+    -4px -4px 8px #f8f8f8,
+     4px 4px 8px #c8c8c8;
+  transition:
+    left .5s,
+    right .4s .2s,
+    background .35s;
+}
+.switch input:not(:checked){
+  background:#e6e6e6;
+  transition:background .4s;
+  box-shadow:
+    inset -7px -7px 7px #f8f8f8,
+    inset 7px 7px 7px #cfcfcf;
+}
+.switch input:not(:checked)::before{ color:#7a7a7a; }
+.switch input:not(:checked)::after{ color:#b72c2cdb; }
+.switch input:not(:checked) + label{
+  left:110px; right:10px;
+  background:#e6e6e6;
+  box-shadow:
+    -5px -5px 8px #f8f8f8,
+     5px 5px 8px #c8c8c8;
+  transition:
+    left .4s .2s,
+    right .5s,
+    background .35s;
 }
 .result-q{ background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:18px 20px; margin-bottom:14px; }
 .result-q .rq-text{ font-size:14px; font-weight:600; margin-bottom:14px; }
