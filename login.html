@@ -148,6 +148,11 @@ body{
   border:none; background:none; cursor:pointer;
   filter:drop-shadow(0 10px 18px rgba(0,0,0,.18));
 }
+/* VAQTINCHALIK: kun/tun almashtirgich butun saytda yashirilgan — sayt
+   faqat kunduzgi rejimda ishlaydi. Yuqoridagi asl tugma kodi (CSS,
+   animatsiya) to'liq saqlanib qolgan — qayta ko'rsatish uchun shu
+   qoidani (pastdagi bitta qator) o'chirib tashlash kifoya. */
+.theme-toggle{ display:none !important; }
 .theme-toggle-lg{ --tt-w:270px; --tt-h:92px; --tt-thumb:130px; --tt-off:-21px; }
 
 .tt-track{
@@ -463,7 +468,7 @@ body{
 }
 </style>
 </head>
-<body data-theme="dark">
+<body data-theme="light">
 
 <div class="topbar">
   <div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div>
@@ -682,7 +687,10 @@ const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14
 document.querySelector('.tt-sun').innerHTML = sunIcon;
 document.querySelector('.tt-moon').innerHTML = moonIcon;
 
-let theme = localStorage.getItem('km_theme') || 'dark';
+// VAQTINCHALIK: kunduzgi rejim majburiy qilingan (tugma yashirilgan).
+// Qayta yoqish uchun quyidagi qatorni qaytaring:
+// let theme = localStorage.getItem('km_theme') || 'dark';
+let theme = 'light';
 function applyTheme(){
   document.body.setAttribute('data-theme', theme);
   document.getElementById('themeBtn').classList.toggle('active', theme === 'dark');

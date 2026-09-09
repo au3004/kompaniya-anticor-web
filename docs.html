@@ -91,6 +91,11 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   border:none; background:none; cursor:pointer;
   filter:drop-shadow(0 10px 18px rgba(0,0,0,.18));
 }
+/* VAQTINCHALIK: kun/tun almashtirgich butun saytda yashirilgan — sayt
+   faqat kunduzgi rejimda ishlaydi. Yuqoridagi asl tugma kodi (CSS,
+   animatsiya) to'liq saqlanib qolgan — qayta ko'rsatish uchun shu
+   qoidani (pastdagi bitta qator) o'chirib tashlash kifoya. */
+.theme-toggle{ display:none !important; }
 .theme-toggle-lg{ --tt-w:270px; --tt-h:92px; --tt-thumb:130px; --tt-off:-21px; margin:0 auto; }
 
 .tt-track{
@@ -270,7 +275,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .notif-item .notif-text{ font-size:13.5px; line-height:1.5; white-space:pre-wrap; }
 </style>
 </head>
-<body data-theme="dark">
+<body data-theme="light">
 
 <div class="topbar">
   <div style="display:flex; align-items:center; gap:10px;">
@@ -435,7 +440,10 @@ applyLang();
 
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
-let theme = localStorage.getItem('km_theme') || 'dark';
+// VAQTINCHALIK: kunduzgi rejim majburiy qilingan (tugma yashirilgan).
+// Qayta yoqish uchun quyidagi qatorni qaytaring:
+// let theme = localStorage.getItem('km_theme') || 'dark';
+let theme = 'light';
 document.querySelectorAll('.tt-sun').forEach(function(el){ el.innerHTML = sunIcon; });
 document.querySelectorAll('.tt-moon').forEach(function(el){ el.innerHTML = moonIcon; });
 function applyTheme(){
