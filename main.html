@@ -430,6 +430,25 @@ body{
 .decl-add-menu-item:hover{ background:rgba(0,68,145,0.1); color:var(--azure); }
 @media (max-width:560px){ .decl-grid2{ grid-template-columns:1fr; } }
 
+/* ===== Deklaratsiya: qarindosh ma'lumotini kiritish modali ===== */
+.decl-modal{ max-width:560px; }
+.decl-modal .field label{ text-transform:none; letter-spacing:normal; }
+.decl-modal .field label .req{ color:var(--coral); margin-left:2px; }
+.decl-modal-select{ width:100%; padding:12px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:14px; outline:none; font-family:'Inter'; }
+.decl-modal-select:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,68,145,0.18); }
+.decl-radio-row{ display:flex; gap:10px; }
+.decl-radio-opt{ flex:1; display:flex; align-items:center; gap:9px; padding:12px 14px; border:1.5px solid var(--input-border); border-radius:10px; cursor:pointer; font-size:13.5px; font-weight:600; color:var(--text); background:var(--input-bg); transition:border-color .15s ease, background .15s ease; }
+.decl-radio-opt.selected{ border-color:var(--azure); background:rgba(0,68,145,0.08); color:var(--azure); }
+.decl-radio-opt-wide{ display:flex; align-items:flex-start; gap:9px; padding:12px 14px; border:1px solid var(--input-border); border-radius:10px; cursor:pointer; font-size:12.5px; font-weight:600; color:var(--text); background:var(--card); margin-bottom:8px; line-height:1.4; transition:border-color .15s ease, background .15s ease; }
+.decl-radio-opt-wide.selected{ border-color:var(--azure); background:rgba(0,68,145,0.08); color:var(--azure); }
+.decl-radio-opt-wide:last-child{ margin-bottom:0; }
+.decl-radio-dot{ flex:none; width:15px; height:15px; border-radius:50%; border:2px solid var(--input-border); margin-top:1px; position:relative; }
+.decl-radio-opt.selected .decl-radio-dot, .decl-radio-opt-wide.selected .decl-radio-dot{ border-color:var(--azure); }
+.decl-radio-opt.selected .decl-radio-dot::after, .decl-radio-opt-wide.selected .decl-radio-dot::after{ content:''; position:absolute; inset:2.5px; border-radius:50%; background:var(--azure); }
+.decl-subbox{ background:rgba(0,68,145,0.06); border-left:3px solid var(--azure); border-radius:10px; padding:14px 16px; margin-top:6px; margin-bottom:15px; }
+.decl-subbox .subbox-title{ font-weight:700; font-size:12.5px; margin-bottom:10px; }
+.decl-modal-footer{ display:flex; justify-content:flex-end; gap:10px; margin-top:22px; padding-top:18px; border-top:1px solid var(--card-border); }
+
 /* ===== Inson resurslari bo'limi ===== */
 .hr-wrap{ position:relative; z-index:5; max-width:760px; margin:0 auto; padding:0 24px 100px; }
 .hr-tabs{ display:flex; gap:8px; margin-bottom:20px; }
@@ -1002,6 +1021,17 @@ body{
     <div id="notifList" style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
       <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
     </div>
+  </div>
+</div>
+
+<!-- Deklaratsiya: qarindosh ma'lumotini kiritish modali -->
+<div class="modal-overlay" id="declFillModal">
+  <div class="modal decl-modal">
+    <div class="modal-head">
+      <h3 id="declModalTitle">Ma'lumot kiritish</h3>
+      <button class="modal-close" onclick="closeModal('declFillModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div id="declModalBody"></div>
   </div>
 </div>
 
@@ -2048,6 +2078,10 @@ function declStepTermsHtml(){
   `;
 }
 
+const DECL_HOLAT_LABELS = {
+  info:"To'ldirildi", no_info:"Ma'lumotga ega emas", deceased:"Vafot etgan", no_contact:"Ajrashgan / aloqada emas",
+};
+
 function declFilledCount(){
   return declRelatives.filter(r => r.filled).length;
 }
@@ -2058,9 +2092,9 @@ function declStepRelativesHtml(){
       <div class="decl-rel-icon"></div>
       <div class="decl-rel-info">
         <div class="n">${escapeHtml(r.label)}</div>
-        <div class="s ${r.filled ? 'filled' : ''}">${r.filled ? "To'ldirildi" : "Ma'lumot kiritilmagan"}</div>
+        <div class="s ${r.filled ? 'filled' : ''}">${r.filled ? (DECL_HOLAT_LABELS[r.data && r.data.holat] || "To'ldirildi") : "Ma'lumot kiritilmagan"}</div>
       </div>
-      <button class="decl-rel-fill-btn ${r.filled ? 'filled' : ''}" onclick="declToggleFilled('${r.id}')">${r.filled ? 'Tahrirlash' : "To'ldirish"}</button>
+      <button class="decl-rel-fill-btn ${r.filled ? 'filled' : ''}" onclick="declOpenFillModal('${r.id}')">${r.filled ? 'Tahrirlash' : "To'ldirish"}</button>
       ${r.fixed ? '' : `<button class="decl-rel-remove" title="O'chirish" onclick="declRemoveRelative('${r.id}')">&times;</button>`}
     </div>`).join('');
   const menuHtml = DECL_RELATIVE_TYPES.map(t => `<div class="decl-add-menu-item" onclick="declAddRelative('${t.key}')">${escapeHtml(t.label)}</div>`).join('');
@@ -2103,10 +2137,113 @@ function declRemoveRelative(id){
   declRenderCard();
 }
 
-function declToggleFilled(id){
-  const r = declRelatives.find(x => x.id === id);
+/* ---------- Qarindosh ma'lumotini kiritish modali ---------- */
+let declModalRelId = null;
+let declModalData = {};
+
+function declOpenFillModal(relId){
+  const r = declRelatives.find(x => x.id === relId);
   if(!r) return;
-  r.filled = !r.filled;
+  declModalRelId = relId;
+  declModalData = r.data ? JSON.parse(JSON.stringify(r.data)) : { holat:'' };
+  document.getElementById('declModalTitle').textContent = r.label + " — ma'lumot kiritish";
+  declRenderModalBody();
+  openModal('declFillModal');
+}
+
+function declModalSetField(key, value){
+  declModalData[key] = value;
+  declRenderModalBody();
+}
+
+function declRenderModalBody(){
+  document.getElementById('declModalBody').innerHTML = declModalFieldsHtml();
+}
+
+function declModalFieldsHtml(){
+  const d = declModalData;
+  let html = `
+    <div class="field">
+      <label>Holat <span class="req">*</span></label>
+      <select class="decl-modal-select" onchange="declModalSetField('holat', this.value)">
+        <option value="" ${!d.holat ? 'selected' : ''}>— Tanlang —</option>
+        <option value="info" ${d.holat === 'info' ? 'selected' : ''}>Ma'lumot kiritaman</option>
+        <option value="no_info" ${d.holat === 'no_info' ? 'selected' : ''}>Ma'lumotga ega emasman</option>
+        <option value="deceased" ${d.holat === 'deceased' ? 'selected' : ''}>Vafot etgan</option>
+        <option value="no_contact" ${d.holat === 'no_contact' ? 'selected' : ''}>Ajrashgan / aloqada emasman</option>
+      </select>
+    </div>`;
+
+  if(d.holat === 'info'){
+    html += `
+      <div class="decl-grid2">
+        <div class="field"><label>F.I.Sh. <span class="req">*</span></label><input type="text" value="${escapeHtml(d.fullName || '')}" oninput="declModalData.fullName=this.value"></div>
+        <div class="field"><label>JShShIR</label><input type="text" maxlength="14" placeholder="14 raqam" value="${escapeHtml(d.jshshir || '')}" oninput="declModalData.jshshir=this.value"></div>
+      </div>
+      <div class="field"><label>Yashash manzili</label><input type="text" value="${escapeHtml(d.address || '')}" oninput="declModalData.address=this.value"></div>
+      <div class="field">
+        <label>Ish joyi bo'yicha variant <span class="req">*</span></label>
+        <div class="decl-radio-row">
+          <div class="decl-radio-opt ${d.workType === 'entrepreneur' ? 'selected' : ''}" onclick="declModalSetField('workType','entrepreneur')"><span class="decl-radio-dot"></span>Tadbirkor</div>
+          <div class="decl-radio-opt ${d.workType === 'other' ? 'selected' : ''}" onclick="declModalSetField('workType','other')"><span class="decl-radio-dot"></span>Boshqalar</div>
+        </div>
+      </div>`;
+
+    if(d.workType === 'other'){
+      html += `<div class="field"><label>Ish joyi va lavozimi <span class="req">*</span></label><input type="text" placeholder="Tashkilot nomi va lavozimi" value="${escapeHtml(d.workplacePosition || '')}" oninput="declModalData.workplacePosition=this.value"></div>`;
+    }
+
+    if(d.workType === 'entrepreneur'){
+      html += `
+        <div class="decl-subbox">
+          <div class="subbox-title">Aniqlashtiring:</div>
+          <div class="decl-radio-opt-wide ${d.entrepreneurType === 'head_founder' ? 'selected' : ''}" onclick="declModalSetField('entrepreneurType','head_founder')"><span class="decl-radio-dot"></span>A) Yuridik shaxs (MChJ, XK, OK va h.k.) rahbari yoki ta'sischisi</div>
+          <div class="decl-radio-opt-wide ${d.entrepreneurType === 'employee' ? 'selected' : ''}" onclick="declModalSetField('entrepreneurType','employee')"><span class="decl-radio-dot"></span>B) Yuridik shaxsda oddiy xodim / ishchi</div>`;
+
+      if(d.entrepreneurType === 'head_founder'){
+        html += `
+          <div class="decl-grid2">
+            <div class="field"><label>Yuridik shaxs nomi <span class="req">*</span></label><input type="text" value="${escapeHtml(d.legalEntityName || '')}" oninput="declModalData.legalEntityName=this.value"></div>
+            <div class="field"><label>STIR (INN)</label><input type="text" maxlength="9" placeholder="9 raqam" value="${escapeHtml(d.stir || '')}" oninput="declModalData.stir=this.value"></div>
+          </div>
+          <div class="decl-grid2">
+            <div class="field"><label>Egalik ulushi (%)</label><input type="text" placeholder="Masalan: 50%" value="${escapeHtml(d.ownershipShare || '')}" oninput="declModalData.ownershipShare=this.value"></div>
+            <div class="field"><label>Boshqaruvdagi roli</label><input type="text" placeholder="Direktor / ta'sischi" value="${escapeHtml(d.managementRole || '')}" oninput="declModalData.managementRole=this.value"></div>
+          </div>`;
+      } else if(d.entrepreneurType === 'employee'){
+        html += `<div class="field"><label>Yuridik shaxs nomi va lavozimi <span class="req">*</span></label><input type="text" placeholder="«...» MChJ — mutaxassis" value="${escapeHtml(d.legalEntityNameAndPosition || '')}" oninput="declModalData.legalEntityNameAndPosition=this.value"></div>`;
+      }
+      html += `</div>`;
+    }
+  }
+
+  html += `
+    <div class="decl-modal-footer">
+      <button class="decl-btn outline" onclick="closeModal('declFillModal')">Bekor qilish</button>
+      <button class="decl-btn primary" onclick="declSaveModal()">Saqlash</button>
+    </div>`;
+  return html;
+}
+
+function declSaveModal(){
+  const d = declModalData;
+  if(!d.holat){ alert('Holatni tanlang'); return; }
+  if(d.holat === 'info'){
+    if(!d.fullName || !d.fullName.trim()){ alert("F.I.Sh. maydonini to'ldiring"); return; }
+    if(!d.workType){ alert("Ish joyi bo'yicha variantni tanlang"); return; }
+    if(d.workType === 'other' && (!d.workplacePosition || !d.workplacePosition.trim())){ alert("Ish joyi va lavozimini kiriting"); return; }
+    if(d.workType === 'entrepreneur'){
+      if(!d.entrepreneurType){ alert("Aniqlashtirish variantini tanlang"); return; }
+      if(d.entrepreneurType === 'head_founder' && (!d.legalEntityName || !d.legalEntityName.trim())){ alert("Yuridik shaxs nomini kiriting"); return; }
+      if(d.entrepreneurType === 'employee' && (!d.legalEntityNameAndPosition || !d.legalEntityNameAndPosition.trim())){ alert("Yuridik shaxs nomi va lavozimini kiriting"); return; }
+    }
+  }
+  const r = declRelatives.find(x => x.id === declModalRelId);
+  if(r){
+    r.data = d;
+    r.filled = true;
+  }
+  closeModal('declFillModal');
   declRenderCard();
 }
 
