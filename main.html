@@ -449,6 +449,29 @@ body{
 .decl-subbox .subbox-title{ font-weight:700; font-size:12.5px; margin-bottom:10px; }
 .decl-modal-footer{ display:flex; justify-content:flex-end; gap:10px; margin-top:22px; padding-top:18px; border-top:1px solid var(--card-border); }
 
+/* ===== Deklaratsiya: Savollar / Tasdiqlash / Ko'rib chiqish / E-IMZO ===== */
+.decl-q-num{ flex:none; width:30px; height:30px; border-radius:50%; background:var(--azure); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+.decl-textarea{ width:100%; padding:12px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; resize:vertical; }
+.decl-textarea:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,68,145,0.18); }
+.decl-textarea.error{ border-color:var(--coral); box-shadow:0 0 0 3px rgba(255,107,107,0.15); }
+.decl-field-error{ color:var(--coral); font-size:12px; margin-top:6px; }
+.decl-review-section{ margin-bottom:16px; border:1px solid var(--card-border); border-radius:13px; padding:16px 18px; }
+.decl-review-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:13.5px; }
+.decl-review-head a{ color:var(--azure); font-weight:700; font-size:12.5px; text-decoration:none; }
+.decl-review-head a:hover{ text-decoration:underline; }
+.decl-review-row{ display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--card-border); font-size:13px; }
+.decl-review-row:first-of-type{ border-top:none; }
+.decl-review-row span{ color:var(--text-dim); flex:none; }
+.decl-review-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+.decl-review-table th{ text-align:left; padding:8px 10px; color:var(--text-dim); font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; border-bottom:1px solid var(--card-border); }
+.decl-review-table td{ padding:9px 10px; border-bottom:1px solid var(--card-border); }
+.decl-review-table tr:last-child td{ border-bottom:none; }
+.decl-pill{ display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; white-space:nowrap; }
+.decl-pill.gray{ background:var(--bg-deep); color:var(--text-dim); }
+.decl-pill.teal{ background:rgba(29,111,191,0.15); color:var(--teal); }
+.decl-pill.coral{ background:rgba(255,107,107,0.15); color:var(--coral); }
+.decl-dash{ color:var(--text-dim); }
+
 /* ===== Inson resurslari bo'limi ===== */
 .hr-wrap{ position:relative; z-index:5; max-width:760px; margin:0 auto; padding:0 24px 100px; }
 .hr-tabs{ display:flex; gap:8px; margin-bottom:20px; }
@@ -1875,7 +1898,7 @@ const DECL_STEPS = [
   { key:'review', label:"Ko'rib chiqish" },
   { key:'esign', label:"E-IMZO" },
 ];
-const DECL_MAX_REACHABLE = 3;
+const DECL_MAX_REACHABLE = 7;
 
 const DECL_LEGAL_DOCS = [
   { t:"O'zbekiston Respublikasining 05.06.2024 yildagi «Manfaatlar to'qnashuvi to'g'risida»gi O'RQ-931-son Qonuni", d:"Deklaratsiyani to'ldirishning qonunchilik asosi" },
@@ -1902,6 +1925,16 @@ const DECL_RELATIVE_TYPES = [
   { key:'qayn-opasingil', label:"Qayn opa-singil" },
 ];
 
+const DECL_QUESTIONS = [
+  { type:'yesno', q:"Siz boshqaruv organi (boshqaruv, Kuzatuv kengashi, direktorlar kengashi va hokazolar) xodimi, a'zosi, qandaydir tashkilot direktori (bosh buxgalteri, buxgalteri va hokazo) yoki vakilimisiz?", hint:"Tashkiliy-huquqiy shakli va kompensatsiya olishidan qat'i nazar, tijorat va notijorat tashkilotlaridagi barcha o'rningizni hisobga oling. «Ha» bo'lsa — izohda tashkilotlar nomi va lavozimingizni ko'rsating." },
+  { type:'yesno', q:"Sizda / yaqin qarindoshlaringizda qandaydir tashkilotlarda moliyaviy manfaatdorlik bormi (ustav kapitalida ishtirok, aksiya va obligatsiyalarga egalik) yoki bunday tashkilotlar qarorlariga boshqa tarzda ta'sir ko'rsata olasizmi?", hint:"Ommaviy muomalada bo'lmagan aksiyalar/ulushlar yoki fond birjasida muomaladagi qimmatli qog'ozlarning 10% va undan ko'prog'iga egalik nazarda tutiladi. «Ha» bo'lsa — tashkilot nomi, manfaat turi va ulushni ko'rsating." },
+  { type:'yesno', q:"Yaqin qarindoshlaringiz boshqaruv organlari (boshqaruv, kuzatuv kengashi, direktorlar kengashi va h.k.) xodimi, a'zosi, tashkilot direktori yoki vakilimi?", hint:"Tashkiliy-huquqiy shakli va kompensatsiya olishidan qat'i nazar hisobga oling. «Ha» bo'lsa — tashkilotlar nomi va qarindoshning lavozimini ko'rsating." },
+  { type:'yesno', q:"Yaqin qarindoshlaringiz davlat organlarining mansabdor shaxsi hisoblanadimi?", hint:"«Ha» bo'lsa — qarindoshning F.I.Sh., lavozimi va tashkilot nomini ko'rsating." },
+  { type:'yesno', q:"Shaxsiy manfaatlaringiz, yaqin qarindoshlaringiz yoki aloqador shaxslar manfaatlari yo'lida maxfiy hisoblangan, davlat organlari va tashkilotlarida ishlash davomida ma'lum bo'lgan axborotdan foydalanganmisiz?", hint:"Jumladan, qandaydir jismoniy shaxs yoki tashkilotga oshkor qilganmisiz? «Ha» bo'lsa — izohda batafsil yozing." },
+  { type:'text', q:"Manfaatlar to'qnashuviga olib kelishi mumkin bo'lgan boshqa shart-sharoitlar mavjud bo'lsa, ularni ko'rsatib o'ting.", hint:"Masalan: boshqa tashkilotlarda o'rindoshlik, fuqarolik-huquqiy shartnoma yoki boshqa shartnomaviy asoslar bo'yicha bog'liqlik holatlari. Mavjud bo'lmasa, bo'sh qoldiring.", noteLabel:"Izohlar (mavjud bo'lsa)" },
+  { type:'text', q:"Zarur topsangiz, har qanday qo'shimcha ma'lumotni ko'rsating.", hint:"Ixtiyoriy maydon.", noteLabel:"Izohlar (ixtiyoriy)" },
+];
+
 let declCurrentStep = 0;
 let declTerms1Checked = false;
 let declTerms3Checked = false;
@@ -1910,6 +1943,10 @@ let declRelatives = [
   { id:'ota', typeKey:null, label:'Ota', fixed:true, filled:false },
   { id:'ona', typeKey:null, label:'Ona', fixed:true, filled:false },
 ];
+let declQuestionIndex = 0;
+let declQuestionError = false;
+let declAnswers = DECL_QUESTIONS.map(() => ({ choice:null, note:'' }));
+let declConfirm = { hasConflict:null, ack1:false, ack2:false };
 
 function declStorageKey(){
   return 'km_decl_draft_' + (currentUser.login || 'anon');
@@ -1929,6 +1966,8 @@ function declLoadDraft(){
     }
     if(typeof draft.terms1 === 'boolean') declTerms1Checked = draft.terms1;
     if(typeof draft.terms3 === 'boolean') declTerms3Checked = draft.terms3;
+    if(Array.isArray(draft.answers) && draft.answers.length === DECL_QUESTIONS.length) declAnswers = draft.answers;
+    if(draft.confirm && typeof draft.confirm === 'object') declConfirm = draft.confirm;
   }catch(e){}
 }
 declLoadDraft();
@@ -1937,6 +1976,7 @@ function declSaveDraft(){
   try{
     localStorage.setItem(declStorageKey(), JSON.stringify({
       relatives: declRelatives, terms1: declTerms1Checked, terms3: declTerms3Checked,
+      answers: declAnswers, confirm: declConfirm,
     }));
   }catch(e){}
   alert("Qoralama saqlandi. Keyinroq shu yerdan davom ettirishingiz mumkin.");
@@ -1969,6 +2009,7 @@ function declGoToStep(idx){
     alert(dict[currentLang].soonMsg);
     return;
   }
+  if(idx === 4 && declCurrentStep !== 4){ declQuestionIndex = 0; declQuestionError = false; }
   declCurrentStep = idx;
   declRenderStepper();
   declRenderCard();
@@ -2015,6 +2056,10 @@ function declRenderCard(){
   else if(step.key === 'employee') card.innerHTML = declStepEmployeeHtml();
   else if(step.key === 'terms') card.innerHTML = declStepTermsHtml();
   else if(step.key === 'relatives') card.innerHTML = declStepRelativesHtml();
+  else if(step.key === 'questions') card.innerHTML = declStepQuestionsHtml();
+  else if(step.key === 'confirm') card.innerHTML = declStepConfirmHtml();
+  else if(step.key === 'review') card.innerHTML = declStepReviewHtml();
+  else if(step.key === 'esign') card.innerHTML = declStepEsignHtml();
 }
 
 function declStepIntroHtml(){
@@ -2245,6 +2290,236 @@ function declSaveModal(){
   }
   closeModal('declFillModal');
   declRenderCard();
+}
+
+/* ---------- 5-bosqich: Savollar ---------- */
+function declStepQuestionsHtml(){
+  const idx = declQuestionIndex;
+  const meta = DECL_QUESTIONS[idx];
+  const a = declAnswers[idx];
+  let body;
+
+  if(meta.type === 'yesno'){
+    const showIzoh = a.choice === 'ha';
+    body = `
+      <div class="decl-radio-row" style="max-width:260px;">
+        <div class="decl-radio-opt ${a.choice === 'ha' ? 'selected' : ''}" onclick="declSetAnswerChoice(${idx}, 'ha')"><span class="decl-radio-dot"></span>Ha</div>
+        <div class="decl-radio-opt ${a.choice === 'yoq' ? 'selected' : ''}" onclick="declSetAnswerChoice(${idx}, 'yoq')"><span class="decl-radio-dot"></span>Yo'q</div>
+      </div>
+      ${showIzoh ? `
+      <div class="decl-subbox" style="margin-top:16px;">
+        <label style="display:block; font-weight:700; font-size:12.5px; margin-bottom:8px;">Izohlar <span class="req">*</span> (tegishli tashkilotlar, lavozimlar, ulushlar...)</label>
+        <textarea class="decl-textarea ${declQuestionError ? 'error' : ''}" rows="4" oninput="declAnswers[${idx}].note=this.value; declQuestionError=false;">${escapeHtml(a.note || '')}</textarea>
+        ${declQuestionError ? `<div class="decl-field-error">«Ha» javobida izoh kiritilishi shart</div>` : ''}
+      </div>` : ''}`;
+  } else {
+    body = `
+      <div class="field">
+        <label>${escapeHtml(meta.noteLabel)}</label>
+        <textarea class="decl-textarea" rows="4" oninput="declAnswers[${idx}].note=this.value;">${escapeHtml(a.note || '')}</textarea>
+      </div>`;
+  }
+
+  const prevLabel = idx > 0 ? 'Oldingi savol' : 'Oldingi bosqich';
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="margin-bottom:0;">Deklaratsiya savollari</h2>
+      <span class="decl-hrm-badge">Savol ${idx + 1} / ${DECL_QUESTIONS.length}</span>
+    </div>
+    <div style="display:flex; gap:12px; align-items:flex-start; margin-top:20px; margin-bottom:20px;">
+      <div class="decl-q-num">${idx + 1}</div>
+      <div>
+        <div style="font-weight:700; font-size:14.5px; line-height:1.5;">${escapeHtml(meta.q)}</div>
+        <div style="font-style:italic; color:var(--text-dim); font-size:12.5px; margin-top:6px; line-height:1.5;">${escapeHtml(meta.hint)}</div>
+      </div>
+    </div>
+    ${body}
+    <div class="decl-nav">
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declQuestionPrev()">${prevLabel}</button></div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
+        <button class="decl-btn primary" onclick="declQuestionNext()">Keyingisi</button>
+      </div>
+    </div>
+  `;
+}
+
+function declSetAnswerChoice(qIdx, choice){
+  declAnswers[qIdx].choice = choice;
+  declQuestionError = false;
+  declRenderCard();
+}
+
+function declQuestionPrev(){
+  if(declQuestionIndex > 0){
+    declQuestionIndex--;
+    declQuestionError = false;
+    declRenderCard();
+  } else {
+    declGoToStep(3);
+  }
+}
+
+function declQuestionNext(){
+  const idx = declQuestionIndex;
+  const meta = DECL_QUESTIONS[idx];
+  const a = declAnswers[idx];
+  if(meta.type === 'yesno'){
+    if(!a.choice){ alert("Savolga javob bering"); return; }
+    if(a.choice === 'ha' && (!a.note || !a.note.trim())){ declQuestionError = true; declRenderCard(); return; }
+  }
+  if(idx < DECL_QUESTIONS.length - 1){
+    declQuestionIndex++;
+    declQuestionError = false;
+    declRenderCard();
+  } else {
+    declGoToStep(5);
+  }
+}
+
+/* ---------- 6-bosqich: Tasdiqlash ---------- */
+function declStepConfirmHtml(){
+  const c = declConfirm;
+  return `
+    <h2>Yakuniy tasdiqlash</h2>
+    <p class="decl-sub">Deklaratsiyani imzolashdan oldin quyidagilarni tasdiqlang.</p>
+    <div class="decl-radio-opt-wide ${c.hasConflict === true ? 'selected' : ''}" style="margin-bottom:10px;" onclick="declSetConflict(true)">
+      <span class="decl-radio-dot"></span>
+      <div>
+        <div style="font-weight:700; font-size:13.5px;">Menda manfaatlar to'qnashuviga olib keladigan holatlar MAVJUD</div>
+        <div style="font-weight:400; color:var(--text-dim); font-size:12px; margin-top:3px;">Savollarda «Ha» deb belgilagan yoki jadvalda ko'rsatgan holatlaringiz bo'lsa, ushbu variantni tanlang.</div>
+      </div>
+    </div>
+    <div class="decl-radio-opt-wide ${c.hasConflict === false ? 'selected' : ''}" onclick="declSetConflict(false)">
+      <span class="decl-radio-dot"></span>
+      <div>
+        <div style="font-weight:700; font-size:13.5px;">Menda manfaatlar to'qnashuviga olib keladigan holatlar MAVJUD EMAS</div>
+        <div style="font-weight:400; color:var(--text-dim); font-size:12px; margin-top:3px;">Hech qanday to'qnashuv holati bo'lmasa, ushbu variantni tanlang.</div>
+      </div>
+    </div>
+    <div class="decl-check-row">
+      <input type="checkbox" id="declAck1" ${c.ack1 ? 'checked' : ''} onchange="declConfirm.ack1=this.checked; declRenderCard();">
+      <label for="declAck1">Ushbu deklaratsiyada aks ettirilgan ma'lumotlar <b>to'liqligi va haqqoniyligini tasdiqlayman</b> hamda ushbu ma'lumotlar tegishli huquq-tartibot organlari tomonidan tekshirilishiga rozilik bildiraman.</label>
+    </div>
+    <div class="decl-check-row">
+      <input type="checkbox" id="declAck2" ${c.ack2 ? 'checked' : ''} onchange="declConfirm.ack2=this.checked; declRenderCard();">
+      <label for="declAck2">Nizom talablariga binoan, deklaratsiya haqqoniyligiga ta'sir qiladigan <b>yangi holatlar to'g'risida</b> Kompaniyaga darhol xabar berish majburiyatini zimmamga olaman.</label>
+    </div>
+    <div class="decl-nav">
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(4)">Oldingi</button></div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
+        <button class="decl-btn primary" ${(c.hasConflict !== null && c.ack1 && c.ack2) ? '' : 'disabled'} onclick="declGoToStep(6)">Ko'rib chiqish</button>
+      </div>
+    </div>
+  `;
+}
+
+function declSetConflict(val){
+  declConfirm.hasConflict = val;
+  declRenderCard();
+}
+
+/* ---------- 7-bosqich: Ko'rib chiqish ---------- */
+function declWorkplaceText(d){
+  if(!d || d.holat !== 'info') return '—';
+  if(d.workType === 'other') return d.workplacePosition || '—';
+  if(d.workType === 'entrepreneur'){
+    if(d.entrepreneurType === 'head_founder') return d.legalEntityName || '—';
+    if(d.entrepreneurType === 'employee') return d.legalEntityNameAndPosition || '—';
+  }
+  return '—';
+}
+
+function declStepReviewHtml(){
+  const fullName = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || '—';
+  const bolinma = currentUser.bolinma || '—';
+  const lavozim = currentUser.lavozim || '—';
+
+  const relRows = declRelatives.map(r => {
+    const d = r.data;
+    const nameCell = (d && d.holat === 'info' && d.fullName)
+      ? escapeHtml(d.fullName)
+      : `— <span class="decl-pill gray">${escapeHtml((d && DECL_HOLAT_LABELS[d.holat]) || "ma'lumot yo'q")}</span>`;
+    return `<tr><td><b>${escapeHtml(r.label)}</b></td><td>${nameCell}</td><td>${escapeHtml(declWorkplaceText(d))}</td></tr>`;
+  }).join('');
+
+  const qRows = DECL_QUESTIONS.map((meta, i) => {
+    const a = declAnswers[i];
+    const short = meta.q.length > 78 ? meta.q.slice(0, 78) + '…' : meta.q;
+    let badge = '<span class="decl-dash">—</span>';
+    if(meta.type === 'yesno' && a.choice){
+      badge = `<span class="decl-pill ${a.choice === 'ha' ? 'coral' : 'teal'}">${a.choice === 'ha' ? 'HA' : "YO'Q"}</span>`;
+    }
+    return `<tr><td>${i + 1}. ${escapeHtml(short)}</td><td style="text-align:right;">${badge}</td></tr>`;
+  }).join('');
+
+  const conflictBadge = declConfirm.hasConflict === true
+    ? `<span class="decl-pill coral">Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD</span>`
+    : declConfirm.hasConflict === false
+      ? `<span class="decl-pill teal">Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD EMAS</span>`
+      : `<span class="decl-pill gray">Tanlanmagan</span>`;
+
+  return `
+    <h2>Ko'rib chiqish</h2>
+    <p class="decl-sub">Yuborishdan oldin barcha javoblaringizni tekshiring. Kerak bo'lsa, tegishli bo'limga qaytib tahrirlang.</p>
+
+    <div class="decl-review-section">
+      <div class="decl-review-head"><b>Xodim ma'lumotlari</b><a href="javascript:void(0)" onclick="declGoToStep(1)">Ko'rish</a></div>
+      <div class="decl-review-row"><span>F.I.Sh. / JShShIR</span><b>${escapeHtml(fullName)} · —</b></div>
+      <div class="decl-review-row"><span>Bo'linma / lavozim</span><b>${escapeHtml(bolinma)} · ${escapeHtml(lavozim)}</b></div>
+    </div>
+
+    <div class="decl-review-section">
+      <div class="decl-review-head"><b>Yaqin qarindoshlar (${declRelatives.length})</b><a href="javascript:void(0)" onclick="declGoToStep(3)">Tahrirlash</a></div>
+      <div style="overflow-x:auto;">
+        <table class="decl-review-table">
+          <thead><tr><th>Daraja</th><th>F.I.Sh.</th><th>Ish joyi</th></tr></thead>
+          <tbody>${relRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="decl-review-section">
+      <div class="decl-review-head"><b>Savollar javoblari</b><a href="javascript:void(0)" onclick="declGoToStep(4)">Tahrirlash</a></div>
+      <table class="decl-review-table"><tbody>${qRows}</tbody></table>
+    </div>
+
+    <div class="decl-review-section">
+      <div class="decl-review-head"><b>Yakuniy tasdiq</b><a href="javascript:void(0)" onclick="declGoToStep(5)">Tahrirlash</a></div>
+      ${conflictBadge}
+    </div>
+
+    <div class="decl-nav">
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(5)">Oldingi</button></div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
+        <button class="decl-btn primary" onclick="declGoToStep(7)">E-IMZO bosqichiga o'tish</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- 8-bosqich: E-IMZO ---------- */
+function declStepEsignHtml(){
+  return `
+    <h2>E-IMZO bilan imzolash</h2>
+    <p class="decl-sub">Deklaratsiya faqat elektron raqamli imzo qo'yilgandan so'ng yakunlangan hisoblanadi. Jarayon: To'ldirish &rarr; Ko'rib chiqish &rarr; Tasdiqlash &rarr; <b>E-IMZO</b> &rarr; Imzo tasdiqlanishi &rarr; Yakunlanishi.</p>
+    <div class="decl-notice">Imzolash uchun E-IMZO kalitingiz (sertifikatingiz) tanlanadi. Imzolangandan so'ng har bir deklaratsiya uchun <b>unikal QR-kod va Verification ID</b> shakllantiriladi — ular orqali imzoni istalgan vaqtda tekshirish mumkin.</div>
+    <div style="text-align:center; padding:30px 0;">
+      <button class="decl-btn primary" style="padding:14px 32px; font-size:14px;" onclick="declSignStub()">E-IMZO bilan imzolash</button>
+    </div>
+    <div class="decl-nav">
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(6)">Oldingi</button></div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
+      </div>
+    </div>
+  `;
+}
+
+function declSignStub(){
+  alert("E-IMZO orqali imzolash tizimi hali ishga tushirilmagan — bu funksiya keyingi bosqichda serverga ulanadi.");
 }
 
 // XAVFSIZLIK: 10 daqiqa harakatsizlikdan so'ng avtomat chiqish (server ham
