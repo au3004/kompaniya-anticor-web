@@ -431,7 +431,7 @@ body{
 @media (max-width:560px){ .decl-grid2{ grid-template-columns:1fr; } }
 
 /* ===== Deklaratsiya: qarindosh ma'lumotini kiritish modali ===== */
-.decl-modal{ max-width:560px; }
+.decl-modal{ max-width:680px; }
 .decl-modal .field label{ text-transform:none; letter-spacing:normal; }
 .decl-modal .field label .req{ color:var(--coral); margin-left:2px; }
 .decl-modal-select{ width:100%; padding:12px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:14px; outline:none; font-family:'Inter'; }
@@ -485,8 +485,16 @@ body{
 .decl-record-q:first-of-type{ border-top:none; padding-top:6px; }
 .decl-esign-block{ background:rgba(29,111,191,0.05); border-color:rgba(29,111,191,0.25); }
 .decl-esign-icon{ width:30px; height:30px; border-radius:9px; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex:none; }
-.decl-qr-box{ flex:none; display:flex; flex-direction:column; align-items:center; width:140px; }
+.decl-esign-row{ display:grid; grid-template-columns:180px 1fr; gap:10px; padding:9px 0; border-top:1px solid rgba(29,111,191,0.15); font-size:12.5px; align-items:baseline; }
+.decl-esign-row:first-child{ border-top:none; }
+.decl-esign-row span{ color:var(--text-dim); }
+.decl-esign-row b{ font-weight:700; }
+.decl-qr-box{ flex:none; display:flex; flex-direction:column; align-items:center; width:150px; padding-left:24px; border-left:1px solid rgba(29,111,191,0.15); }
 .decl-qr-placeholder{ width:110px; height:110px; border-radius:10px; background:var(--bg); border:1px solid var(--card-border); }
+@media (max-width:640px){
+  .decl-esign-row{ grid-template-columns:1fr; gap:2px; }
+  .decl-qr-box{ border-left:none; border-top:1px solid rgba(29,111,191,0.15); padding-left:0; padding-top:18px; width:100%; }
+}
 
 /* ===== Inson resurslari bo'limi ===== */
 .hr-wrap{ position:relative; z-index:5; max-width:760px; margin:0 auto; padding:0 24px 100px; }
@@ -1990,8 +1998,7 @@ const DECL_TERMS = [
 const DECL_RELATIVE_TYPES = [
   { key:'aka-uka', label:"Aka-uka" },
   { key:'opa-singil', label:"Opa-singil" },
-  { key:'ogil', label:"O'g'il" },
-  { key:'qiz', label:"Qiz" },
+  { key:'ogil-qiz', label:"O'g'il-qiz" },
   { key:'turmush-ortogi', label:"Turmush o'rtog'i" },
   { key:'qaynota-ona', label:"Qaynota/qaynona" },
   { key:'qayn-akauka', label:"Qayn aka-uka" },
@@ -2009,6 +2016,7 @@ const DECL_QUESTIONS = [
 ];
 
 let declCurrentStep = 0;
+let declFurthestStep = 0;
 let declTerms1Checked = false;
 let declTerms3Checked = false;
 let declRelSeq = 0;
@@ -2020,6 +2028,7 @@ let declQuestionIndex = 0;
 let declQuestionError = false;
 let declAnswers = DECL_QUESTIONS.map(() => ({ choice:null, note:'' }));
 let declConfirm = { hasConflict:null, ack1:false, ack2:false };
+let declEmployeeJshshir = '';
 
 function declStorageKey(){
   return 'km_decl_draft_' + (currentUser.login || 'anon');
@@ -2041,17 +2050,29 @@ function declLoadDraft(){
     if(typeof draft.terms3 === 'boolean') declTerms3Checked = draft.terms3;
     if(Array.isArray(draft.answers) && draft.answers.length === DECL_QUESTIONS.length) declAnswers = draft.answers;
     if(draft.confirm && typeof draft.confirm === 'object') declConfirm = draft.confirm;
+    if(typeof draft.jshshir === 'string') declEmployeeJshshir = draft.jshshir;
+    if(typeof draft.furthestStep === 'number') declFurthestStep = draft.furthestStep;
+    if(typeof draft.currentStep === 'number') declCurrentStep = draft.currentStep;
+    if(typeof draft.questionIndex === 'number') declQuestionIndex = draft.questionIndex;
   }catch(e){}
 }
 declLoadDraft();
 
-function declSaveDraft(){
+/* Har bir o'zgarishda jim (alert'siz) saqlaydi — shunda foydalanuvchi
+   "Saqlash" tugmasini bosmasdan boshqa sahifaga o'tib qaytsa ham,
+   to'ldirgan ma'lumotlari yo'qolmaydi. */
+function declPersist(){
   try{
     localStorage.setItem(declStorageKey(), JSON.stringify({
       relatives: declRelatives, terms1: declTerms1Checked, terms3: declTerms3Checked,
-      answers: declAnswers, confirm: declConfirm,
+      answers: declAnswers, confirm: declConfirm, jshshir: declEmployeeJshshir,
+      furthestStep: declFurthestStep, currentStep: declCurrentStep, questionIndex: declQuestionIndex,
     }));
   }catch(e){}
+}
+
+function declSaveDraft(){
+  declPersist();
   alert("Qoralama saqlandi. Keyinroq shu yerdan davom ettirishingiz mumkin.");
 }
 
@@ -2065,7 +2086,7 @@ function openDeclaration(){
   document.getElementById('anticorHero').style.display = 'none';
   document.getElementById('anticorStatusSection').style.display = 'none';
   document.getElementById('declarationView').style.display = 'block';
-  declGoToStep(0);
+  declGoToStep(declCurrentStep || 0);
   window.scrollTo(0, 0);
   return false;
 }
@@ -2076,16 +2097,31 @@ function closeDeclaration(){
   document.getElementById('anticorStatusSection').style.display = 'block';
 }
 
+/* Qadamlar ketma-ket bajarilishi shart — bosqichni faqat oldingi
+   bosqich(lar) muvaffaqiyatli yakunlangandan keyingina (validatsiyadan
+   o'tib "Keyingisi" bosilganda) "ochiq" deb belgilaymiz. declGoToStep
+   o'zi hech qachon declFurthestStep'dan oshib ketolmaydi — faqat
+   declAdvanceTo orqali, validatsiyadan keyin, chegara kengaytiriladi. */
+function declAdvanceTo(idx){
+  declFurthestStep = Math.max(declFurthestStep, idx);
+  declGoToStep(idx);
+}
+
+function declStepLocked(){
+  alert("Avval joriy bosqichni to'liq yakunlang.");
+}
+
 function declGoToStep(idx){
   if(idx < 0) idx = 0;
-  if(idx > DECL_MAX_REACHABLE){
-    alert(dict[currentLang].soonMsg);
+  if(idx > DECL_MAX_REACHABLE || idx > declFurthestStep){
+    declStepLocked();
     return;
   }
   if(idx === 4 && declCurrentStep !== 4){ declQuestionIndex = 0; declQuestionError = false; }
   declCurrentStep = idx;
   declRenderStepper();
   declRenderCard();
+  declPersist();
   const card = document.getElementById('declCard');
   if(card) card.scrollIntoView({ behavior:'smooth', block:'start' });
 }
@@ -2094,9 +2130,9 @@ function declRenderStepper(){
   const wrap = document.getElementById('declStepper');
   wrap.innerHTML = DECL_STEPS.map((s, i) => {
     const state = i < declCurrentStep ? 'done' : (i === declCurrentStep ? 'active' : '');
-    const reachable = i <= DECL_MAX_REACHABLE;
+    const reachable = i <= declFurthestStep;
     const circleContent = i < declCurrentStep ? '&check;' : (i + 1);
-    const clickAttr = reachable ? `declGoToStep(${i})` : `alert(dict[currentLang].soonMsg)`;
+    const clickAttr = reachable ? `declGoToStep(${i})` : `declStepLocked()`;
     const line = i < DECL_STEPS.length - 1 ? `<div class="decl-step-line ${i < declCurrentStep ? 'done' : ''}"></div>` : '';
     return `<div class="decl-step ${state} ${reachable ? 'reachable' : ''}" onclick="${clickAttr}">
       <div class="decl-step-circle">${circleContent}</div>
@@ -2116,7 +2152,7 @@ function declNavHtml(showPrev, nextEnabled){
       <div class="decl-nav-left">${prevBtn}</div>
       <div class="decl-nav-right">
         <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
-        <button class="decl-btn primary" ${nextEnabled ? '' : 'disabled'} onclick="declGoToStep(${declCurrentStep + 1})">Keyingisi</button>
+        <button class="decl-btn primary" ${nextEnabled ? '' : 'disabled'} onclick="declAdvanceTo(${declCurrentStep + 1})">Keyingisi</button>
       </div>
     </div>
   `;
@@ -2149,7 +2185,7 @@ function declStepIntroHtml(){
     <p class="decl-sub">Deklaratsiyani to'ldirishdan avval quyidagi hujjatlar bilan tanishib chiqing va tanishganingizni tasdiqlang.</p>
     ${docsHtml}
     <div class="decl-check-row">
-      <input type="checkbox" id="declCheck1" ${declTerms1Checked ? 'checked' : ''} onchange="declTerms1Checked = this.checked; declRenderCard();">
+      <input type="checkbox" id="declCheck1" ${declTerms1Checked ? 'checked' : ''} onchange="declTerms1Checked = this.checked; declRenderCard(); declPersist();">
       <label for="declCheck1">Men yuqoridagi Qonun va «O'zbektelekom» AK Nizomi talablari bilan to'liq tanishdim va ularga rioya etish majburiyatini olaman.</label>
     </div>
     ${declNavHtml(false, declTerms1Checked)}
@@ -2163,17 +2199,17 @@ function declStepEmployeeHtml(){
   return `
     <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
       <h2 style="margin-bottom:0;">Xodim ma'lumotlari</h2>
-      <span class="decl-hrm-badge">HRM tizimidan avtomatik to'ldirilgan</span>
+      <span class="decl-hrm-badge">Ma'lumotlar tizimidan avtomatik to'ldirilgan</span>
     </div>
     <div class="decl-grid2">
       <div class="field"><label>F.I.Sh. (to'liq)</label><input type="text" value="${escapeHtml(fullName)}" readonly></div>
-      <div class="field"><label>JShShIR (ПИНФЛ)</label><input type="text" value="—" readonly></div>
+      <div class="field"><label>JShShIR (ПИНФЛ)</label><input type="text" maxlength="14" placeholder="14 raqam" value="${escapeHtml(declEmployeeJshshir)}" oninput="declEmployeeJshshir=this.value; declPersist();"></div>
       <div class="field"><label>Tarkibiy bo'linma nomi</label><input type="text" value="${escapeHtml(bolinma)}" readonly></div>
       <div class="field"><label>Lavozim</label><input type="text" value="${escapeHtml(lavozim)}" readonly></div>
       <div class="field"><label>To'ldirilgan sana</label><input type="text" value="${declTodayFormatted()}" readonly></div>
-      <div class="field"><label>Filial / apparat</label><input type="text" value="—" readonly></div>
+      <div class="field"><label>Bo'linma</label><input type="text" value="${escapeHtml(bolinma)}" readonly></div>
     </div>
-    <div class="decl-notice">Ma'lumotlarda xatolik bo'lsa, HR bo'limiga murojaat qiling — deklaratsiyada ular tahrirlanmaydi.</div>
+    <div class="decl-notice">Ma'lumotlarda xatolik bo'lsa, Inson resurslarini boshqarish xizmatiga murojaat qiling — deklaratsiyada ular tahrirlanmaydi.</div>
     ${declNavHtml(true, true)}
   `;
 }
@@ -2189,7 +2225,7 @@ function declStepTermsHtml(){
     <p class="decl-sub">Deklaratsiyada qo'llaniladigan atamalar bilan tanishib chiqing — savollarga to'g'ri javob berish uchun muhim.</p>
     ${termsHtml}
     <div class="decl-check-row">
-      <input type="checkbox" id="declCheck3" ${declTerms3Checked ? 'checked' : ''} onchange="declTerms3Checked = this.checked; declRenderCard();">
+      <input type="checkbox" id="declCheck3" ${declTerms3Checked ? 'checked' : ''} onchange="declTerms3Checked = this.checked; declRenderCard(); declPersist();">
       <label for="declCheck3">Atamalar mazmuni bilan tanishdim.</label>
     </div>
     ${declNavHtml(true, declTerms3Checked)}
@@ -2248,11 +2284,13 @@ function declAddRelative(typeKey){
   const label = sameTypeCount > 0 ? `${type.label} ${sameTypeCount + 1}` : type.label;
   declRelatives.push({ id:'rel' + declRelSeq, typeKey, label, fixed:false, filled:false });
   declRenderCard();
+  declPersist();
 }
 
 function declRemoveRelative(id){
   declRelatives = declRelatives.filter(r => r.id !== id);
   declRenderCard();
+  declPersist();
 }
 
 /* ---------- Qarindosh ma'lumotini kiritish modali ---------- */
@@ -2295,43 +2333,35 @@ function declModalFieldsHtml(){
   if(d.holat === 'info'){
     html += `
       <div class="decl-grid2">
-        <div class="field"><label>F.I.Sh. <span class="req">*</span></label><input type="text" value="${escapeHtml(d.fullName || '')}" oninput="declModalData.fullName=this.value"></div>
-        <div class="field"><label>JShShIR</label><input type="text" maxlength="14" placeholder="14 raqam" value="${escapeHtml(d.jshshir || '')}" oninput="declModalData.jshshir=this.value"></div>
+        <div class="field"><label>F.I.Sh. <span class="req">*</span></label><input type="text" value="${escapeHtml(d.fullName || '')}" oninput="declModalData.fullName=this.value; declPersist();"></div>
+        <div class="field"><label>JShShIR</label><input type="text" maxlength="14" placeholder="14 raqam" value="${escapeHtml(d.jshshir || '')}" oninput="declModalData.jshshir=this.value; declPersist();"></div>
       </div>
-      <div class="field"><label>Yashash manzili</label><input type="text" value="${escapeHtml(d.address || '')}" oninput="declModalData.address=this.value"></div>
+      <div class="field"><label>Yashash manzili</label><input type="text" value="${escapeHtml(d.address || '')}" oninput="declModalData.address=this.value; declPersist();"></div>
       <div class="field">
         <label>Ish joyi bo'yicha variant <span class="req">*</span></label>
         <div class="decl-radio-row">
-          <div class="decl-radio-opt ${d.workType === 'entrepreneur' ? 'selected' : ''}" onclick="declModalSetField('workType','entrepreneur')"><span class="decl-radio-dot"></span>Tadbirkor</div>
+          <div class="decl-radio-opt ${d.workType === 'entrepreneur' ? 'selected' : ''}" onclick="declModalSetField('workType','entrepreneur')"><span class="decl-radio-dot"></span>Rahbar yoki ta'sischi</div>
           <div class="decl-radio-opt ${d.workType === 'other' ? 'selected' : ''}" onclick="declModalSetField('workType','other')"><span class="decl-radio-dot"></span>Boshqalar</div>
         </div>
       </div>`;
 
     if(d.workType === 'other'){
-      html += `<div class="field"><label>Ish joyi va lavozimi <span class="req">*</span></label><input type="text" placeholder="Tashkilot nomi va lavozimi" value="${escapeHtml(d.workplacePosition || '')}" oninput="declModalData.workplacePosition=this.value"></div>`;
+      html += `<div class="field"><label>Ish joyi va lavozimi <span class="req">*</span></label><input type="text" placeholder="Tashkilot nomi va lavozimi" value="${escapeHtml(d.workplacePosition || '')}" oninput="declModalData.workplacePosition=this.value; declPersist();"></div>`;
     }
 
     if(d.workType === 'entrepreneur'){
       html += `
         <div class="decl-subbox">
-          <div class="subbox-title">Aniqlashtiring:</div>
-          <div class="decl-radio-opt-wide ${d.entrepreneurType === 'head_founder' ? 'selected' : ''}" onclick="declModalSetField('entrepreneurType','head_founder')"><span class="decl-radio-dot"></span>A) Yuridik shaxs (MChJ, XK, OK va h.k.) rahbari yoki ta'sischisi</div>
-          <div class="decl-radio-opt-wide ${d.entrepreneurType === 'employee' ? 'selected' : ''}" onclick="declModalSetField('entrepreneurType','employee')"><span class="decl-radio-dot"></span>B) Yuridik shaxsda oddiy xodim / ishchi</div>`;
-
-      if(d.entrepreneurType === 'head_founder'){
-        html += `
+          <div class="subbox-title">Yuridik shaxs (MChJ, XK, OK va h.k.) rahbari yoki ta'sischisi:</div>
           <div class="decl-grid2">
-            <div class="field"><label>Yuridik shaxs nomi <span class="req">*</span></label><input type="text" value="${escapeHtml(d.legalEntityName || '')}" oninput="declModalData.legalEntityName=this.value"></div>
-            <div class="field"><label>STIR (INN)</label><input type="text" maxlength="9" placeholder="9 raqam" value="${escapeHtml(d.stir || '')}" oninput="declModalData.stir=this.value"></div>
+            <div class="field"><label>Yuridik shaxs nomi <span class="req">*</span></label><input type="text" value="${escapeHtml(d.legalEntityName || '')}" oninput="declModalData.legalEntityName=this.value; declPersist();"></div>
+            <div class="field"><label>STIR (INN) <span class="req">*</span></label><input type="text" maxlength="9" placeholder="9 raqam" value="${escapeHtml(d.stir || '')}" oninput="declModalData.stir=this.value; declPersist();"></div>
           </div>
           <div class="decl-grid2">
-            <div class="field"><label>Egalik ulushi (%)</label><input type="text" placeholder="Masalan: 50%" value="${escapeHtml(d.ownershipShare || '')}" oninput="declModalData.ownershipShare=this.value"></div>
-            <div class="field"><label>Boshqaruvdagi roli</label><input type="text" placeholder="Direktor / ta'sischi" value="${escapeHtml(d.managementRole || '')}" oninput="declModalData.managementRole=this.value"></div>
-          </div>`;
-      } else if(d.entrepreneurType === 'employee'){
-        html += `<div class="field"><label>Yuridik shaxs nomi va lavozimi <span class="req">*</span></label><input type="text" placeholder="«...» MChJ — mutaxassis" value="${escapeHtml(d.legalEntityNameAndPosition || '')}" oninput="declModalData.legalEntityNameAndPosition=this.value"></div>`;
-      }
-      html += `</div>`;
+            <div class="field"><label>Egalik ulushi (%)</label><input type="text" placeholder="Masalan: 50%" value="${escapeHtml(d.ownershipShare || '')}" oninput="declModalData.ownershipShare=this.value; declPersist();"></div>
+            <div class="field"><label>Boshqaruvdagi roli <span class="req">*</span></label><input type="text" placeholder="Direktor / ta'sischi" value="${escapeHtml(d.managementRole || '')}" oninput="declModalData.managementRole=this.value; declPersist();"></div>
+          </div>
+        </div>`;
     }
   }
 
@@ -2351,9 +2381,9 @@ function declSaveModal(){
     if(!d.workType){ alert("Ish joyi bo'yicha variantni tanlang"); return; }
     if(d.workType === 'other' && (!d.workplacePosition || !d.workplacePosition.trim())){ alert("Ish joyi va lavozimini kiriting"); return; }
     if(d.workType === 'entrepreneur'){
-      if(!d.entrepreneurType){ alert("Aniqlashtirish variantini tanlang"); return; }
-      if(d.entrepreneurType === 'head_founder' && (!d.legalEntityName || !d.legalEntityName.trim())){ alert("Yuridik shaxs nomini kiriting"); return; }
-      if(d.entrepreneurType === 'employee' && (!d.legalEntityNameAndPosition || !d.legalEntityNameAndPosition.trim())){ alert("Yuridik shaxs nomi va lavozimini kiriting"); return; }
+      if(!d.legalEntityName || !d.legalEntityName.trim()){ alert("Yuridik shaxs nomini kiriting"); return; }
+      if(!d.stir || !d.stir.trim()){ alert("STIR (INN) raqamini kiriting"); return; }
+      if(!d.managementRole || !d.managementRole.trim()){ alert("Boshqaruvdagi rolini kiriting"); return; }
     }
   }
   const r = declRelatives.find(x => x.id === declModalRelId);
@@ -2363,6 +2393,7 @@ function declSaveModal(){
   }
   closeModal('declFillModal');
   declRenderCard();
+  declPersist();
 }
 
 /* ---------- 5-bosqich: Savollar ---------- */
@@ -2382,14 +2413,14 @@ function declStepQuestionsHtml(){
       ${showIzoh ? `
       <div class="decl-subbox" style="margin-top:16px;">
         <label style="display:block; font-weight:700; font-size:12.5px; margin-bottom:8px;">Izohlar <span class="req">*</span> (tegishli tashkilotlar, lavozimlar, ulushlar...)</label>
-        <textarea class="decl-textarea ${declQuestionError ? 'error' : ''}" rows="4" oninput="declAnswers[${idx}].note=this.value; declQuestionError=false;">${escapeHtml(a.note || '')}</textarea>
+        <textarea class="decl-textarea ${declQuestionError ? 'error' : ''}" rows="4" oninput="declAnswers[${idx}].note=this.value; declQuestionError=false; declPersist();">${escapeHtml(a.note || '')}</textarea>
         ${declQuestionError ? `<div class="decl-field-error">«Ha» javobida izoh kiritilishi shart</div>` : ''}
       </div>` : ''}`;
   } else {
     body = `
       <div class="field">
         <label>${escapeHtml(meta.noteLabel)}</label>
-        <textarea class="decl-textarea" rows="4" oninput="declAnswers[${idx}].note=this.value;">${escapeHtml(a.note || '')}</textarea>
+        <textarea class="decl-textarea" rows="4" oninput="declAnswers[${idx}].note=this.value; declPersist();">${escapeHtml(a.note || '')}</textarea>
       </div>`;
   }
 
@@ -2421,6 +2452,7 @@ function declSetAnswerChoice(qIdx, choice){
   declAnswers[qIdx].choice = choice;
   declQuestionError = false;
   declRenderCard();
+  declPersist();
 }
 
 function declQuestionPrev(){
@@ -2445,8 +2477,9 @@ function declQuestionNext(){
     declQuestionIndex++;
     declQuestionError = false;
     declRenderCard();
+    declPersist();
   } else {
-    declGoToStep(5);
+    declAdvanceTo(5);
   }
 }
 
@@ -2471,18 +2504,18 @@ function declStepConfirmHtml(){
       </div>
     </div>
     <div class="decl-check-row">
-      <input type="checkbox" id="declAck1" ${c.ack1 ? 'checked' : ''} onchange="declConfirm.ack1=this.checked; declRenderCard();">
+      <input type="checkbox" id="declAck1" ${c.ack1 ? 'checked' : ''} onchange="declConfirm.ack1=this.checked; declRenderCard(); declPersist();">
       <label for="declAck1">Ushbu deklaratsiyada aks ettirilgan ma'lumotlar <b>to'liqligi va haqqoniyligini tasdiqlayman</b> hamda ushbu ma'lumotlar tegishli huquq-tartibot organlari tomonidan tekshirilishiga rozilik bildiraman.</label>
     </div>
     <div class="decl-check-row">
-      <input type="checkbox" id="declAck2" ${c.ack2 ? 'checked' : ''} onchange="declConfirm.ack2=this.checked; declRenderCard();">
+      <input type="checkbox" id="declAck2" ${c.ack2 ? 'checked' : ''} onchange="declConfirm.ack2=this.checked; declRenderCard(); declPersist();">
       <label for="declAck2">Nizom talablariga binoan, deklaratsiya haqqoniyligiga ta'sir qiladigan <b>yangi holatlar to'g'risida</b> Kompaniyaga darhol xabar berish majburiyatini zimmamga olaman.</label>
     </div>
     <div class="decl-nav">
       <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(4)">Oldingi</button></div>
       <div class="decl-nav-right">
         <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
-        <button class="decl-btn primary" ${(c.hasConflict !== null && c.ack1 && c.ack2) ? '' : 'disabled'} onclick="declGoToStep(6)">Ko'rib chiqish</button>
+        <button class="decl-btn primary" ${(c.hasConflict !== null && c.ack1 && c.ack2) ? '' : 'disabled'} onclick="declAdvanceTo(6)">Ko'rib chiqish</button>
       </div>
     </div>
   `;
@@ -2491,16 +2524,14 @@ function declStepConfirmHtml(){
 function declSetConflict(val){
   declConfirm.hasConflict = val;
   declRenderCard();
+  declPersist();
 }
 
 /* ---------- 7-bosqich: Ko'rib chiqish ---------- */
 function declWorkplaceText(d){
   if(!d || d.holat !== 'info') return '—';
   if(d.workType === 'other') return d.workplacePosition || '—';
-  if(d.workType === 'entrepreneur'){
-    if(d.entrepreneurType === 'head_founder') return d.legalEntityName || '—';
-    if(d.entrepreneurType === 'employee') return d.legalEntityNameAndPosition || '—';
-  }
+  if(d.workType === 'entrepreneur') return d.legalEntityName || '—';
   return '—';
 }
 
@@ -2539,7 +2570,7 @@ function declStepReviewHtml(){
 
     <div class="decl-review-section">
       <div class="decl-review-head"><b>Xodim ma'lumotlari</b><a href="javascript:void(0)" onclick="declGoToStep(1)">Ko'rish</a></div>
-      <div class="decl-review-row"><span>F.I.Sh. / JShShIR</span><b>${escapeHtml(fullName)} · —</b></div>
+      <div class="decl-review-row"><span>F.I.Sh. / JShShIR</span><b>${escapeHtml(fullName)} · ${escapeHtml(declEmployeeJshshir || '—')}</b></div>
       <div class="decl-review-row"><span>Bo'linma / lavozim</span><b>${escapeHtml(bolinma)} · ${escapeHtml(lavozim)}</b></div>
     </div>
 
@@ -2567,7 +2598,7 @@ function declStepReviewHtml(){
       <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(5)">Oldingi</button></div>
       <div class="decl-nav-right">
         <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
-        <button class="decl-btn primary" onclick="declGoToStep(7)">E-IMZO bosqichiga o'tish</button>
+        <button class="decl-btn primary" onclick="declAdvanceTo(7)">E-IMZO bosqichiga o'tish</button>
       </div>
     </div>
   `;
@@ -2607,18 +2638,52 @@ function declOpenSignModal(){
   openModal('declSignModal');
 }
 
-function declConfirmSign(){
+function declBuildPayload(){
+  return {
+    relatives: declRelatives,
+    answers: declAnswers,
+    confirm: declConfirm,
+    employeeJshshir: declEmployeeJshshir,
+  };
+}
+
+async function declConfirmSign(){
   const pwd = document.getElementById('declSignPassword').value;
   if(!pwd){ alert('Kalit parolini kiriting'); return; }
   const rand = () => Math.random().toString(36).slice(2, 10).toUpperCase();
   const now = new Date();
-  declSignature = {
+  const signature = {
     verificationId: 'UT-EIMZO-' + rand(),
     refId: 'DEK-' + now.getFullYear() + '-' + rand().slice(0, 6),
     signedAt: now,
     certName: "DS E-1042-2026 · «O'zbektelekom» AK UC",
   };
+
+  const signBtn = document.querySelector('#declSignModal .decl-modal-footer .decl-btn.primary');
+  if(signBtn){ signBtn.disabled = true; signBtn.textContent = 'Yuborilmoqda...'; }
+
+  let data;
+  try{
+    data = await apiCall({
+      action: 'submitDeclaration', token: currentUser.token,
+      refId: signature.refId, verificationId: signature.verificationId,
+      hasConflict: declConfirm.hasConflict === true,
+      payload: JSON.stringify(declBuildPayload()),
+    });
+  }catch(ex){
+    data = { success:false, message: ex.message };
+  }
+
+  if(signBtn){ signBtn.disabled = false; signBtn.textContent = 'Imzolash'; }
+
+  if(!data.success){
+    alert('Xatolik: ' + (data.message || "Deklaratsiyani yuborib bo'lmadi. Qaytadan urinib ko'ring."));
+    return;
+  }
+
+  declSignature = signature;
   closeModal('declSignModal');
+  document.getElementById('declSignPassword').value = '';
   document.getElementById('declVerificationIdBadge').textContent = declSignature.verificationId;
   document.getElementById('declSuccessDept').textContent = "Hujjat " + (currentUser.bolinma || 'tegishli') + " bo'limiga yuborildi.";
   openModal('declSignSuccessModal');
@@ -2720,7 +2785,7 @@ function declRenderRecord(){
     </div>
     <div class="decl-card" style="margin-top:20px;">
       <div class="decl-review-row"><span>F.I.Sh.</span><b>${escapeHtml(fullName)}</b></div>
-      <div class="decl-review-row"><span>JShShIR</span><b>—</b></div>
+      <div class="decl-review-row"><span>JShShIR</span><b>${escapeHtml(declEmployeeJshshir || '—')}</b></div>
       <div class="decl-review-row"><span>Tarkibiy bo'linma</span><b>${escapeHtml(bolinma)}</b></div>
       <div class="decl-review-row"><span>Lavozim</span><b>${escapeHtml(lavozim)}</b></div>
       <div class="decl-review-row"><span>Turi / sababi</span><b>Yangi deklaratsiya</b></div>
@@ -2752,14 +2817,14 @@ function declRenderRecord(){
         </div>
         <span class="decl-pill teal">Imzo tasdiqlangan</span>
       </div>
-      <div style="display:flex; gap:24px; margin-top:16px; flex-wrap:wrap;">
-        <div style="flex:1; min-width:240px;">
-          <div class="decl-review-row"><span>Imzolovchi F.I.Sh.</span><b>${escapeHtml(fullName)}</b></div>
-          <div class="decl-review-row"><span>Lavozimi</span><b>${escapeHtml(lavozim)}</b></div>
-          <div class="decl-review-row"><span>Imzolangan sana va vaqt</span><b>${signedAtStr}</b></div>
-          <div class="decl-review-row"><span>E-IMZO sertifikati</span><b>${escapeHtml(sig.certName || '—')} · amal qilish: 31.12.2026 gacha</b></div>
-          <div class="decl-review-row"><span>Imzo holati</span><b style="color:var(--teal);">&check; Haqiqiy, hujjat o'zgartirilmagan</b></div>
-          <div class="decl-review-row"><span>Verification ID</span><span class="decl-pill gray" style="font-family:monospace;">${escapeHtml(sig.verificationId || '—')}</span></div>
+      <div style="display:flex; gap:24px; margin-top:18px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:260px;">
+          <div class="decl-esign-row"><span>Imzolovchi F.I.Sh.</span><b>${escapeHtml(fullName)}</b></div>
+          <div class="decl-esign-row"><span>Lavozimi</span><b>${escapeHtml(lavozim)}</b></div>
+          <div class="decl-esign-row"><span>Imzolangan sana va vaqt</span><b>${signedAtStr}</b></div>
+          <div class="decl-esign-row"><span>E-IMZO sertifikati</span><b>${escapeHtml(sig.certName || '—')}<br>amal qilish: 31.12.2026 gacha</b></div>
+          <div class="decl-esign-row"><span>Imzo holati</span><b style="color:var(--teal);">&check; Haqiqiy, hujjat o'zgartirilmagan</b></div>
+          <div class="decl-esign-row"><span>Verification ID</span><span class="decl-pill gray" style="font-family:monospace;">${escapeHtml(sig.verificationId || '—')}</span></div>
         </div>
         <div class="decl-qr-box">
           <div class="decl-qr-placeholder">${DECL_QR_PLACEHOLDER_SVG}</div>

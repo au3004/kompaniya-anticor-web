@@ -15,6 +15,7 @@ use App\Response;
 use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\BackupController;
+use App\Controllers\ConflictDeclarationController;
 use App\Controllers\DocsController;
 use App\Controllers\HrDocumentController;
 use App\Controllers\NotificationController;
@@ -118,6 +119,11 @@ $routes = [
 
     'addPurchase' => [PurchaseController::class, 'addPurchase'],
     'getPurchases' => [PurchaseController::class, 'getPurchases'],
+
+    'submitDeclaration' => [ConflictDeclarationController::class, 'submit'],
+    'getDeclarations' => [ConflictDeclarationController::class, 'adminList'],
+    'getDeclaration' => [ConflictDeclarationController::class, 'adminGetOne'],
+    'deleteDeclaration' => [ConflictDeclarationController::class, 'adminDelete'],
 
     'getSupportRequests' => [ReportsController::class, 'getSupportRequests'],
     'addSupportComment' => [ReportsController::class, 'addSupportComment'],

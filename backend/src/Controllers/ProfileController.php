@@ -12,11 +12,10 @@ use App\Validate;
 
 final class ProfileController
 {
-    // "Deklaratsiya to'ldirish" funksiyasining o'zi hali ishga tushirilmagan
-    // (bosh sahifada "Tez orada" sifatida turibdi) — lekin holat tekshirish
-    // jadvali shu yozuvni oldindan kutib turishi uchun jadval endi tayyor;
-    // funksiya ishga tushgach, shu yerga to'g'ridan-to'g'ri yozadi va sana
-    // avtomatik chiqa boshlaydi.
+    // "Deklaratsiya to'ldirish" (Manfaatlar to'qnashuvi) ConflictDeclarationController
+    // orqali shu jadvalga yozadi — bu yerda faqat holat tekshirish ("Deklaratsiya
+    // to'ldirilgan" sanasi) uchun eng so'nggi yozuv o'qib olinadi. Ustunlarning
+    // to'liq ro'yxati ConflictDeclarationController::ALTER_DDL'da.
     private const DECLARATIONS_DDL = 'CREATE TABLE IF NOT EXISTS declarations (
         id            INT AUTO_INCREMENT PRIMARY KEY,
         user_id       INT NOT NULL,

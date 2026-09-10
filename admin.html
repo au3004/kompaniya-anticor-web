@@ -517,6 +517,17 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
   </div>
 </div>
 
+<!-- Manfaatlar to'qnashuvi: deklaratsiyani ko'rish modali -->
+<div class="modal-overlay" id="declarationViewModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-head">
+      <h3 id="declModalViewTitle">Deklaratsiya</h3>
+      <button class="modal-close" onclick="closeModal('declarationViewModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div id="declModalViewBody"></div>
+  </div>
+</div>
+
 <!-- Xabarnomalar modal -->
 <div class="modal-overlay" id="notifModal">
   <div class="modal" style="max-width:440px;">
@@ -560,8 +571,7 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <h3 data-i18n="hubHrDocs">Yuborilgan hujjatlar</h3>
         <p data-i18n="hubHrDocsDesc">Xodimlar Inson resurslariga yuborgan hujjatlar</p>
       </button>
-      <button class="hub-card soon" id="conflictCard" onclick="alert(dict[currentLang].soonMsg)" style="display:none; position:relative;">
-        <span style="position:absolute; top:16px; right:16px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px; padding:3px 9px;" data-i18n="soonTag">Tez orada</span>
+      <button class="hub-card" id="conflictCard" onclick="openSection('conflictView'); loadDeclarations();" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></div>
         <h3 data-i18n="hubConflict">Manfaatlar to'qnashuvi</h3>
         <p data-i18n="hubConflictDesc">Manfaatlar to'qnashuvi bo'yicha deklaratsiyalar</p>
@@ -855,6 +865,37 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
           </tr>
         </thead>
         <tbody id="purchasesTbody"><tr><td colspan="9" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Manfaatlar to'qnashuvi (yuborilgan deklaratsiyalar) -->
+  <div id="conflictView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubConflict">Manfaatlar to'qnashuvi</div>
+        <h1 data-i18n="hubConflict">Manfaatlar to'qnashuvi</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:52px;">T/r</th>
+            <th style="width:20%;">F.I.Sh.</th>
+            <th style="width:16%;">Lavozim</th>
+            <th style="width:16%;">Bo'linma</th>
+            <th style="width:12%;">Tel raqam</th>
+            <th style="width:17%;">Manfaatlar to'qnashuvi</th>
+            <th style="width:80px;">Fayl</th>
+          </tr>
+        </thead>
+        <tbody id="declarationsTbody"><tr><td colspan="7" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -3181,6 +3222,139 @@ async function deleteHrDocumentRow(id){
     if(data.success){ loadHrDocuments(); }
     else alert(dict[currentLang].savedErr);
   } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+/* ---------- Manfaatlar to'qnashuvi (yuborilgan deklaratsiyalar) ----------
+   Hozircha faqat o'zbek tilida — "Deklaratsiya to'ldirish" (main.html)
+   hali to'liq ruscha tarjimaga ega emas. */
+let declarationsData = [];
+
+const ADMIN_DECL_QUESTIONS = [
+  "Siz boshqaruv organi (boshqaruv, Kuzatuv kengashi, direktorlar kengashi va hokazolar) xodimi, a'zosi, qandaydir tashkilot direktori (bosh buxgalteri, buxgalteri va hokazo) yoki vakilimisiz?",
+  "Sizda / yaqin qarindoshlaringizda qandaydir tashkilotlarda moliyaviy manfaatdorlik bormi (ustav kapitalida ishtirok, aksiya va obligatsiyalarga egalik) yoki bunday tashkilotlar qarorlariga boshqa tarzda ta'sir ko'rsata olasizmi?",
+  "Yaqin qarindoshlaringiz boshqaruv organlari (boshqaruv, kuzatuv kengashi, direktorlar kengashi va h.k.) xodimi, a'zosi, tashkilot direktori yoki vakilimi?",
+  "Yaqin qarindoshlaringiz davlat organlarining mansabdor shaxsi hisoblanadimi?",
+  "Shaxsiy manfaatlaringiz, yaqin qarindoshlaringiz yoki aloqador shaxslar manfaatlari yo'lida maxfiy hisoblangan, davlat organlari va tashkilotlarida ishlash davomida ma'lum bo'lgan axborotdan foydalanganmisiz?",
+  "Manfaatlar to'qnashuviga olib kelishi mumkin bo'lgan boshqa shart-sharoitlar mavjud bo'lsa, ularni ko'rsatib o'ting.",
+  "Zarur topsangiz, har qanday qo'shimcha ma'lumotni ko'rsating.",
+];
+
+const ADMIN_DECL_HOLAT_LABELS = {
+  info: "To'ldirildi", no_info: "Ma'lumotga ega emas", deceased: "Vafot etgan", no_contact: "Ajrashgan / aloqada emas",
+};
+
+async function loadDeclarations(){
+  const tbody = document.getElementById('declarationsTbody');
+  try{
+    const data = await apiCall({ action:'getDeclarations', token: currentUserForKpi.token });
+    if(data.success){
+      declarationsData = data.declarations;
+      renderDeclarationsTable();
+    } else {
+      tbody.innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].savedErr}</td></tr>`;
+    }
+  } catch(ex){
+    tbody.innerHTML = `<tr><td colspan="7" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
+  }
+}
+
+function renderDeclarationsTable(){
+  const tbody = document.getElementById('declarationsTbody');
+  if(!declarationsData || declarationsData.length === 0){
+    tbody.innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = declarationsData.map((d, i) => {
+    const conflictBadge = d.hasConflict === true ? `<span class="badge no">MAVJUD</span>`
+      : d.hasConflict === false ? `<span class="badge ok">MAVJUD EMAS</span>`
+      : `<span class="badge wait">—</span>`;
+    return `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${escapeHtml(d.fullName || '—')}</td>
+      <td>${escapeHtml(d.lavozim || '—')}</td>
+      <td>${escapeHtml(d.bolinma || '—')}</td>
+      <td>${escapeHtml(d.telefon || '—')}</td>
+      <td>${conflictBadge}</td>
+      <td>
+        <button type="button" class="icon-btn" title="Ko'rish" onclick="viewDeclarationRow(${d.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button type="button" class="icon-btn danger" title="O'chirish" onclick="deleteDeclarationRow(${d.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function deleteDeclarationRow(id){
+  if(!confirm("Bu deklaratsiyani butunlay o'chirishni tasdiqlaysizmi?")) return;
+  try{
+    const data = await apiCall({ action:'deleteDeclaration', token: currentUserForKpi.token, id });
+    if(data.success){ loadDeclarations(); }
+    else alert(dict[currentLang].savedErr);
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function viewDeclarationRow(id){
+  const body = document.getElementById('declModalViewBody');
+  document.getElementById('declModalViewTitle').textContent = 'Deklaratsiya';
+  body.innerHTML = '<p style="color:var(--text-dim); font-size:13px;">Yuklanmoqda...</p>';
+  openModal('declarationViewModal');
+  try{
+    const data = await apiCall({ action:'getDeclaration', token: currentUserForKpi.token, id });
+    if(!data.success){ body.innerHTML = `<p style="color:var(--coral); font-size:13px;">${dict[currentLang].savedErr}</p>`; return; }
+    renderDeclarationView(data.declaration);
+  } catch(ex){
+    body.innerHTML = `<p style="color:var(--coral); font-size:13px;">Xatolik: ${escapeHtml(ex.message)}</p>`;
+  }
+}
+
+function declInfoRow(label, valueHtml){
+  return `<div style="display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-top:1px solid var(--card-border); font-size:13px;"><span style="color:var(--text-dim);">${escapeHtml(label)}</span><span style="text-align:right; font-weight:600;">${valueHtml}</span></div>`;
+}
+
+function renderDeclarationView(d){
+  const p = d.payload || {};
+  const relatives = Array.isArray(p.relatives) ? p.relatives : [];
+  const answers = Array.isArray(p.answers) ? p.answers : [];
+  const jshshir = p.employeeJshshir || '—';
+
+  document.getElementById('declModalViewTitle').textContent = d.refId || 'Deklaratsiya';
+
+  const relRows = relatives.map(r => {
+    const rd = r.data;
+    const nameCell = (rd && rd.holat === 'info' && rd.fullName) ? escapeHtml(rd.fullName)
+      : `— <span class="badge wait" style="margin-left:4px;">${escapeHtml((rd && ADMIN_DECL_HOLAT_LABELS[rd.holat]) || "ma'lumot yo'q")}</span>`;
+    return `<tr><td style="padding:7px 8px; border-top:1px solid var(--card-border);"><b>${escapeHtml(r.label)}</b></td><td style="padding:7px 8px; border-top:1px solid var(--card-border);">${nameCell}</td></tr>`;
+  }).join('');
+
+  const qRows = ADMIN_DECL_QUESTIONS.map((q, i) => {
+    const a = answers[i] || {};
+    let badge = '<span style="color:var(--text-dim);">—</span>';
+    if(i < 5 && a.choice){
+      badge = `<span class="badge ${a.choice === 'ha' ? 'no' : 'ok'}">${a.choice === 'ha' ? 'HA' : "YO'Q"}</span>`;
+    }
+    const noteHtml = a.note ? `<div style="color:var(--text-dim); font-size:12px; margin-top:4px;">${escapeHtml(a.note)}</div>` : '';
+    return `<div style="padding:10px 0; border-top:1px solid var(--card-border);"><div style="font-size:13px;">${i + 1}. ${escapeHtml(q)}</div><div style="margin-top:6px;">${badge}</div>${noteHtml}</div>`;
+  }).join('');
+
+  const conflictText = p.confirm && p.confirm.hasConflict === true ? 'MAVJUD' : (p.confirm && p.confirm.hasConflict === false ? 'MAVJUD EMAS' : '—');
+  const conflictClass = p.confirm && p.confirm.hasConflict === true ? 'no' : 'ok';
+
+  document.getElementById('declModalViewBody').innerHTML = `
+    ${declInfoRow('F.I.Sh.', escapeHtml(d.fullName || '—'))}
+    ${declInfoRow('JShShIR', escapeHtml(jshshir))}
+    ${declInfoRow('Lavozim', escapeHtml(d.lavozim || '—'))}
+    ${declInfoRow("Bo'linma", escapeHtml(d.bolinma || '—'))}
+    ${declInfoRow('Tel raqam', escapeHtml(d.telefon || '—'))}
+    ${declInfoRow('Yuborilgan sana', escapeHtml(d.submittedAt || '—'))}
+    ${declInfoRow('Manfaatlar to\'qnashuvi', `<span class="badge ${conflictClass}">${conflictText}</span>`)}
+    ${declInfoRow('Verification ID', `<span style="font-family:monospace;">${escapeHtml(d.verificationId || '—')}</span>`)}
+
+    <h3 style="margin:18px 0 8px; font-size:14px; font-family:'Unbounded', sans-serif;">Yaqin qarindoshlar</h3>
+    <table style="width:100%; border-collapse:collapse; font-size:13px;"><tbody>${relRows}</tbody></table>
+
+    <h3 style="margin:18px 0 6px; font-size:14px; font-family:'Unbounded', sans-serif;">Savollar va javoblar</h3>
+    ${qRows}
+  `;
 }
 
 /* ---------- Kelishuv (approval) so'rovlari ---------- */
