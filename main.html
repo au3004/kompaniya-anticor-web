@@ -367,6 +367,69 @@ body{
 .status-error{ margin-top:14px; color:var(--amber); font-size:13px; display:none; }
 .status-error.show{ display:block; }
 
+/* ===== Deklaratsiya (Manfaatlar to'qnashuvi) wizard ===== */
+.decl-wrap{ position:relative; z-index:5; max-width:900px; margin:0 auto; padding:40px 24px 100px; }
+.decl-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:26px; }
+.decl-eyebrow{ font-size:11.5px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--azure); margin-bottom:8px; }
+.decl-title{ font-family:'Unbounded', sans-serif; font-weight:800; font-size:clamp(22px,4vw,30px); }
+.decl-save-btn{ flex:none; padding:11px 18px; border-radius:11px; border:none; background:var(--bg); box-shadow:var(--neu-out-sm); color:var(--azure); font-weight:700; font-size:12.5px; cursor:pointer; white-space:nowrap; font-family:'Inter'; }
+.decl-save-btn:hover{ transform:translateY(-1px); }
+.decl-stepper-wrap{ display:flex; align-items:center; gap:6px; margin-bottom:26px; }
+.decl-step-arrow{ flex:none; width:28px; height:28px; border-radius:50%; border:none; background:var(--bg); box-shadow:var(--neu-out-sm); color:var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.decl-stepper{ flex:1; display:flex; align-items:center; overflow-x:auto; scrollbar-width:none; padding:4px 2px; }
+.decl-stepper::-webkit-scrollbar{ display:none; }
+.decl-step{ display:flex; align-items:center; gap:7px; flex:none; opacity:.55; cursor:not-allowed; padding:2px 0; }
+.decl-step.reachable{ opacity:1; cursor:pointer; }
+.decl-step-circle{ width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700; border:2px solid var(--card-border); color:var(--text-dim); flex:none; background:var(--bg); }
+.decl-step.active .decl-step-circle{ border-color:var(--azure); color:var(--azure); background:rgba(0,68,145,0.1); }
+.decl-step.done .decl-step-circle{ border-color:var(--teal); background:var(--teal); color:#fff; }
+.decl-step-label{ font-size:12px; font-weight:600; color:var(--text-dim); white-space:nowrap; }
+.decl-step.active .decl-step-label{ color:var(--text); }
+.decl-step-line{ width:24px; height:2px; background:var(--card-border); flex:none; margin:0 6px; }
+.decl-step-line.done{ background:var(--teal); }
+.decl-card{ background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:20px; padding:32px; }
+.decl-card h2{ font-family:'Unbounded', sans-serif; font-size:17px; margin-bottom:8px; }
+.decl-sub{ color:var(--text-dim); font-size:13.5px; line-height:1.6; margin-bottom:20px; }
+.decl-doc-row, .decl-term-box{ padding:16px; border:1px solid var(--card-border); border-radius:13px; margin-bottom:12px; }
+.decl-doc-row{ display:flex; justify-content:space-between; align-items:center; gap:16px; }
+.decl-doc-row .t, .decl-term-box .t{ font-weight:700; font-size:13.5px; margin-bottom:4px; }
+.decl-doc-row .d, .decl-term-box .d{ color:var(--text-dim); font-size:12.5px; line-height:1.5; }
+.decl-doc-row a{ flex:none; color:var(--azure); font-weight:700; font-size:13px; text-decoration:none; }
+.decl-doc-row a:hover{ text-decoration:underline; }
+.decl-check-row{ display:flex; align-items:flex-start; gap:10px; padding-top:18px; margin-top:8px; border-top:1px solid var(--card-border); font-size:13.5px; line-height:1.5; }
+.decl-check-row input[type=checkbox]{ margin-top:2px; width:17px; height:17px; accent-color:var(--azure); flex:none; cursor:pointer; }
+.decl-check-row label{ cursor:pointer; }
+.decl-nav{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:26px; padding-top:22px; border-top:1px solid var(--card-border); flex-wrap:wrap; }
+.decl-nav-left, .decl-nav-right{ display:flex; gap:10px; }
+.decl-btn{ padding:12px 22px; border-radius:11px; font-weight:700; font-size:13.5px; cursor:pointer; border:none; font-family:'Inter'; transition:transform .15s ease, opacity .2s ease; }
+.decl-btn:hover{ transform:translateY(-2px); }
+.decl-btn.primary{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; }
+.decl-btn.primary:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+.decl-btn.outline{ background:var(--bg); box-shadow:var(--neu-out-sm); color:var(--text); }
+.decl-grid2{ display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }
+.decl-grid2 .field input[readonly]{ background:var(--bg-deep); color:var(--text-dim); cursor:default; }
+.decl-hrm-badge{ flex:none; display:inline-block; font-size:11px; font-weight:700; color:var(--azure); background:rgba(0,68,145,0.1); border:1px solid rgba(0,68,145,0.25); padding:5px 12px; border-radius:999px; white-space:nowrap; }
+.decl-notice{ background:rgba(0,68,145,0.08); border:1px solid rgba(0,68,145,0.2); border-radius:12px; padding:14px 16px; font-size:12.5px; color:var(--text-dim); line-height:1.5; margin-top:6px; }
+.decl-rel-row{ display:flex; align-items:center; gap:14px; padding:13px 15px; border:1px solid var(--card-border); border-radius:13px; margin-bottom:10px; }
+.decl-rel-icon{ width:36px; height:36px; border-radius:10px; background:var(--bg-deep); flex:none; }
+.decl-rel-info{ flex:1; min-width:0; }
+.decl-rel-info .n{ font-weight:700; font-size:14px; }
+.decl-rel-info .s{ font-size:12px; color:var(--text-dim); margin-top:2px; }
+.decl-rel-info .s.filled{ color:var(--teal); font-weight:600; }
+.decl-rel-fill-btn{ flex:none; padding:9px 16px; border:none; border-radius:9px; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; font-family:'Inter'; }
+.decl-rel-fill-btn.filled{ background:var(--bg-deep); color:var(--text); }
+.decl-rel-remove{ flex:none; width:26px; height:26px; border-radius:50%; border:none; background:transparent; color:var(--text-dim); cursor:pointer; font-size:17px; line-height:1; }
+.decl-rel-remove:hover{ color:var(--coral); }
+.decl-progress-note{ margin-bottom:18px; }
+.decl-add-wrap{ position:relative; }
+.decl-add-btn{ width:100%; padding:14px; border:1.5px dashed var(--input-border); border-radius:12px; background:var(--input-bg); color:var(--text-dim); font-weight:700; font-size:13px; cursor:pointer; font-family:'Inter'; }
+.decl-add-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.decl-add-menu{ position:absolute; left:0; right:0; top:calc(100% + 6px); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:13px; box-shadow:0 20px 40px -15px rgba(0,0,0,0.35); padding:8px; z-index:10; display:none; max-height:280px; overflow-y:auto; }
+.decl-add-menu.show{ display:block; }
+.decl-add-menu-item{ padding:11px 14px; border-radius:9px; cursor:pointer; font-size:13.5px; font-weight:600; }
+.decl-add-menu-item:hover{ background:rgba(0,68,145,0.1); color:var(--azure); }
+@media (max-width:560px){ .decl-grid2{ grid-template-columns:1fr; } }
+
 /* ===== Inson resurslari bo'limi ===== */
 .hr-wrap{ position:relative; z-index:5; max-width:760px; margin:0 auto; padding:0 24px 100px; }
 .hr-tabs{ display:flex; gap:8px; margin-bottom:20px; }
@@ -613,18 +676,38 @@ body{
 </div>
 
 <div id="sectionAnticor" style="display:none;">
-  <div class="hero">
+  <div class="hero" id="anticorHero">
     <h1 data-i18n="heroTitle">Korrupsiyaga qarshi kurashish</h1>
     <p class="desc" data-i18n="heroDesc">Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.</p>
     <div class="hero-actions">
       <a href="docs.html" class="primary" data-i18n="docsBtn">Hujjatlar bilan tanishish</a>
       <a href="test.html" class="secondary" data-i18n="testBtn">Testni topshirish</a>
       <a href="survey.html" class="secondary" data-i18n="surveyBtn">Anonim so'rovnoma</a>
-      <a href="javascript:void(0)" class="secondary soon" onclick="alert(dict[currentLang].soonMsg)"><span data-i18n="declarationBtn">Deklaratsiya to'ldirish</span><span class="soon-badge" data-i18n="soonTag">Tez orada</span></a>
+      <a href="javascript:void(0)" class="secondary" onclick="return openDeclaration()"><span data-i18n="declarationBtn">Deklaratsiya to'ldirish</span></a>
     </div>
   </div>
 
-  <div class="status-section">
+  <!-- Manfaatlar to'qnashuvi deklaratsiyasi — bosqichma-bosqich (wizard) -->
+  <div id="declarationView" style="display:none;">
+    <div class="decl-wrap">
+      <button class="settings-back" onclick="closeDeclaration()">&larr; Ortga</button>
+      <div class="decl-header">
+        <div>
+          <div class="decl-eyebrow">Ehtimoliy manfaatlar to'qnashuvi to'g'risida</div>
+          <h1 class="decl-title">Deklaratsiya to'ldirish</h1>
+        </div>
+        <button class="decl-save-btn" onclick="declSaveDraft()">Saqlash (keyin davom ettirish)</button>
+      </div>
+      <div class="decl-stepper-wrap">
+        <button class="decl-step-arrow" onclick="declScrollStepper(-1)">&lsaquo;</button>
+        <div class="decl-stepper" id="declStepper"></div>
+        <button class="decl-step-arrow" onclick="declScrollStepper(1)">&rsaquo;</button>
+      </div>
+      <div class="decl-card" id="declCard"></div>
+    </div>
+  </div>
+
+  <div class="status-section" id="anticorStatusSection">
     <div class="status-card">
       <h2 data-i18n="statusTitle">Holatingizni tekshiring</h2>
       <p class="sub" data-i18n="statusSub">Telefon raqamingizni kiriting</p>
@@ -1745,6 +1828,287 @@ window.addEventListener('pageshow', function(event){
     if (!u || !u.token) { window.location.href = 'login.html'; }
   }
 });
+
+/* ================= Manfaatlar to'qnashuvi deklaratsiyasi (wizard) =================
+   Hozircha faqat 1-4-bosqichlar (Tanishish, Xodim ma'lumotlari, Atamalar,
+   Yaqin qarindoshlar) tayyor — qolgan bosqichlar (Savollar, Tasdiqlash,
+   Ko'rib chiqish, E-IMZO) keyingi bosqichda qo'shiladi. Qoralama hozircha
+   faqat mijoz brauzerida (localStorage) saqlanadi — barcha 8 bosqich
+   aniqlashgach, serverga (declarations jadvali) yozadigan qilinadi. */
+const DECL_STEPS = [
+  { key:'intro', label:"Tanishish" },
+  { key:'employee', label:"Xodim ma'lumotlari" },
+  { key:'terms', label:"Atamalar" },
+  { key:'relatives', label:"Yaqin qarindoshlar" },
+  { key:'questions', label:"Savollar" },
+  { key:'confirm', label:"Tasdiqlash" },
+  { key:'review', label:"Ko'rib chiqish" },
+  { key:'esign', label:"E-IMZO" },
+];
+const DECL_MAX_REACHABLE = 3;
+
+const DECL_LEGAL_DOCS = [
+  { t:"O'zbekiston Respublikasining 05.06.2024 yildagi «Manfaatlar to'qnashuvi to'g'risida»gi O'RQ-931-son Qonuni", d:"Deklaratsiyani to'ldirishning qonunchilik asosi" },
+  { t:"«O'zbektelekom» AKda manfaatlar to'qnashuvini boshqarish to'g'risidagi Nizom", d:"Kompaniya ichki tartib-qoidalari" },
+  { t:"O'zR Prezidentining 30.12.2025 yildagi PF-270-son Farmoni", d:"Korrupsiyaning oldini olish tizimini takomillashtirish to'g'risida" },
+  { t:"«O'zbektelekom» AKning 23.01.2026 yildagi 36-son Buyrug'i", d:"PF-270-son Farmon ijrosini ta'minlash to'g'risida" },
+];
+
+const DECL_TERMS = [
+  { t:"Yaqin qarindoshlar", d:"Ota-onalar, aka-ukalar, opa-singillar, o'g'illar, qizlar, er-xotinlar, shuningdek er-xotinlarning ota-onalari, aka-ukalari, opa-singillari va farzandlari." },
+  { t:"Aloqador shaxslar", d:"Xodimning yaqin qarindoshlari; xodim va (yoki) yaqin qarindoshlari ustav fondida ulush/aksiyaga ega bo'lgan yuridik shaxs; xodim yoxud yaqin qarindoshlari boshqaruv organi rahbari yoki a'zosi bo'lgan yuridik shaxs." },
+  { t:"Manfaatlar to'qnashuvi", d:"Xodimning shaxsiy (bevosita yoki bilvosita) manfaatdorligi lavozim majburiyatlarini lozim darajada bajarishiga ta'sir ko'rsatayotgan yoki ko'rsatishi mumkin bo'lgan, shaxsiy manfaatdorlik bilan fuqarolar, tashkilotlar, jamiyat yoki davlat huquqlari va qonuniy manfaatlari o'rtasida qarama-qarshilik yuzaga kelgan (mavjud) yoki kelishi mumkin bo'lgan (ehtimoliy) vaziyat." },
+  { t:"Xodimning shaxsiy manfaatdorligi", d:"Xodim yoxud u bilan aloqador shaxslar xodim tomonidan qaror qabul qilinishi yoki jarayonda boshqacha ishtirok etishi natijasida olishi mumkin bo'lgan har qanday naf yoki afzallik." },
+];
+
+const DECL_RELATIVE_TYPES = [
+  { key:'aka-uka', label:"Aka-uka" },
+  { key:'opa-singil', label:"Opa-singil" },
+  { key:'ogil', label:"O'g'il" },
+  { key:'qiz', label:"Qiz" },
+  { key:'turmush-ortogi', label:"Turmush o'rtog'i" },
+  { key:'qaynota-ona', label:"Qaynota/qaynona" },
+  { key:'qayn-akauka', label:"Qayn aka-uka" },
+  { key:'qayn-opasingil', label:"Qayn opa-singil" },
+];
+
+let declCurrentStep = 0;
+let declTerms1Checked = false;
+let declTerms3Checked = false;
+let declRelSeq = 0;
+let declRelatives = [
+  { id:'ota', typeKey:null, label:'Ota', fixed:true, filled:false },
+  { id:'ona', typeKey:null, label:'Ona', fixed:true, filled:false },
+];
+
+function declStorageKey(){
+  return 'km_decl_draft_' + (currentUser.login || 'anon');
+}
+
+function declLoadDraft(){
+  try{
+    const raw = localStorage.getItem(declStorageKey());
+    if(!raw) return;
+    const draft = JSON.parse(raw);
+    if(Array.isArray(draft.relatives) && draft.relatives.length){
+      declRelatives = draft.relatives;
+      declRelSeq = declRelatives.reduce((max, r) => {
+        const m = /^rel(\d+)$/.exec(r.id);
+        return m ? Math.max(max, parseInt(m[1], 10)) : max;
+      }, 0);
+    }
+    if(typeof draft.terms1 === 'boolean') declTerms1Checked = draft.terms1;
+    if(typeof draft.terms3 === 'boolean') declTerms3Checked = draft.terms3;
+  }catch(e){}
+}
+declLoadDraft();
+
+function declSaveDraft(){
+  try{
+    localStorage.setItem(declStorageKey(), JSON.stringify({
+      relatives: declRelatives, terms1: declTerms1Checked, terms3: declTerms3Checked,
+    }));
+  }catch(e){}
+  alert("Qoralama saqlandi. Keyinroq shu yerdan davom ettirishingiz mumkin.");
+}
+
+function declTodayFormatted(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+}
+
+function openDeclaration(){
+  document.getElementById('anticorHero').style.display = 'none';
+  document.getElementById('anticorStatusSection').style.display = 'none';
+  document.getElementById('declarationView').style.display = 'block';
+  declGoToStep(0);
+  window.scrollTo(0, 0);
+  return false;
+}
+
+function closeDeclaration(){
+  document.getElementById('declarationView').style.display = 'none';
+  document.getElementById('anticorHero').style.display = 'block';
+  document.getElementById('anticorStatusSection').style.display = 'block';
+}
+
+function declGoToStep(idx){
+  if(idx < 0) idx = 0;
+  if(idx > DECL_MAX_REACHABLE){
+    alert(dict[currentLang].soonMsg);
+    return;
+  }
+  declCurrentStep = idx;
+  declRenderStepper();
+  declRenderCard();
+  const card = document.getElementById('declCard');
+  if(card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function declRenderStepper(){
+  const wrap = document.getElementById('declStepper');
+  wrap.innerHTML = DECL_STEPS.map((s, i) => {
+    const state = i < declCurrentStep ? 'done' : (i === declCurrentStep ? 'active' : '');
+    const reachable = i <= DECL_MAX_REACHABLE;
+    const circleContent = i < declCurrentStep ? '&check;' : (i + 1);
+    const clickAttr = reachable ? `declGoToStep(${i})` : `alert(dict[currentLang].soonMsg)`;
+    const line = i < DECL_STEPS.length - 1 ? `<div class="decl-step-line ${i < declCurrentStep ? 'done' : ''}"></div>` : '';
+    return `<div class="decl-step ${state} ${reachable ? 'reachable' : ''}" onclick="${clickAttr}">
+      <div class="decl-step-circle">${circleContent}</div>
+      <div class="decl-step-label">${escapeHtml(s.label)}</div>
+    </div>${line}`;
+  }).join('');
+}
+
+function declScrollStepper(dir){
+  document.getElementById('declStepper').scrollBy({ left: dir * 160, behavior:'smooth' });
+}
+
+function declNavHtml(showPrev, nextEnabled){
+  const prevBtn = showPrev ? `<button class="decl-btn outline" onclick="declGoToStep(${declCurrentStep - 1})">Oldingi</button>` : '<span></span>';
+  return `
+    <div class="decl-nav">
+      <div class="decl-nav-left">${prevBtn}</div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
+        <button class="decl-btn primary" ${nextEnabled ? '' : 'disabled'} onclick="declGoToStep(${declCurrentStep + 1})">Keyingisi</button>
+      </div>
+    </div>
+  `;
+}
+
+function declRenderCard(){
+  const card = document.getElementById('declCard');
+  const step = DECL_STEPS[declCurrentStep];
+  if(step.key === 'intro') card.innerHTML = declStepIntroHtml();
+  else if(step.key === 'employee') card.innerHTML = declStepEmployeeHtml();
+  else if(step.key === 'terms') card.innerHTML = declStepTermsHtml();
+  else if(step.key === 'relatives') card.innerHTML = declStepRelativesHtml();
+}
+
+function declStepIntroHtml(){
+  const docsHtml = DECL_LEGAL_DOCS.map(doc => `
+    <div class="decl-doc-row">
+      <div>
+        <div class="t">${escapeHtml(doc.t)}</div>
+        <div class="d">${escapeHtml(doc.d)}</div>
+      </div>
+      <a href="javascript:void(0)" onclick="alert('Hujjat tez orada qo\\'shiladi')">Ochish</a>
+    </div>`).join('');
+  return `
+    <h2>Qonunchilik va Nizom talablari bilan tanishish</h2>
+    <p class="decl-sub">Deklaratsiyani to'ldirishdan avval quyidagi hujjatlar bilan tanishib chiqing va tanishganingizni tasdiqlang.</p>
+    ${docsHtml}
+    <div class="decl-check-row">
+      <input type="checkbox" id="declCheck1" ${declTerms1Checked ? 'checked' : ''} onchange="declTerms1Checked = this.checked; declRenderCard();">
+      <label for="declCheck1">Men yuqoridagi Qonun va «O'zbektelekom» AK Nizomi talablari bilan to'liq tanishdim va ularga rioya etish majburiyatini olaman.</label>
+    </div>
+    ${declNavHtml(false, declTerms1Checked)}
+  `;
+}
+
+function declStepEmployeeHtml(){
+  const fullName = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || '—';
+  const bolinma = currentUser.bolinma || '—';
+  const lavozim = currentUser.lavozim || '—';
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+      <h2 style="margin-bottom:0;">Xodim ma'lumotlari</h2>
+      <span class="decl-hrm-badge">HRM tizimidan avtomatik to'ldirilgan</span>
+    </div>
+    <div class="decl-grid2">
+      <div class="field"><label>F.I.Sh. (to'liq)</label><input type="text" value="${escapeHtml(fullName)}" readonly></div>
+      <div class="field"><label>JShShIR (ПИНФЛ)</label><input type="text" value="—" readonly></div>
+      <div class="field"><label>Tarkibiy bo'linma nomi</label><input type="text" value="${escapeHtml(bolinma)}" readonly></div>
+      <div class="field"><label>Lavozim</label><input type="text" value="${escapeHtml(lavozim)}" readonly></div>
+      <div class="field"><label>To'ldirilgan sana</label><input type="text" value="${declTodayFormatted()}" readonly></div>
+      <div class="field"><label>Filial / apparat</label><input type="text" value="—" readonly></div>
+    </div>
+    <div class="decl-notice">Ma'lumotlarda xatolik bo'lsa, HR bo'limiga murojaat qiling — deklaratsiyada ular tahrirlanmaydi.</div>
+    ${declNavHtml(true, true)}
+  `;
+}
+
+function declStepTermsHtml(){
+  const termsHtml = DECL_TERMS.map(term => `
+    <div class="decl-term-box">
+      <div class="t">${escapeHtml(term.t)}</div>
+      <div class="d">${escapeHtml(term.d)}</div>
+    </div>`).join('');
+  return `
+    <h2>Asosiy atamalar</h2>
+    <p class="decl-sub">Deklaratsiyada qo'llaniladigan atamalar bilan tanishib chiqing — savollarga to'g'ri javob berish uchun muhim.</p>
+    ${termsHtml}
+    <div class="decl-check-row">
+      <input type="checkbox" id="declCheck3" ${declTerms3Checked ? 'checked' : ''} onchange="declTerms3Checked = this.checked; declRenderCard();">
+      <label for="declCheck3">Atamalar mazmuni bilan tanishdim.</label>
+    </div>
+    ${declNavHtml(true, declTerms3Checked)}
+  `;
+}
+
+function declFilledCount(){
+  return declRelatives.filter(r => r.filled).length;
+}
+
+function declStepRelativesHtml(){
+  const rowsHtml = declRelatives.map(r => `
+    <div class="decl-rel-row">
+      <div class="decl-rel-icon"></div>
+      <div class="decl-rel-info">
+        <div class="n">${escapeHtml(r.label)}</div>
+        <div class="s ${r.filled ? 'filled' : ''}">${r.filled ? "To'ldirildi" : "Ma'lumot kiritilmagan"}</div>
+      </div>
+      <button class="decl-rel-fill-btn ${r.filled ? 'filled' : ''}" onclick="declToggleFilled('${r.id}')">${r.filled ? 'Tahrirlash' : "To'ldirish"}</button>
+      ${r.fixed ? '' : `<button class="decl-rel-remove" title="O'chirish" onclick="declRemoveRelative('${r.id}')">&times;</button>`}
+    </div>`).join('');
+  const menuHtml = DECL_RELATIVE_TYPES.map(t => `<div class="decl-add-menu-item" onclick="declAddRelative('${t.key}')">${escapeHtml(t.label)}</div>`).join('');
+  const allFilled = declRelatives.length > 0 && declRelatives.every(r => r.filled);
+  return `
+    <h2>Yaqin qarindoshlar to'g'risida ma'lumot</h2>
+    <p class="decl-sub decl-progress-note">Har bir yaqin qarindosh bo'yicha ma'lumot kiritish <b>majburiy</b>. Qarindosh vafot etgan, aloqa uzilgan yoki ma'lumotga ega bo'lmasangiz — tegishli variantni tanlaysiz. To'ldirilgan: ${declFilledCount()}/${declRelatives.length}</p>
+    ${rowsHtml}
+    <div class="decl-add-wrap">
+      <button class="decl-add-btn" onclick="declToggleAddMenu(event)">Yana qarindosh qo'shish (aka-uka, farzand va h.k.)</button>
+      <div class="decl-add-menu" id="declAddMenu">${menuHtml}</div>
+    </div>
+    ${declNavHtml(true, allFilled)}
+  `;
+}
+
+function declToggleAddMenu(e){
+  if(e) e.stopPropagation();
+  document.getElementById('declAddMenu').classList.toggle('show');
+}
+
+document.addEventListener('click', function(e){
+  const menu = document.getElementById('declAddMenu');
+  if(!menu || !menu.classList.contains('show')) return;
+  if(!e.target.closest('.decl-add-wrap')) menu.classList.remove('show');
+});
+
+function declAddRelative(typeKey){
+  const type = DECL_RELATIVE_TYPES.find(t => t.key === typeKey);
+  if(!type) return;
+  declRelSeq++;
+  const sameTypeCount = declRelatives.filter(r => r.typeKey === typeKey).length;
+  const label = sameTypeCount > 0 ? `${type.label} ${sameTypeCount + 1}` : type.label;
+  declRelatives.push({ id:'rel' + declRelSeq, typeKey, label, fixed:false, filled:false });
+  declRenderCard();
+}
+
+function declRemoveRelative(id){
+  declRelatives = declRelatives.filter(r => r.id !== id);
+  declRenderCard();
+}
+
+function declToggleFilled(id){
+  const r = declRelatives.find(x => x.id === id);
+  if(!r) return;
+  r.filled = !r.filled;
+  declRenderCard();
+}
 
 // XAVFSIZLIK: 10 daqiqa harakatsizlikdan so'ng avtomat chiqish (server ham
 // mustaqil ravishda shu muddatdan so'ng sessiyani tugatadi — bu shunchaki
