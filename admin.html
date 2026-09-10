@@ -3264,6 +3264,10 @@ function renderDeclarationsTable(){
     tbody.innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
     return;
   }
+  // O'chirish faqat ANTICOR_MANAGE (anticor-admin/super-admin) huquqiga ega
+  // — "anticor" (faqat ko'rish) roli backend'da ham rad etiladi, shu bois
+  // tugmani ularga ko'rsatmaymiz (boshqa jadvallardagi kabi bir xil andoza).
+  const canDelete = currentUserForKpi && ANTICOR_MANAGE.includes(currentUserForKpi.rol);
   tbody.innerHTML = declarationsData.map((d, i) => {
     const conflictBadge = d.hasConflict === true ? `<span class="badge no">MAVJUD</span>`
       : d.hasConflict === false ? `<span class="badge ok">MAVJUD EMAS</span>`
@@ -3278,7 +3282,7 @@ function renderDeclarationsTable(){
       <td>${conflictBadge}</td>
       <td>
         <button type="button" class="icon-btn" title="Ko'rish" onclick="viewDeclarationRow(${d.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        <button type="button" class="icon-btn danger" title="O'chirish" onclick="deleteDeclarationRow(${d.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+        ${canDelete ? `<button type="button" class="icon-btn danger" title="O'chirish" onclick="deleteDeclarationRow(${d.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>` : ''}
       </td>
     </tr>`;
   }).join('');

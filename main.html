@@ -2380,9 +2380,21 @@ let declTerms1Checked = false;
 let declTerms3Checked = false;
 let declRelSeq = 0;
 let declRelatives = [
-  { id:'ota', typeKey:null, label:dt('otaLabel'), fixed:true, filled:false },
-  { id:'ona', typeKey:null, label:dt('onaLabel'), fixed:true, filled:false },
+  { id:'ota', typeKey:null, suffixNum:null, fixed:true, filled:false },
+  { id:'ona', typeKey:null, suffixNum:null, fixed:true, filled:false },
 ];
+
+/* Qator nomi ("Ota"/"Ona" yoki foydalanuvchi qo'shgan tur) doim JORIY til
+   asosida, chaqirilgan paytda hisoblanadi — natija saqlab qo'yilmaydi.
+   Shu bilan til almashtirilganda (declApplyLang -> qayta render) qator
+   nomi ham darhol yangi tilda ko'rinadi, avval qo'shilgan bo'lsa ham. */
+function declRelativeLabel(r){
+  if(r.id === 'ota') return dt('otaLabel');
+  if(r.id === 'ona') return dt('onaLabel');
+  const type = dt('relativeTypes').find(t => t.key === r.typeKey);
+  const base = type ? type.label : '';
+  return r.suffixNum ? `${base} ${r.suffixNum}` : base;
+}
 let declQuestionIndex = 0;
 let declQuestionError = false;
 let declAnswers = dt('questions').map(() => ({ choice:null, note:'' }));
@@ -2633,7 +2645,7 @@ function declStepRelativesHtml(){
     <div class="decl-rel-row">
       <div class="decl-rel-icon"></div>
       <div class="decl-rel-info">
-        <div class="n">${escapeHtml(r.label)}</div>
+        <div class="n">${escapeHtml(declRelativeLabel(r))}</div>
         <div class="s ${r.filled ? 'filled' : ''}">${r.filled ? escapeHtml(holatLabels[r.data && r.data.holat] || holatLabels.info) : escapeHtml(dt('notFilledStatus'))}</div>
       </div>
       <button class="decl-rel-fill-btn ${r.filled ? 'filled' : ''}" onclick="declOpenFillModal('${r.id}')">${r.filled ? escapeHtml(dt('editBtn')) : escapeHtml(dt('fillBtn'))}</button>
@@ -2670,8 +2682,8 @@ function declAddRelative(typeKey){
   if(!type) return;
   declRelSeq++;
   const sameTypeCount = declRelatives.filter(r => r.typeKey === typeKey).length;
-  const label = sameTypeCount > 0 ? `${type.label} ${sameTypeCount + 1}` : type.label;
-  declRelatives.push({ id:'rel' + declRelSeq, typeKey, label, fixed:false, filled:false });
+  const suffixNum = sameTypeCount > 0 ? sameTypeCount + 1 : null;
+  declRelatives.push({ id:'rel' + declRelSeq, typeKey, suffixNum, fixed:false, filled:false });
   declRenderCard();
   declPersist();
 }
@@ -2691,7 +2703,7 @@ function declOpenFillModal(relId){
   if(!r) return;
   declModalRelId = relId;
   declModalData = r.data ? JSON.parse(JSON.stringify(r.data)) : { holat:'' };
-  document.getElementById('declModalTitle').textContent = r.label + dt('modalTitleSuffix');
+  document.getElementById('declModalTitle').textContent = declRelativeLabel(r) + dt('modalTitleSuffix');
   declRenderModalBody();
   openModal('declFillModal');
 }
@@ -2937,7 +2949,7 @@ function declStepReviewHtml(){
     const nameCell = (d && d.holat === 'info' && d.fullName)
       ? escapeHtml(d.fullName)
       : `— <span class="decl-pill gray">${escapeHtml((d && holatLabels[d.holat]) || dt('maLumotYoq'))}</span>`;
-    return `<tr><td><b>${escapeHtml(r.label)}</b></td><td>${nameCell}</td><td>${escapeHtml(declWorkplaceText(d))}</td></tr>`;
+    return `<tr><td><b>${escapeHtml(declRelativeLabel(r))}</b></td><td>${nameCell}</td><td>${escapeHtml(declWorkplaceText(d))}</td></tr>`;
   }).join('');
 
   const qRows = dt('questions').map((meta, i) => {
@@ -3041,9 +3053,14 @@ function declApplySignModalLang(){
   document.getElementById('declSignActionBtn').textContent = dt('signActionBtn');
 }
 
+/* declRelatives'da qator nomi endi statik matn emas (typeKey/suffixNum
+   orqali har render'da hisoblanadi — declRelativeLabel), shuning uchun
+   serverga yuboriladigan (doimiy saqlanadigan) nusxaga joriy tildagi
+   tayyor "label" matnini alohida qo'shib qo'yamiz — aks holda admin
+   panelida qarindosh turi bo'sh ko'rinib qolardi. */
 function declBuildPayload(){
   return {
-    relatives: declRelatives,
+    relatives: declRelatives.map(r => ({ ...r, label: declRelativeLabel(r) })),
     answers: declAnswers,
     confirm: declConfirm,
     employeeJshshir: declEmployeeJshshir,
@@ -3163,7 +3180,7 @@ function declRenderRecord(){
       : `<span class="decl-pill gray">${escapeHtml((d && holatLabels[d.holat]) || dt('maLumotYoq'))}</span>`;
     const jshCell = (d && d.holat === 'info' && d.jshshir) ? escapeHtml(d.jshshir) : '—';
     const addrCell = (d && d.holat === 'info' && d.address) ? escapeHtml(d.address) : '—';
-    return `<tr><td><b>${escapeHtml(r.label)}</b></td><td>${nameCell}</td><td>${jshCell}</td><td>${escapeHtml(declWorkplaceText(d))}</td><td>${addrCell}</td></tr>`;
+    return `<tr><td><b>${escapeHtml(declRelativeLabel(r))}</b></td><td>${nameCell}</td><td>${jshCell}</td><td>${escapeHtml(declWorkplaceText(d))}</td><td>${addrCell}</td></tr>`;
   }).join('');
 
   const qBlocks = dt('questions').map((meta, i) => {
