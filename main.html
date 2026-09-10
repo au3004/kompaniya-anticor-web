@@ -756,13 +756,13 @@ body{
   <!-- Manfaatlar to'qnashuvi deklaratsiyasi — bosqichma-bosqich (wizard) -->
   <div id="declarationView" style="display:none;">
     <div class="decl-wrap">
-      <button class="settings-back" onclick="closeDeclaration()">&larr; Ortga</button>
+      <button class="settings-back" onclick="closeDeclaration()">&larr; <span id="declBackLabel">Ortga</span></button>
       <div class="decl-header">
         <div>
-          <div class="decl-eyebrow">Ehtimoliy manfaatlar to'qnashuvi to'g'risida</div>
-          <h1 class="decl-title">Deklaratsiya to'ldirish</h1>
+          <div class="decl-eyebrow" id="declEyebrow">Ehtimoliy manfaatlar to'qnashuvi to'g'risida</div>
+          <h1 class="decl-title" id="declMainTitle">Deklaratsiya to'ldirish</h1>
         </div>
-        <button class="decl-save-btn" onclick="declSaveDraft()">Saqlash (keyin davom ettirish)</button>
+        <button class="decl-save-btn" onclick="declSaveDraft()" id="declSaveLaterBtn">Saqlash (keyin davom ettirish)</button>
       </div>
       <div class="decl-stepper-wrap">
         <button class="decl-step-arrow" onclick="declScrollStepper(-1)">&lsaquo;</button>
@@ -776,7 +776,7 @@ body{
   <!-- Imzolangan deklaratsiya yozuvi (NAMUNA — E-IMZO hali haqiqiy serverga ulanmagan) -->
   <div id="declRecordView" style="display:none;">
     <div class="decl-wrap">
-      <button class="settings-back" onclick="declBackToHomeFromRecord()">&larr; Bosh sahifaga qaytish</button>
+      <button class="settings-back" onclick="declBackToHomeFromRecord()">&larr; <span id="declBackHomeLabel">Bosh sahifaga qaytish</span></button>
       <div id="declRecordBody"></div>
     </div>
   </div>
@@ -1094,31 +1094,31 @@ body{
 <div class="modal-overlay" id="declSignModal">
   <div class="modal decl-modal">
     <div class="modal-head">
-      <h3>E-IMZO — kalitni tanlang</h3>
+      <h3 id="declSignModalTitle">E-IMZO — kalitni tanlang</h3>
       <button class="modal-close" onclick="closeModal('declSignModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
-    <p class="decl-sub" style="margin-bottom:14px;">Kompyuteringizda topilgan elektron imzo sertifikatlari:</p>
+    <p class="decl-sub" style="margin-bottom:14px;" id="declSignModalSub">Kompyuteringizda topilgan elektron imzo sertifikatlari:</p>
     <div class="decl-cert-opt selected" id="declCertOptReal">
       <span class="decl-radio-dot"></span>
       <div>
         <div style="font-weight:700; font-size:13.5px;" id="declCertName">—</div>
-        <div style="color:var(--text-dim); font-size:12px; margin-top:3px;">Amal qilish: 31.12.2026 gacha</div>
+        <div style="color:var(--text-dim); font-size:12px; margin-top:3px;" id="declCertValidUntil">Amal qilish: 31.12.2026 gacha</div>
       </div>
     </div>
     <div class="decl-cert-opt disabled">
       <span class="decl-radio-dot"></span>
       <div>
         <div style="font-weight:700; font-size:13.5px;" id="declCertNameOld">— (eski)</div>
-        <div style="color:var(--text-dim); font-size:12px; margin-top:3px;">Sertifikat muddati tugagan — 31.12.2024</div>
+        <div style="color:var(--text-dim); font-size:12px; margin-top:3px;" id="declCertExpired">Sertifikat muddati tugagan — 31.12.2024</div>
       </div>
     </div>
     <div class="field" style="margin-top:16px;">
-      <label>Kalit paroli <span class="req">*</span></label>
+      <label id="declKeyPasswordLabel">Kalit paroli <span class="req">*</span></label>
       <input type="password" id="declSignPassword">
     </div>
     <div class="decl-modal-footer">
-      <button class="decl-btn outline" onclick="closeModal('declSignModal')">Bekor qilish</button>
-      <button class="decl-btn primary" onclick="declConfirmSign()">Imzolash</button>
+      <button class="decl-btn outline" onclick="closeModal('declSignModal')" id="declSignCancelBtn">Bekor qilish</button>
+      <button class="decl-btn primary" onclick="declConfirmSign()" id="declSignActionBtn">Imzolash</button>
     </div>
   </div>
 </div>
@@ -1129,13 +1129,13 @@ body{
     <div class="decl-success-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><path d="M20 6L9 17l-5-5"/></svg>
     </div>
-    <h3 style="font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:8px;">Deklaratsiya E-IMZO bilan muvaffaqiyatli imzolandi!</h3>
+    <h3 style="font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:8px;" id="declSuccessTitle">Deklaratsiya E-IMZO bilan muvaffaqiyatli imzolandi!</h3>
     <p style="color:var(--text-dim); font-size:13px; margin-bottom:16px;" id="declSuccessDept">Hujjat yuborildi.</p>
     <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:20px;">
-      <span style="font-size:12px; color:var(--text-dim);">Verification ID:</span>
+      <span style="font-size:12px; color:var(--text-dim);" id="declVerificationIdLabel">Verification ID:</span>
       <span class="decl-pill gray" style="font-family:monospace;" id="declVerificationIdBadge">—</span>
     </div>
-    <button class="decl-btn primary" style="width:100%;" onclick="declShowRecord()">Deklaratsiyani ko'rish</button>
+    <button class="decl-btn primary" style="width:100%;" onclick="declShowRecord()" id="declViewDeclarationBtn">Deklaratsiyani ko'rish</button>
   </div>
 </div>
 
@@ -1290,7 +1290,7 @@ function applyLang(){
   document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
   document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
 }
-function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderInfoLang(); if(typeof currentUser !== 'undefined') renderHomeGreeting(currentUser); }
+function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderInfoLang(); if(typeof currentUser !== 'undefined') renderHomeGreeting(currentUser); if(typeof declApplyLang === 'function') declApplyLang(); }
 applyLang();
 
 /* ---------- Theme ---------- */
@@ -1969,51 +1969,410 @@ window.addEventListener('pageshow', function(event){
    Ko'rib chiqish, E-IMZO) keyingi bosqichda qo'shiladi. Qoralama hozircha
    faqat mijoz brauzerida (localStorage) saqlanadi — barcha 8 bosqich
    aniqlashgach, serverga (declarations jadvali) yozadigan qilinadi. */
-const DECL_STEPS = [
-  { key:'intro', label:"Tanishish" },
-  { key:'employee', label:"Xodim ma'lumotlari" },
-  { key:'terms', label:"Atamalar" },
-  { key:'relatives', label:"Yaqin qarindoshlar" },
-  { key:'questions', label:"Savollar" },
-  { key:'confirm', label:"Tasdiqlash" },
-  { key:'review', label:"Ko'rib chiqish" },
-  { key:'esign', label:"E-IMZO" },
-];
+const DECL_T = {
+  uz: {
+    eyebrow: "Ehtimoliy manfaatlar to'qnashuvi to'g'risida",
+    title: "Deklaratsiya to'ldirish",
+    saveLaterBtn: "Saqlash (keyin davom ettirish)",
+    backBtn: "Ortga",
+    backHomeBtn: "Bosh sahifaga qaytish",
+    saveBtn: "Saqlash",
+    nextBtn: "Keyingisi",
+    prevBtn: "Oldingi",
+    prevQuestionBtn: "Oldingi savol",
+    prevStepBtn: "Oldingi bosqich",
+    stepLockedMsg: "Avval joriy bosqichni to'liq yakunlang.",
+    draftSavedMsg: "Qoralama saqlandi. Keyinroq shu yerdan davom ettirishingiz mumkin.",
+    submitErrorPrefix: "Xatolik: ",
+    submitFailedGeneric: "Deklaratsiyani yuborib bo'lmadi. Qaytadan urinib ko'ring.",
+
+    steps: ["Tanishish", "Xodim ma'lumotlari", "Atamalar", "Yaqin qarindoshlar", "Savollar", "Tasdiqlash", "Ko'rib chiqish", "E-IMZO"],
+
+    legalDocs: [
+      { t: "O'zbekiston Respublikasining 05.06.2024 yildagi «Manfaatlar to'qnashuvi to'g'risida»gi O'RQ-931-son Qonuni", d: "Deklaratsiyani to'ldirishning qonunchilik asosi" },
+      { t: "«O'zbektelekom» AKda manfaatlar to'qnashuvini boshqarish to'g'risidagi Nizom", d: "Kompaniya ichki tartib-qoidalari" },
+      { t: "O'zR Prezidentining 30.12.2025 yildagi PF-270-son Farmoni", d: "Korrupsiyaning oldini olish tizimini takomillashtirish to'g'risida" },
+      { t: "«O'zbektelekom» AKning 23.01.2026 yildagi 36-son Buyrug'i", d: "PF-270-son Farmon ijrosini ta'minlash to'g'risida" },
+    ],
+    step1Title: "Qonunchilik va Nizom talablari bilan tanishish",
+    step1Sub: "Deklaratsiyani to'ldirishdan avval quyidagi hujjatlar bilan tanishib chiqing va tanishganingizni tasdiqlang.",
+    openLink: "Ochish",
+    docComingSoonMsg: "Hujjat tez orada qo'shiladi",
+    check1Label: "Men yuqoridagi Qonun va «O'zbektelekom» AK Nizomi talablari bilan to'liq tanishdim va ularga rioya etish majburiyatini olaman.",
+
+    step2Title: "Xodim ma'lumotlari",
+    hrmBadge: "Ma'lumotlar tizimidan avtomatik to'ldirilgan",
+    fishLabel: "F.I.Sh. (to'liq)",
+    jshshirLabel: "JShShIR (ПИНФЛ)",
+    jshshirPh: "14 raqam",
+    bolinmaNomiLabel: "Tarkibiy bo'linma nomi",
+    lavozimLabel: "Lavozim",
+    sanaLabel: "To'ldirilgan sana",
+    bolinmaLabel: "Bo'linma",
+    step2Notice: "Ma'lumotlarda xatolik bo'lsa, Inson resurslarini boshqarish xizmatiga murojaat qiling — deklaratsiyada ular tahrirlanmaydi.",
+
+    terms: [
+      { t: "Yaqin qarindoshlar", d: "Ota-onalar, aka-ukalar, opa-singillar, o'g'illar, qizlar, er-xotinlar, shuningdek er-xotinlarning ota-onalari, aka-ukalari, opa-singillari va farzandlari." },
+      { t: "Aloqador shaxslar", d: "Xodimning yaqin qarindoshlari; xodim va (yoki) yaqin qarindoshlari ustav fondida ulush/aksiyaga ega bo'lgan yuridik shaxs; xodim yoxud yaqin qarindoshlari boshqaruv organi rahbari yoki a'zosi bo'lgan yuridik shaxs." },
+      { t: "Manfaatlar to'qnashuvi", d: "Xodimning shaxsiy (bevosita yoki bilvosita) manfaatdorligi lavozim majburiyatlarini lozim darajada bajarishiga ta'sir ko'rsatayotgan yoki ko'rsatishi mumkin bo'lgan, shaxsiy manfaatdorlik bilan fuqarolar, tashkilotlar, jamiyat yoki davlat huquqlari va qonuniy manfaatlari o'rtasida qarama-qarshilik yuzaga kelgan (mavjud) yoki kelishi mumkin bo'lgan (ehtimoliy) vaziyat." },
+      { t: "Xodimning shaxsiy manfaatdorligi", d: "Xodim yoxud u bilan aloqador shaxslar xodim tomonidan qaror qabul qilinishi yoki jarayonda boshqacha ishtirok etishi natijasida olishi mumkin bo'lgan har qanday naf yoki afzallik." },
+    ],
+    step3Title: "Asosiy atamalar",
+    step3Sub: "Deklaratsiyada qo'llaniladigan atamalar bilan tanishib chiqing — savollarga to'g'ri javob berish uchun muhim.",
+    check3Label: "Atamalar mazmuni bilan tanishdim.",
+
+    step4Title: "Yaqin qarindoshlar to'g'risida ma'lumot",
+    step4SubTpl: "Har bir yaqin qarindosh bo'yicha ma'lumot kiritish <b>majburiy</b>. Qarindosh vafot etgan, aloqa uzilgan yoki ma'lumotga ega bo'lmasangiz — tegishli variantni tanlaysiz. To'ldirilgan: {filled}/{total}",
+    notFilledStatus: "Ma'lumot kiritilmagan",
+    otaLabel: "Ota",
+    onaLabel: "Ona",
+    fillBtn: "To'ldirish",
+    editBtn: "Tahrirlash",
+    removeTitle: "O'chirish",
+    addRelativeBtn: "Yana qarindosh qo'shish (aka-uka, farzand va h.k.)",
+    relativeTypes: [
+      { key: 'aka-uka', label: "Aka-uka" },
+      { key: 'opa-singil', label: "Opa-singil" },
+      { key: 'ogil-qiz', label: "O'g'il-qiz" },
+      { key: 'turmush-ortogi', label: "Turmush o'rtog'i" },
+      { key: 'qaynota-ona', label: "Qaynota/qaynona" },
+      { key: 'qayn-akauka', label: "Qayn aka-uka" },
+      { key: 'qayn-opasingil', label: "Qayn opa-singil" },
+    ],
+    holatLabels: { info: "To'ldirildi", no_info: "Ma'lumotga ega emas", deceased: "Vafot etgan", no_contact: "Ajrashgan / aloqada emas" },
+    maLumotYoq: "ma'lumot yo'q",
+
+    modalTitleSuffix: " — ma'lumot kiritish",
+    holatFieldLabel: "Holat",
+    holatPlaceholder: "— Tanlang —",
+    holatInfo: "Ma'lumot kiritaman",
+    holatNoInfo: "Ma'lumotga ega emasman",
+    holatDeceased: "Vafot etgan",
+    holatNoContact: "Ajrashgan / aloqada emasman",
+    fishReqLabel: "F.I.Sh.",
+    jshshirShortLabel: "JShShIR",
+    addressLabel: "Yashash manzili",
+    workTypeLabel: "Ish joyi bo'yicha variant",
+    workTypeHead: "Rahbar yoki ta'sischi",
+    workTypeOther: "Boshqalar",
+    workplacePositionLabel: "Ish joyi va lavozimi",
+    workplacePositionPh: "Tashkilot nomi va lavozimi",
+    entrepreneurBoxTitle: "Yuridik shaxs (MChJ, XK, OK va h.k.) rahbari yoki ta'sischisi:",
+    legalEntityNameLabel: "Yuridik shaxs nomi",
+    stirLabel: "STIR (INN)",
+    stirPh: "9 raqam",
+    ownershipShareLabel: "Egalik ulushi (%)",
+    ownershipSharePh: "Masalan: 50%",
+    managementRoleLabel: "Boshqaruvdagi roli",
+    managementRolePh: "Direktor / ta'sischi",
+    cancelBtn: "Bekor qilish",
+    izohLabel: "Izohlar",
+    izohHintSuffix: " (tegishli tashkilotlar, lavozimlar, ulushlar...)",
+
+    alertHolatTanlang: "Holatni tanlang",
+    alertFishToldiring: "F.I.Sh. maydonini to'ldiring",
+    alertIshJoyiTanlang: "Ish joyi bo'yicha variantni tanlang",
+    alertIshJoyiKiriting: "Ish joyi va lavozimini kiriting",
+    alertYuridikShaxsKiriting: "Yuridik shaxs nomini kiriting",
+    alertStirKiriting: "STIR (INN) raqamini kiriting",
+    alertBoshqaruvRoliKiriting: "Boshqaruvdagi rolini kiriting",
+
+    questions: [
+      { type: 'yesno', q: "Siz boshqaruv organi (boshqaruv, Kuzatuv kengashi, direktorlar kengashi va hokazolar) xodimi, a'zosi, qandaydir tashkilot direktori (bosh buxgalteri, buxgalteri va hokazo) yoki vakilimisiz?", hint: "Tashkiliy-huquqiy shakli va kompensatsiya olishidan qat'i nazar, tijorat va notijorat tashkilotlaridagi barcha o'rningizni hisobga oling. «Ha» bo'lsa — izohda tashkilotlar nomi va lavozimingizni ko'rsating." },
+      { type: 'yesno', q: "Sizda / yaqin qarindoshlaringizda qandaydir tashkilotlarda moliyaviy manfaatdorlik bormi (ustav kapitalida ishtirok, aksiya va obligatsiyalarga egalik) yoki bunday tashkilotlar qarorlariga boshqa tarzda ta'sir ko'rsata olasizmi?", hint: "Ommaviy muomalada bo'lmagan aksiyalar/ulushlar yoki fond birjasida muomaladagi qimmatli qog'ozlarning 10% va undan ko'prog'iga egalik nazarda tutiladi. «Ha» bo'lsa — tashkilot nomi, manfaat turi va ulushni ko'rsating." },
+      { type: 'yesno', q: "Yaqin qarindoshlaringiz boshqaruv organlari (boshqaruv, kuzatuv kengashi, direktorlar kengashi va h.k.) xodimi, a'zosi, tashkilot direktori yoki vakilimi?", hint: "Tashkiliy-huquqiy shakli va kompensatsiya olishidan qat'i nazar hisobga oling. «Ha» bo'lsa — tashkilotlar nomi va qarindoshning lavozimini ko'rsating." },
+      { type: 'yesno', q: "Yaqin qarindoshlaringiz davlat organlarining mansabdor shaxsi hisoblanadimi?", hint: "«Ha» bo'lsa — qarindoshning F.I.Sh., lavozimi va tashkilot nomini ko'rsating." },
+      { type: 'yesno', q: "Shaxsiy manfaatlaringiz, yaqin qarindoshlaringiz yoki aloqador shaxslar manfaatlari yo'lida maxfiy hisoblangan, davlat organlari va tashkilotlarida ishlash davomida ma'lum bo'lgan axborotdan foydalanganmisiz?", hint: "Jumladan, qandaydir jismoniy shaxs yoki tashkilotga oshkor qilganmisiz? «Ha» bo'lsa — izohda batafsil yozing." },
+      { type: 'text', q: "Manfaatlar to'qnashuviga olib kelishi mumkin bo'lgan boshqa shart-sharoitlar mavjud bo'lsa, ularni ko'rsatib o'ting.", hint: "Masalan: boshqa tashkilotlarda o'rindoshlik, fuqarolik-huquqiy shartnoma yoki boshqa shartnomaviy asoslar bo'yicha bog'liqlik holatlari. Mavjud bo'lmasa, bo'sh qoldiring.", noteLabel: "Izohlar (mavjud bo'lsa)" },
+      { type: 'text', q: "Zarur topsangiz, har qanday qo'shimcha ma'lumotni ko'rsating.", hint: "Ixtiyoriy maydon.", noteLabel: "Izohlar (ixtiyoriy)" },
+    ],
+    step5Title: "Deklaratsiya savollari",
+    questionBadgeTpl: "Savol {n} / {total}",
+    izohRequiredError: "«Ha» javobida izoh kiritilishi shart",
+    haLabel: "Ha",
+    yoqLabel: "Yo'q",
+    answerRequiredAlert: "Savolga javob bering",
+
+    step6Title: "Yakuniy tasdiqlash",
+    step6Sub: "Deklaratsiyani imzolashdan oldin quyidagilarni tasdiqlang.",
+    conflictExistsTitle: "Menda manfaatlar to'qnashuviga olib keladigan holatlar MAVJUD",
+    conflictExistsSub: "Savollarda «Ha» deb belgilagan yoki jadvalda ko'rsatgan holatlaringiz bo'lsa, ushbu variantni tanlang.",
+    conflictNoneTitle: "Menda manfaatlar to'qnashuviga olib keladigan holatlar MAVJUD EMAS",
+    conflictNoneSub: "Hech qanday to'qnashuv holati bo'lmasa, ushbu variantni tanlang.",
+    ack1Label: "Ushbu deklaratsiyada aks ettirilgan ma'lumotlar <b>to'liqligi va haqqoniyligini tasdiqlayman</b> hamda ushbu ma'lumotlar tegishli huquq-tartibot organlari tomonidan tekshirilishiga rozilik bildiraman.",
+    ack2Label: "Nizom talablariga binoan, deklaratsiya haqqoniyligiga ta'sir qiladigan <b>yangi holatlar to'g'risida</b> Kompaniyaga darhol xabar berish majburiyatini zimmamga olaman.",
+    reviewBtn: "Ko'rib chiqish",
+
+    step7Title: "Ko'rib chiqish",
+    step7Sub: "Yuborishdan oldin barcha javoblaringizni tekshiring. Kerak bo'lsa, tegishli bo'limga qaytib tahrirlang.",
+    employeeSectionTitle: "Xodim ma'lumotlari",
+    viewLinkText: "Ko'rish",
+    fishJshshirLabel: "F.I.Sh. / JShShIR",
+    bolinmaLavozimLabel: "Bo'linma / lavozim",
+    relativesSectionTitleTpl: "Yaqin qarindoshlar ({n})",
+    editLinkText: "Tahrirlash",
+    tblDaraja: "Daraja",
+    tblFish: "F.I.Sh.",
+    tblIshJoyi: "Ish joyi",
+    tblJshshir: "JShShIR",
+    tblManzil: "Manzil",
+    questionsSectionTitle: "Savollar javoblari",
+    finalConfirmSectionTitle: "Yakuniy tasdiq",
+    notSelected: "Tanlanmagan",
+    conflictExistsBadge: "Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD",
+    conflictNoneBadge: "Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD EMAS",
+    goToEsignBtn: "E-IMZO bosqichiga o'tish",
+
+    step8Title: "E-IMZO bilan imzolash",
+    step8SubHtml: "Deklaratsiya faqat elektron raqamli imzo qo'yilgandan so'ng yakunlangan hisoblanadi. Jarayon: To'ldirish &rarr; Ko'rib chiqish &rarr; Tasdiqlash &rarr; <b>E-IMZO</b> &rarr; Imzo tasdiqlanishi &rarr; Yakunlanishi.",
+    step8NoticeHtml: "Imzolash uchun E-IMZO kalitingiz (sertifikatingiz) tanlanadi. Imzolangandan so'ng har bir deklaratsiya uchun <b>unikal QR-kod va Verification ID</b> shakllantiriladi — ular orqali imzoni istalgan vaqtda tekshirish mumkin.",
+    signBtn: "E-IMZO bilan imzolash",
+
+    signModalTitle: "E-IMZO — kalitni tanlang",
+    signModalSub: "Kompyuteringizda topilgan elektron imzo sertifikatlari:",
+    certValidUntil: "Amal qilish: 31.12.2026 gacha",
+    certExpired: "Sertifikat muddati tugagan — 31.12.2024",
+    keyPasswordLabel: "Kalit paroli",
+    signActionBtn: "Imzolash",
+    signingInProgress: "Yuborilmoqda...",
+    signPasswordRequired: "Kalit parolini kiriting",
+    oldSuffix: " (eski)",
+
+    successTitle: "Deklaratsiya E-IMZO bilan muvaffaqiyatli imzolandi!",
+    successDeptTpl: "Hujjat {dept} bo'limiga yuborildi.",
+    tegishli: "tegishli",
+    verificationIdLabel: "Verification ID:",
+    viewDeclarationBtn: "Deklaratsiyani ko'rish",
+
+    recordEyebrowFallback: "DEK-2026",
+    recordTitle: "Deklaratsiya",
+    pdfPrintBtn: "PDF / Chop etish",
+    turiSababiLabel: "Turi / sababi",
+    yangiDeklaratsiya: "Yangi deklaratsiya",
+    statusLabel: "Status",
+    statusSent: "Yuborilgan",
+    relativesTitle: "Yaqin qarindoshlar",
+    questionsAnswersTitle: "Savollar va javoblar",
+    esignBlockTitle: "Elektron imzo (E-IMZO)",
+    signConfirmedBadge: "Imzo tasdiqlangan",
+    signerFishLabel: "Imzolovchi F.I.Sh.",
+    signerLavozimLabel: "Lavozimi",
+    signedAtLabel: "Imzolangan sana va vaqt",
+    certLabel: "E-IMZO sertifikati",
+    certValidUntilSuffix: "amal qilish: 31.12.2026 gacha",
+    signStatusLabel: "Imzo holati",
+    signValidText: "Haqiqiy, hujjat o'zgartirilmagan",
+    verificationIdRowLabel: "Verification ID",
+    qrCaption: "QR orqali imzoni tekshirish",
+    verifyBtn: "Tekshirish",
+    verifyStubMsg: "QR orqali imzoni tekshirish tizimi hali serverga ulanmagan — bu funksiya keyingi bosqichda qo'shiladi.",
+  },
+
+  ru: {
+    eyebrow: "О возможном конфликте интересов",
+    title: "Заполнение декларации",
+    saveLaterBtn: "Сохранить (продолжить позже)",
+    backBtn: "Назад",
+    backHomeBtn: "Вернуться на главную",
+    saveBtn: "Сохранить",
+    nextBtn: "Далее",
+    prevBtn: "Назад",
+    prevQuestionBtn: "Предыдущий вопрос",
+    prevStepBtn: "Предыдущий этап",
+    stepLockedMsg: "Сначала полностью завершите текущий этап.",
+    draftSavedMsg: "Черновик сохранён. Вы можете продолжить отсюда позже.",
+    submitErrorPrefix: "Ошибка: ",
+    submitFailedGeneric: "Не удалось отправить декларацию. Попробуйте ещё раз.",
+
+    steps: ["Ознакомление", "Данные работника", "Термины", "Близкие родственники", "Вопросы", "Подтверждение", "Проверка", "E-IMZO"],
+
+    legalDocs: [
+      { t: "Закон Республики Узбекистан от 05.06.2024 г. № ЗРУ-931 «О предотвращении конфликта интересов»", d: "Законодательная основа заполнения декларации" },
+      { t: "Положение АО «Uztelecom» об управлении конфликтом интересов", d: "Внутренние правила компании" },
+      { t: "Указ Президента Республики Узбекистан от 30.12.2025 г. № УП-270", d: "О совершенствовании системы противодействия коррупции" },
+      { t: "Приказ АО «Uztelecom» от 23.01.2026 г. № 36", d: "Об обеспечении исполнения Указа № УП-270" },
+    ],
+    step1Title: "Ознакомление с требованиями законодательства и Положения",
+    step1Sub: "Перед заполнением декларации ознакомьтесь со следующими документами и подтвердите ознакомление.",
+    openLink: "Открыть",
+    docComingSoonMsg: "Документ будет добавлен в ближайшее время",
+    check1Label: "Я полностью ознакомлен(а) с требованиями указанного выше Закона и Положения АО «Uztelecom» и принимаю на себя обязательство по их соблюдению.",
+
+    step2Title: "Данные работника",
+    hrmBadge: "Автоматически заполнено из системы данных",
+    fishLabel: "Ф.И.О. (полностью)",
+    jshshirLabel: "ПИНФЛ",
+    jshshirPh: "14 цифр",
+    bolinmaNomiLabel: "Наименование структурного подразделения",
+    lavozimLabel: "Должность",
+    sanaLabel: "Дата заполнения",
+    bolinmaLabel: "Подразделение",
+    step2Notice: "При наличии ошибок в данных обратитесь в Службу управления человеческими ресурсами — в декларации они не редактируются.",
+
+    terms: [
+      { t: "Близкие родственники", d: "Родители, братья и сёстры, сыновья, дочери, супруги, а также родители, братья, сёстры и дети супругов." },
+      { t: "Аффилированные лица", d: "Близкие родственники работника; юридическое лицо, в уставном фонде которого работник и (или) его близкие родственники имеют долю/акции; юридическое лицо, в органе управления которого работник либо его близкие родственники являются руководителем или членом." },
+      { t: "Конфликт интересов", d: "Ситуация, при которой личная (прямая или косвенная) заинтересованность работника влияет или может повлиять на надлежащее исполнение им должностных обязанностей, при которой возникает (имеется) или может возникнуть (вероятное) противоречие между личной заинтересованностью и правами и законными интересами граждан, организаций, общества или государства." },
+      { t: "Личная заинтересованность работника", d: "Любая выгода или преимущество, которые работник либо аффилированные с ним лица могут получить в результате принятия работником решения либо иного участия в процессе." },
+    ],
+    step3Title: "Основные термины",
+    step3Sub: "Ознакомьтесь с терминами, используемыми в декларации — это важно для правильных ответов на вопросы.",
+    check3Label: "Я ознакомлен(а) с содержанием терминов.",
+
+    step4Title: "Сведения о близких родственниках",
+    step4SubTpl: "Внесение сведений по каждому близкому родственнику <b>обязательно</b>. Если родственник умер, связь прервана или сведения отсутствуют — выберите соответствующий вариант. Заполнено: {filled}/{total}",
+    notFilledStatus: "Сведения не внесены",
+    otaLabel: "Отец",
+    onaLabel: "Мать",
+    fillBtn: "Заполнить",
+    editBtn: "Изменить",
+    removeTitle: "Удалить",
+    addRelativeBtn: "Добавить ещё родственника (братья, дети и т.д.)",
+    relativeTypes: [
+      { key: 'aka-uka', label: "Братья" },
+      { key: 'opa-singil', label: "Сёстры" },
+      { key: 'ogil-qiz', label: "Сын/дочь" },
+      { key: 'turmush-ortogi', label: "Супруг(а)" },
+      { key: 'qaynota-ona', label: "Тесть/тёща (свёкор/свекровь)" },
+      { key: 'qayn-akauka', label: "Братья супруга(и)" },
+      { key: 'qayn-opasingil', label: "Сёстры супруга(и)" },
+    ],
+    holatLabels: { info: "Заполнено", no_info: "Нет сведений", deceased: "Умер(ла)", no_contact: "В разводе / нет связи" },
+    maLumotYoq: "нет сведений",
+
+    modalTitleSuffix: " — внесение сведений",
+    holatFieldLabel: "Статус",
+    holatPlaceholder: "— Выберите —",
+    holatInfo: "Внесу сведения",
+    holatNoInfo: "Не располагаю сведениями",
+    holatDeceased: "Умер(ла)",
+    holatNoContact: "В разводе / нет связи",
+    fishReqLabel: "Ф.И.О.",
+    jshshirShortLabel: "ПИНФЛ",
+    addressLabel: "Адрес проживания",
+    workTypeLabel: "Вариант по месту работы",
+    workTypeHead: "Руководитель или учредитель",
+    workTypeOther: "Другое",
+    workplacePositionLabel: "Место работы и должность",
+    workplacePositionPh: "Наименование организации и должность",
+    entrepreneurBoxTitle: "Руководитель или учредитель юридического лица (ООО, АО, ЧП и т.п.):",
+    legalEntityNameLabel: "Наименование юридического лица",
+    stirLabel: "СТИР (ИНН)",
+    stirPh: "9 цифр",
+    ownershipShareLabel: "Доля владения (%)",
+    ownershipSharePh: "Например: 50%",
+    managementRoleLabel: "Роль в управлении",
+    managementRolePh: "Директор / учредитель",
+    cancelBtn: "Отмена",
+    izohLabel: "Комментарии",
+    izohHintSuffix: " (соответствующие организации, должности, доли...)",
+
+    alertHolatTanlang: "Выберите статус",
+    alertFishToldiring: "Заполните поле Ф.И.О.",
+    alertIshJoyiTanlang: "Выберите вариант по месту работы",
+    alertIshJoyiKiriting: "Укажите место работы и должность",
+    alertYuridikShaxsKiriting: "Укажите наименование юридического лица",
+    alertStirKiriting: "Укажите номер СТИР (ИНН)",
+    alertBoshqaruvRoliKiriting: "Укажите роль в управлении",
+
+    questions: [
+      { type: 'yesno', q: "Являетесь ли Вы работником, членом органа управления (правления, наблюдательного совета, совета директоров и т.п.), директором какой-либо организации (главным бухгалтером, бухгалтером и т.п.) либо её представителем?", hint: "Учитывайте все свои позиции в коммерческих и некоммерческих организациях, независимо от организационно-правовой формы и получения вознаграждения. При ответе «Да» — укажите в комментарии наименования организаций и занимаемую должность." },
+      { type: 'yesno', q: "Имеете ли Вы / Ваши близкие родственники финансовую заинтересованность в каких-либо организациях (участие в уставном капитале, владение акциями и облигациями) либо возможность иным образом влиять на решения таких организаций?", hint: "Имеется в виду владение не находящимися в открытом обращении акциями/долями либо 10% и более обращающихся на фондовой бирже ценных бумаг. При ответе «Да» — укажите наименование организации, вид заинтересованности и долю." },
+      { type: 'yesno', q: "Являются ли Ваши близкие родственники работниками, членами органов управления (правления, наблюдательного совета, совета директоров и т.п.), директорами организаций либо их представителями?", hint: "Учитывайте независимо от организационно-правовой формы и получения вознаграждения. При ответе «Да» — укажите наименования организаций и должность родственника." },
+      { type: 'yesno', q: "Являются ли Ваши близкие родственники должностными лицами государственных органов?", hint: "При ответе «Да» — укажите Ф.И.О., должность родственника и наименование организации." },
+      { type: 'yesno', q: "Использовали ли Вы в личных интересах, интересах близких родственников либо аффилированных лиц информацию, признанную конфиденциальной, ставшую известной Вам в ходе работы в государственных органах и организациях?", hint: "В том числе раскрывали ли Вы её какому-либо физическому лицу или организации? При ответе «Да» — подробно опишите в комментарии." },
+      { type: 'text', q: "Если имеются иные обстоятельства, которые могут привести к конфликту интересов, укажите их.", hint: "Например: совместительство в других организациях, гражданско-правовой договор или иные договорные основания связанности. Если отсутствуют — оставьте поле пустым.", noteLabel: "Комментарии (при наличии)" },
+      { type: 'text', q: "При необходимости укажите любую дополнительную информацию.", hint: "Необязательное поле.", noteLabel: "Комментарии (необязательно)" },
+    ],
+    step5Title: "Вопросы декларации",
+    questionBadgeTpl: "Вопрос {n} / {total}",
+    izohRequiredError: "При ответе «Да» комментарий обязателен",
+    haLabel: "Да",
+    yoqLabel: "Нет",
+    answerRequiredAlert: "Ответьте на вопрос",
+
+    step6Title: "Итоговое подтверждение",
+    step6Sub: "Перед подписанием декларации подтвердите следующее.",
+    conflictExistsTitle: "У меня ИМЕЮТСЯ обстоятельства, приводящие к конфликту интересов",
+    conflictExistsSub: "Выберите этот вариант, если Вы отметили «Да» в вопросах или указали соответствующие сведения в таблице.",
+    conflictNoneTitle: "У меня ОТСУТСТВУЮТ обстоятельства, приводящие к конфликту интересов",
+    conflictNoneSub: "Выберите этот вариант, если у Вас нет ситуаций конфликта интересов.",
+    ack1Label: "Подтверждаю <b>полноту и достоверность</b> сведений, отражённых в настоящей декларации, и выражаю согласие на их проверку соответствующими правоохранительными органами.",
+    ack2Label: "В соответствии с требованиями Положения принимаю на себя обязательство незамедлительно уведомлять Компанию о <b>новых обстоятельствах</b>, влияющих на достоверность декларации.",
+    reviewBtn: "Просмотреть",
+
+    step7Title: "Проверка",
+    step7Sub: "Перед отправкой проверьте все свои ответы. При необходимости вернитесь к нужному разделу для редактирования.",
+    employeeSectionTitle: "Данные работника",
+    viewLinkText: "Просмотреть",
+    fishJshshirLabel: "Ф.И.О. / ПИНФЛ",
+    bolinmaLavozimLabel: "Подразделение / должность",
+    relativesSectionTitleTpl: "Близкие родственники ({n})",
+    editLinkText: "Изменить",
+    tblDaraja: "Степень родства",
+    tblFish: "Ф.И.О.",
+    tblIshJoyi: "Место работы",
+    tblJshshir: "ПИНФЛ",
+    tblManzil: "Адрес",
+    questionsSectionTitle: "Ответы на вопросы",
+    finalConfirmSectionTitle: "Итоговое подтверждение",
+    notSelected: "Не выбрано",
+    conflictExistsBadge: "Обстоятельства, приводящие к конфликту интересов, — ИМЕЮТСЯ",
+    conflictNoneBadge: "Обстоятельства, приводящие к конфликту интересов, — ОТСУТСТВУЮТ",
+    goToEsignBtn: "Перейти к этапу E-IMZO",
+
+    step8Title: "Подписание через E-IMZO",
+    step8SubHtml: "Декларация считается завершённой только после проставления электронной цифровой подписи. Процесс: Заполнение &rarr; Проверка &rarr; Подтверждение &rarr; <b>E-IMZO</b> &rarr; Подтверждение подписи &rarr; Завершение.",
+    step8NoticeHtml: "Для подписания выбирается Ваш ключ (сертификат) E-IMZO. После подписания для каждой декларации формируется <b>уникальный QR-код и Verification ID</b> — с их помощью подпись можно проверить в любое время.",
+    signBtn: "Подписать через E-IMZO",
+
+    signModalTitle: "E-IMZO — выберите ключ",
+    signModalSub: "Сертификаты электронной подписи, найденные на Вашем компьютере:",
+    certValidUntil: "Действителен до: 31.12.2026",
+    certExpired: "Срок действия сертификата истёк — 31.12.2024",
+    keyPasswordLabel: "Пароль ключа",
+    signActionBtn: "Подписать",
+    signingInProgress: "Отправка...",
+    signPasswordRequired: "Введите пароль ключа",
+    oldSuffix: " (старый)",
+
+    successTitle: "Декларация успешно подписана через E-IMZO!",
+    successDeptTpl: "Документ отправлен в подразделение {dept}.",
+    tegishli: "соответствующее",
+    verificationIdLabel: "Verification ID:",
+    viewDeclarationBtn: "Просмотреть декларацию",
+
+    recordEyebrowFallback: "DEK-2026",
+    recordTitle: "Декларация",
+    pdfPrintBtn: "PDF / Печать",
+    turiSababiLabel: "Тип / причина",
+    yangiDeklaratsiya: "Новая декларация",
+    statusLabel: "Статус",
+    statusSent: "Отправлена",
+    relativesTitle: "Близкие родственники",
+    questionsAnswersTitle: "Вопросы и ответы",
+    esignBlockTitle: "Электронная подпись (E-IMZO)",
+    signConfirmedBadge: "Подпись подтверждена",
+    signerFishLabel: "Ф.И.О. подписавшего",
+    signerLavozimLabel: "Должность",
+    signedAtLabel: "Дата и время подписания",
+    certLabel: "Сертификат E-IMZO",
+    certValidUntilSuffix: "действителен до: 31.12.2026",
+    signStatusLabel: "Статус подписи",
+    signValidText: "Действительна, документ не изменён",
+    verificationIdRowLabel: "Verification ID",
+    qrCaption: "Проверить подпись через QR",
+    verifyBtn: "Проверить",
+    verifyStubMsg: "Система проверки подписи через QR ещё не подключена к серверу — эта функция будет добавлена на следующем этапе.",
+  },
+};
+
+function dt(key){
+  const lang = (typeof currentLang !== 'undefined' && DECL_T[currentLang]) ? currentLang : 'uz';
+  const v = DECL_T[lang][key];
+  return v !== undefined ? v : DECL_T.uz[key];
+}
 const DECL_MAX_REACHABLE = 7;
-
-const DECL_LEGAL_DOCS = [
-  { t:"O'zbekiston Respublikasining 05.06.2024 yildagi «Manfaatlar to'qnashuvi to'g'risida»gi O'RQ-931-son Qonuni", d:"Deklaratsiyani to'ldirishning qonunchilik asosi" },
-  { t:"«O'zbektelekom» AKda manfaatlar to'qnashuvini boshqarish to'g'risidagi Nizom", d:"Kompaniya ichki tartib-qoidalari" },
-  { t:"O'zR Prezidentining 30.12.2025 yildagi PF-270-son Farmoni", d:"Korrupsiyaning oldini olish tizimini takomillashtirish to'g'risida" },
-  { t:"«O'zbektelekom» AKning 23.01.2026 yildagi 36-son Buyrug'i", d:"PF-270-son Farmon ijrosini ta'minlash to'g'risida" },
-];
-
-const DECL_TERMS = [
-  { t:"Yaqin qarindoshlar", d:"Ota-onalar, aka-ukalar, opa-singillar, o'g'illar, qizlar, er-xotinlar, shuningdek er-xotinlarning ota-onalari, aka-ukalari, opa-singillari va farzandlari." },
-  { t:"Aloqador shaxslar", d:"Xodimning yaqin qarindoshlari; xodim va (yoki) yaqin qarindoshlari ustav fondida ulush/aksiyaga ega bo'lgan yuridik shaxs; xodim yoxud yaqin qarindoshlari boshqaruv organi rahbari yoki a'zosi bo'lgan yuridik shaxs." },
-  { t:"Manfaatlar to'qnashuvi", d:"Xodimning shaxsiy (bevosita yoki bilvosita) manfaatdorligi lavozim majburiyatlarini lozim darajada bajarishiga ta'sir ko'rsatayotgan yoki ko'rsatishi mumkin bo'lgan, shaxsiy manfaatdorlik bilan fuqarolar, tashkilotlar, jamiyat yoki davlat huquqlari va qonuniy manfaatlari o'rtasida qarama-qarshilik yuzaga kelgan (mavjud) yoki kelishi mumkin bo'lgan (ehtimoliy) vaziyat." },
-  { t:"Xodimning shaxsiy manfaatdorligi", d:"Xodim yoxud u bilan aloqador shaxslar xodim tomonidan qaror qabul qilinishi yoki jarayonda boshqacha ishtirok etishi natijasida olishi mumkin bo'lgan har qanday naf yoki afzallik." },
-];
-
-const DECL_RELATIVE_TYPES = [
-  { key:'aka-uka', label:"Aka-uka" },
-  { key:'opa-singil', label:"Opa-singil" },
-  { key:'ogil-qiz', label:"O'g'il-qiz" },
-  { key:'turmush-ortogi', label:"Turmush o'rtog'i" },
-  { key:'qaynota-ona', label:"Qaynota/qaynona" },
-  { key:'qayn-akauka', label:"Qayn aka-uka" },
-  { key:'qayn-opasingil', label:"Qayn opa-singil" },
-];
-
-const DECL_QUESTIONS = [
-  { type:'yesno', q:"Siz boshqaruv organi (boshqaruv, Kuzatuv kengashi, direktorlar kengashi va hokazolar) xodimi, a'zosi, qandaydir tashkilot direktori (bosh buxgalteri, buxgalteri va hokazo) yoki vakilimisiz?", hint:"Tashkiliy-huquqiy shakli va kompensatsiya olishidan qat'i nazar, tijorat va notijorat tashkilotlaridagi barcha o'rningizni hisobga oling. «Ha» bo'lsa — izohda tashkilotlar nomi va lavozimingizni ko'rsating." },
-  { type:'yesno', q:"Sizda / yaqin qarindoshlaringizda qandaydir tashkilotlarda moliyaviy manfaatdorlik bormi (ustav kapitalida ishtirok, aksiya va obligatsiyalarga egalik) yoki bunday tashkilotlar qarorlariga boshqa tarzda ta'sir ko'rsata olasizmi?", hint:"Ommaviy muomalada bo'lmagan aksiyalar/ulushlar yoki fond birjasida muomaladagi qimmatli qog'ozlarning 10% va undan ko'prog'iga egalik nazarda tutiladi. «Ha» bo'lsa — tashkilot nomi, manfaat turi va ulushni ko'rsating." },
-  { type:'yesno', q:"Yaqin qarindoshlaringiz boshqaruv organlari (boshqaruv, kuzatuv kengashi, direktorlar kengashi va h.k.) xodimi, a'zosi, tashkilot direktori yoki vakilimi?", hint:"Tashkiliy-huquqiy shakli va kompensatsiya olishidan qat'i nazar hisobga oling. «Ha» bo'lsa — tashkilotlar nomi va qarindoshning lavozimini ko'rsating." },
-  { type:'yesno', q:"Yaqin qarindoshlaringiz davlat organlarining mansabdor shaxsi hisoblanadimi?", hint:"«Ha» bo'lsa — qarindoshning F.I.Sh., lavozimi va tashkilot nomini ko'rsating." },
-  { type:'yesno', q:"Shaxsiy manfaatlaringiz, yaqin qarindoshlaringiz yoki aloqador shaxslar manfaatlari yo'lida maxfiy hisoblangan, davlat organlari va tashkilotlarida ishlash davomida ma'lum bo'lgan axborotdan foydalanganmisiz?", hint:"Jumladan, qandaydir jismoniy shaxs yoki tashkilotga oshkor qilganmisiz? «Ha» bo'lsa — izohda batafsil yozing." },
-  { type:'text', q:"Manfaatlar to'qnashuviga olib kelishi mumkin bo'lgan boshqa shart-sharoitlar mavjud bo'lsa, ularni ko'rsatib o'ting.", hint:"Masalan: boshqa tashkilotlarda o'rindoshlik, fuqarolik-huquqiy shartnoma yoki boshqa shartnomaviy asoslar bo'yicha bog'liqlik holatlari. Mavjud bo'lmasa, bo'sh qoldiring.", noteLabel:"Izohlar (mavjud bo'lsa)" },
-  { type:'text', q:"Zarur topsangiz, har qanday qo'shimcha ma'lumotni ko'rsating.", hint:"Ixtiyoriy maydon.", noteLabel:"Izohlar (ixtiyoriy)" },
-];
 
 let declCurrentStep = 0;
 let declFurthestStep = 0;
@@ -2021,12 +2380,12 @@ let declTerms1Checked = false;
 let declTerms3Checked = false;
 let declRelSeq = 0;
 let declRelatives = [
-  { id:'ota', typeKey:null, label:'Ota', fixed:true, filled:false },
-  { id:'ona', typeKey:null, label:'Ona', fixed:true, filled:false },
+  { id:'ota', typeKey:null, label:dt('otaLabel'), fixed:true, filled:false },
+  { id:'ona', typeKey:null, label:dt('onaLabel'), fixed:true, filled:false },
 ];
 let declQuestionIndex = 0;
 let declQuestionError = false;
-let declAnswers = DECL_QUESTIONS.map(() => ({ choice:null, note:'' }));
+let declAnswers = dt('questions').map(() => ({ choice:null, note:'' }));
 let declConfirm = { hasConflict:null, ack1:false, ack2:false };
 let declEmployeeJshshir = '';
 
@@ -2048,7 +2407,7 @@ function declLoadDraft(){
     }
     if(typeof draft.terms1 === 'boolean') declTerms1Checked = draft.terms1;
     if(typeof draft.terms3 === 'boolean') declTerms3Checked = draft.terms3;
-    if(Array.isArray(draft.answers) && draft.answers.length === DECL_QUESTIONS.length) declAnswers = draft.answers;
+    if(Array.isArray(draft.answers) && draft.answers.length === dt('questions').length) declAnswers = draft.answers;
     if(draft.confirm && typeof draft.confirm === 'object') declConfirm = draft.confirm;
     if(typeof draft.jshshir === 'string') declEmployeeJshshir = draft.jshshir;
     if(typeof draft.furthestStep === 'number') declFurthestStep = draft.furthestStep;
@@ -2073,8 +2432,11 @@ function declPersist(){
 
 function declSaveDraft(){
   declPersist();
-  alert("Qoralama saqlandi. Keyinroq shu yerdan davom ettirishingiz mumkin.");
+  alert(dt('draftSavedMsg'));
 }
+
+const DECL_STEP_KEYS = ['intro', 'employee', 'terms', 'relatives', 'questions', 'confirm', 'review', 'esign'];
+declApplyLang();
 
 function declTodayFormatted(){
   const d = new Date();
@@ -2097,6 +2459,30 @@ function closeDeclaration(){
   document.getElementById('anticorStatusSection').style.display = 'block';
 }
 
+/* Til almashtirilganda (setLang) deklaratsiya bo'limining statik (JS orqali
+   qayta chizilmaydigan) matnlari hamda, agar ochiq bo'lsa, joriy bosqich
+   yoki yozuv (record) qayta render qilinadi — shu bilan sayt tili
+   o'zgarganda deklaratsiya darhol yangi tilda ko'rinadi. */
+function declApplyLang(){
+  document.getElementById('declBackLabel').textContent = dt('backBtn');
+  document.getElementById('declEyebrow').textContent = dt('eyebrow');
+  document.getElementById('declMainTitle').textContent = dt('title');
+  document.getElementById('declSaveLaterBtn').textContent = dt('saveLaterBtn');
+  document.getElementById('declBackHomeLabel').textContent = dt('backHomeBtn');
+
+  const declView = document.getElementById('declarationView');
+  if(declView && declView.style.display !== 'none'){
+    declRenderStepper();
+    declRenderCard();
+  }
+  const recordView = document.getElementById('declRecordView');
+  if(recordView && recordView.style.display !== 'none'){
+    declRenderRecord();
+  }
+  declApplySignModalLang();
+  declApplySuccessModalLang();
+}
+
 /* Qadamlar ketma-ket bajarilishi shart — bosqichni faqat oldingi
    bosqich(lar) muvaffaqiyatli yakunlangandan keyingina (validatsiyadan
    o'tib "Keyingisi" bosilganda) "ochiq" deb belgilaymiz. declGoToStep
@@ -2108,7 +2494,7 @@ function declAdvanceTo(idx){
 }
 
 function declStepLocked(){
-  alert("Avval joriy bosqichni to'liq yakunlang.");
+  alert(dt('stepLockedMsg'));
 }
 
 function declGoToStep(idx){
@@ -2128,15 +2514,16 @@ function declGoToStep(idx){
 
 function declRenderStepper(){
   const wrap = document.getElementById('declStepper');
-  wrap.innerHTML = DECL_STEPS.map((s, i) => {
+  const labels = dt('steps');
+  wrap.innerHTML = labels.map((label, i) => {
     const state = i < declCurrentStep ? 'done' : (i === declCurrentStep ? 'active' : '');
     const reachable = i <= declFurthestStep;
     const circleContent = i < declCurrentStep ? '&check;' : (i + 1);
     const clickAttr = reachable ? `declGoToStep(${i})` : `declStepLocked()`;
-    const line = i < DECL_STEPS.length - 1 ? `<div class="decl-step-line ${i < declCurrentStep ? 'done' : ''}"></div>` : '';
+    const line = i < labels.length - 1 ? `<div class="decl-step-line ${i < declCurrentStep ? 'done' : ''}"></div>` : '';
     return `<div class="decl-step ${state} ${reachable ? 'reachable' : ''}" onclick="${clickAttr}">
       <div class="decl-step-circle">${circleContent}</div>
-      <div class="decl-step-label">${escapeHtml(s.label)}</div>
+      <div class="decl-step-label">${escapeHtml(label)}</div>
     </div>${line}`;
   }).join('');
 }
@@ -2146,13 +2533,13 @@ function declScrollStepper(dir){
 }
 
 function declNavHtml(showPrev, nextEnabled){
-  const prevBtn = showPrev ? `<button class="decl-btn outline" onclick="declGoToStep(${declCurrentStep - 1})">Oldingi</button>` : '<span></span>';
+  const prevBtn = showPrev ? `<button class="decl-btn outline" onclick="declGoToStep(${declCurrentStep - 1})">${escapeHtml(dt('prevBtn'))}</button>` : '<span></span>';
   return `
     <div class="decl-nav">
       <div class="decl-nav-left">${prevBtn}</div>
       <div class="decl-nav-right">
-        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
-        <button class="decl-btn primary" ${nextEnabled ? '' : 'disabled'} onclick="declAdvanceTo(${declCurrentStep + 1})">Keyingisi</button>
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
+        <button class="decl-btn primary" ${nextEnabled ? '' : 'disabled'} onclick="declAdvanceTo(${declCurrentStep + 1})">${escapeHtml(dt('nextBtn'))}</button>
       </div>
     </div>
   `;
@@ -2160,36 +2547,40 @@ function declNavHtml(showPrev, nextEnabled){
 
 function declRenderCard(){
   const card = document.getElementById('declCard');
-  const step = DECL_STEPS[declCurrentStep];
-  if(step.key === 'intro') card.innerHTML = declStepIntroHtml();
-  else if(step.key === 'employee') card.innerHTML = declStepEmployeeHtml();
-  else if(step.key === 'terms') card.innerHTML = declStepTermsHtml();
-  else if(step.key === 'relatives') card.innerHTML = declStepRelativesHtml();
-  else if(step.key === 'questions') card.innerHTML = declStepQuestionsHtml();
-  else if(step.key === 'confirm') card.innerHTML = declStepConfirmHtml();
-  else if(step.key === 'review') card.innerHTML = declStepReviewHtml();
-  else if(step.key === 'esign') card.innerHTML = declStepEsignHtml();
+  const key = DECL_STEP_KEYS[declCurrentStep];
+  if(key === 'intro') card.innerHTML = declStepIntroHtml();
+  else if(key === 'employee') card.innerHTML = declStepEmployeeHtml();
+  else if(key === 'terms') card.innerHTML = declStepTermsHtml();
+  else if(key === 'relatives') card.innerHTML = declStepRelativesHtml();
+  else if(key === 'questions') card.innerHTML = declStepQuestionsHtml();
+  else if(key === 'confirm') card.innerHTML = declStepConfirmHtml();
+  else if(key === 'review') card.innerHTML = declStepReviewHtml();
+  else if(key === 'esign') card.innerHTML = declStepEsignHtml();
 }
 
 function declStepIntroHtml(){
-  const docsHtml = DECL_LEGAL_DOCS.map(doc => `
+  const docsHtml = dt('legalDocs').map(doc => `
     <div class="decl-doc-row">
       <div>
         <div class="t">${escapeHtml(doc.t)}</div>
         <div class="d">${escapeHtml(doc.d)}</div>
       </div>
-      <a href="javascript:void(0)" onclick="alert('Hujjat tez orada qo\\'shiladi')">Ochish</a>
+      <a href="javascript:void(0)" onclick="declDocComingSoon()">${escapeHtml(dt('openLink'))}</a>
     </div>`).join('');
   return `
-    <h2>Qonunchilik va Nizom talablari bilan tanishish</h2>
-    <p class="decl-sub">Deklaratsiyani to'ldirishdan avval quyidagi hujjatlar bilan tanishib chiqing va tanishganingizni tasdiqlang.</p>
+    <h2>${escapeHtml(dt('step1Title'))}</h2>
+    <p class="decl-sub">${escapeHtml(dt('step1Sub'))}</p>
     ${docsHtml}
     <div class="decl-check-row">
       <input type="checkbox" id="declCheck1" ${declTerms1Checked ? 'checked' : ''} onchange="declTerms1Checked = this.checked; declRenderCard(); declPersist();">
-      <label for="declCheck1">Men yuqoridagi Qonun va «O'zbektelekom» AK Nizomi talablari bilan to'liq tanishdim va ularga rioya etish majburiyatini olaman.</label>
+      <label for="declCheck1">${escapeHtml(dt('check1Label'))}</label>
     </div>
     ${declNavHtml(false, declTerms1Checked)}
   `;
+}
+
+function declDocComingSoon(){
+  alert(dt('docComingSoonMsg'));
 }
 
 function declStepEmployeeHtml(){
@@ -2198,67 +2589,65 @@ function declStepEmployeeHtml(){
   const lavozim = currentUser.lavozim || '—';
   return `
     <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
-      <h2 style="margin-bottom:0;">Xodim ma'lumotlari</h2>
-      <span class="decl-hrm-badge">Ma'lumotlar tizimidan avtomatik to'ldirilgan</span>
+      <h2 style="margin-bottom:0;">${escapeHtml(dt('step2Title'))}</h2>
+      <span class="decl-hrm-badge">${escapeHtml(dt('hrmBadge'))}</span>
     </div>
     <div class="decl-grid2">
-      <div class="field"><label>F.I.Sh. (to'liq)</label><input type="text" value="${escapeHtml(fullName)}" readonly></div>
-      <div class="field"><label>JShShIR (ПИНФЛ)</label><input type="text" maxlength="14" placeholder="14 raqam" value="${escapeHtml(declEmployeeJshshir)}" oninput="declEmployeeJshshir=this.value; declPersist();"></div>
-      <div class="field"><label>Tarkibiy bo'linma nomi</label><input type="text" value="${escapeHtml(bolinma)}" readonly></div>
-      <div class="field"><label>Lavozim</label><input type="text" value="${escapeHtml(lavozim)}" readonly></div>
-      <div class="field"><label>To'ldirilgan sana</label><input type="text" value="${declTodayFormatted()}" readonly></div>
-      <div class="field"><label>Bo'linma</label><input type="text" value="${escapeHtml(bolinma)}" readonly></div>
+      <div class="field"><label>${escapeHtml(dt('fishLabel'))}</label><input type="text" value="${escapeHtml(fullName)}" readonly></div>
+      <div class="field"><label>${escapeHtml(dt('jshshirLabel'))}</label><input type="text" maxlength="14" placeholder="${escapeHtml(dt('jshshirPh'))}" value="${escapeHtml(declEmployeeJshshir)}" oninput="declEmployeeJshshir=this.value; declPersist();"></div>
+      <div class="field"><label>${escapeHtml(dt('bolinmaNomiLabel'))}</label><input type="text" value="${escapeHtml(bolinma)}" readonly></div>
+      <div class="field"><label>${escapeHtml(dt('lavozimLabel'))}</label><input type="text" value="${escapeHtml(lavozim)}" readonly></div>
+      <div class="field"><label>${escapeHtml(dt('sanaLabel'))}</label><input type="text" value="${declTodayFormatted()}" readonly></div>
+      <div class="field"><label>${escapeHtml(dt('bolinmaLabel'))}</label><input type="text" value="${escapeHtml(bolinma)}" readonly></div>
     </div>
-    <div class="decl-notice">Ma'lumotlarda xatolik bo'lsa, Inson resurslarini boshqarish xizmatiga murojaat qiling — deklaratsiyada ular tahrirlanmaydi.</div>
+    <div class="decl-notice">${escapeHtml(dt('step2Notice'))}</div>
     ${declNavHtml(true, true)}
   `;
 }
 
 function declStepTermsHtml(){
-  const termsHtml = DECL_TERMS.map(term => `
+  const termsHtml = dt('terms').map(term => `
     <div class="decl-term-box">
       <div class="t">${escapeHtml(term.t)}</div>
       <div class="d">${escapeHtml(term.d)}</div>
     </div>`).join('');
   return `
-    <h2>Asosiy atamalar</h2>
-    <p class="decl-sub">Deklaratsiyada qo'llaniladigan atamalar bilan tanishib chiqing — savollarga to'g'ri javob berish uchun muhim.</p>
+    <h2>${escapeHtml(dt('step3Title'))}</h2>
+    <p class="decl-sub">${escapeHtml(dt('step3Sub'))}</p>
     ${termsHtml}
     <div class="decl-check-row">
       <input type="checkbox" id="declCheck3" ${declTerms3Checked ? 'checked' : ''} onchange="declTerms3Checked = this.checked; declRenderCard(); declPersist();">
-      <label for="declCheck3">Atamalar mazmuni bilan tanishdim.</label>
+      <label for="declCheck3">${escapeHtml(dt('check3Label'))}</label>
     </div>
     ${declNavHtml(true, declTerms3Checked)}
   `;
 }
-
-const DECL_HOLAT_LABELS = {
-  info:"To'ldirildi", no_info:"Ma'lumotga ega emas", deceased:"Vafot etgan", no_contact:"Ajrashgan / aloqada emas",
-};
 
 function declFilledCount(){
   return declRelatives.filter(r => r.filled).length;
 }
 
 function declStepRelativesHtml(){
+  const holatLabels = dt('holatLabels');
   const rowsHtml = declRelatives.map(r => `
     <div class="decl-rel-row">
       <div class="decl-rel-icon"></div>
       <div class="decl-rel-info">
         <div class="n">${escapeHtml(r.label)}</div>
-        <div class="s ${r.filled ? 'filled' : ''}">${r.filled ? (DECL_HOLAT_LABELS[r.data && r.data.holat] || "To'ldirildi") : "Ma'lumot kiritilmagan"}</div>
+        <div class="s ${r.filled ? 'filled' : ''}">${r.filled ? escapeHtml(holatLabels[r.data && r.data.holat] || holatLabels.info) : escapeHtml(dt('notFilledStatus'))}</div>
       </div>
-      <button class="decl-rel-fill-btn ${r.filled ? 'filled' : ''}" onclick="declOpenFillModal('${r.id}')">${r.filled ? 'Tahrirlash' : "To'ldirish"}</button>
-      ${r.fixed ? '' : `<button class="decl-rel-remove" title="O'chirish" onclick="declRemoveRelative('${r.id}')">&times;</button>`}
+      <button class="decl-rel-fill-btn ${r.filled ? 'filled' : ''}" onclick="declOpenFillModal('${r.id}')">${r.filled ? escapeHtml(dt('editBtn')) : escapeHtml(dt('fillBtn'))}</button>
+      ${r.fixed ? '' : `<button class="decl-rel-remove" title="${escapeHtml(dt('removeTitle'))}" onclick="declRemoveRelative('${r.id}')">&times;</button>`}
     </div>`).join('');
-  const menuHtml = DECL_RELATIVE_TYPES.map(t => `<div class="decl-add-menu-item" onclick="declAddRelative('${t.key}')">${escapeHtml(t.label)}</div>`).join('');
+  const menuHtml = dt('relativeTypes').map(t => `<div class="decl-add-menu-item" onclick="declAddRelative('${t.key}')">${escapeHtml(t.label)}</div>`).join('');
   const allFilled = declRelatives.length > 0 && declRelatives.every(r => r.filled);
+  const subHtml = dt('step4SubTpl').replace('{filled}', declFilledCount()).replace('{total}', declRelatives.length);
   return `
-    <h2>Yaqin qarindoshlar to'g'risida ma'lumot</h2>
-    <p class="decl-sub decl-progress-note">Har bir yaqin qarindosh bo'yicha ma'lumot kiritish <b>majburiy</b>. Qarindosh vafot etgan, aloqa uzilgan yoki ma'lumotga ega bo'lmasangiz — tegishli variantni tanlaysiz. To'ldirilgan: ${declFilledCount()}/${declRelatives.length}</p>
+    <h2>${escapeHtml(dt('step4Title'))}</h2>
+    <p class="decl-sub decl-progress-note">${subHtml}</p>
     ${rowsHtml}
     <div class="decl-add-wrap">
-      <button class="decl-add-btn" onclick="declToggleAddMenu(event)">Yana qarindosh qo'shish (aka-uka, farzand va h.k.)</button>
+      <button class="decl-add-btn" onclick="declToggleAddMenu(event)">${escapeHtml(dt('addRelativeBtn'))}</button>
       <div class="decl-add-menu" id="declAddMenu">${menuHtml}</div>
     </div>
     ${declNavHtml(true, allFilled)}
@@ -2277,7 +2666,7 @@ document.addEventListener('click', function(e){
 });
 
 function declAddRelative(typeKey){
-  const type = DECL_RELATIVE_TYPES.find(t => t.key === typeKey);
+  const type = dt('relativeTypes').find(t => t.key === typeKey);
   if(!type) return;
   declRelSeq++;
   const sameTypeCount = declRelatives.filter(r => r.typeKey === typeKey).length;
@@ -2302,7 +2691,7 @@ function declOpenFillModal(relId){
   if(!r) return;
   declModalRelId = relId;
   declModalData = r.data ? JSON.parse(JSON.stringify(r.data)) : { holat:'' };
-  document.getElementById('declModalTitle').textContent = r.label + " — ma'lumot kiritish";
+  document.getElementById('declModalTitle').textContent = r.label + dt('modalTitleSuffix');
   declRenderModalBody();
   openModal('declFillModal');
 }
@@ -2320,46 +2709,46 @@ function declModalFieldsHtml(){
   const d = declModalData;
   let html = `
     <div class="field">
-      <label>Holat <span class="req">*</span></label>
+      <label>${escapeHtml(dt('holatFieldLabel'))} <span class="req">*</span></label>
       <select class="decl-modal-select" onchange="declModalSetField('holat', this.value)">
-        <option value="" ${!d.holat ? 'selected' : ''}>— Tanlang —</option>
-        <option value="info" ${d.holat === 'info' ? 'selected' : ''}>Ma'lumot kiritaman</option>
-        <option value="no_info" ${d.holat === 'no_info' ? 'selected' : ''}>Ma'lumotga ega emasman</option>
-        <option value="deceased" ${d.holat === 'deceased' ? 'selected' : ''}>Vafot etgan</option>
-        <option value="no_contact" ${d.holat === 'no_contact' ? 'selected' : ''}>Ajrashgan / aloqada emasman</option>
+        <option value="" ${!d.holat ? 'selected' : ''}>${escapeHtml(dt('holatPlaceholder'))}</option>
+        <option value="info" ${d.holat === 'info' ? 'selected' : ''}>${escapeHtml(dt('holatInfo'))}</option>
+        <option value="no_info" ${d.holat === 'no_info' ? 'selected' : ''}>${escapeHtml(dt('holatNoInfo'))}</option>
+        <option value="deceased" ${d.holat === 'deceased' ? 'selected' : ''}>${escapeHtml(dt('holatDeceased'))}</option>
+        <option value="no_contact" ${d.holat === 'no_contact' ? 'selected' : ''}>${escapeHtml(dt('holatNoContact'))}</option>
       </select>
     </div>`;
 
   if(d.holat === 'info'){
     html += `
       <div class="decl-grid2">
-        <div class="field"><label>F.I.Sh. <span class="req">*</span></label><input type="text" value="${escapeHtml(d.fullName || '')}" oninput="declModalData.fullName=this.value; declPersist();"></div>
-        <div class="field"><label>JShShIR</label><input type="text" maxlength="14" placeholder="14 raqam" value="${escapeHtml(d.jshshir || '')}" oninput="declModalData.jshshir=this.value; declPersist();"></div>
+        <div class="field"><label>${escapeHtml(dt('fishReqLabel'))} <span class="req">*</span></label><input type="text" value="${escapeHtml(d.fullName || '')}" oninput="declModalData.fullName=this.value; declPersist();"></div>
+        <div class="field"><label>${escapeHtml(dt('jshshirShortLabel'))}</label><input type="text" maxlength="14" placeholder="${escapeHtml(dt('jshshirPh'))}" value="${escapeHtml(d.jshshir || '')}" oninput="declModalData.jshshir=this.value; declPersist();"></div>
       </div>
-      <div class="field"><label>Yashash manzili</label><input type="text" value="${escapeHtml(d.address || '')}" oninput="declModalData.address=this.value; declPersist();"></div>
+      <div class="field"><label>${escapeHtml(dt('addressLabel'))}</label><input type="text" value="${escapeHtml(d.address || '')}" oninput="declModalData.address=this.value; declPersist();"></div>
       <div class="field">
-        <label>Ish joyi bo'yicha variant <span class="req">*</span></label>
+        <label>${escapeHtml(dt('workTypeLabel'))} <span class="req">*</span></label>
         <div class="decl-radio-row">
-          <div class="decl-radio-opt ${d.workType === 'entrepreneur' ? 'selected' : ''}" onclick="declModalSetField('workType','entrepreneur')"><span class="decl-radio-dot"></span>Rahbar yoki ta'sischi</div>
-          <div class="decl-radio-opt ${d.workType === 'other' ? 'selected' : ''}" onclick="declModalSetField('workType','other')"><span class="decl-radio-dot"></span>Boshqalar</div>
+          <div class="decl-radio-opt ${d.workType === 'entrepreneur' ? 'selected' : ''}" onclick="declModalSetField('workType','entrepreneur')"><span class="decl-radio-dot"></span>${escapeHtml(dt('workTypeHead'))}</div>
+          <div class="decl-radio-opt ${d.workType === 'other' ? 'selected' : ''}" onclick="declModalSetField('workType','other')"><span class="decl-radio-dot"></span>${escapeHtml(dt('workTypeOther'))}</div>
         </div>
       </div>`;
 
     if(d.workType === 'other'){
-      html += `<div class="field"><label>Ish joyi va lavozimi <span class="req">*</span></label><input type="text" placeholder="Tashkilot nomi va lavozimi" value="${escapeHtml(d.workplacePosition || '')}" oninput="declModalData.workplacePosition=this.value; declPersist();"></div>`;
+      html += `<div class="field"><label>${escapeHtml(dt('workplacePositionLabel'))} <span class="req">*</span></label><input type="text" placeholder="${escapeHtml(dt('workplacePositionPh'))}" value="${escapeHtml(d.workplacePosition || '')}" oninput="declModalData.workplacePosition=this.value; declPersist();"></div>`;
     }
 
     if(d.workType === 'entrepreneur'){
       html += `
         <div class="decl-subbox">
-          <div class="subbox-title">Yuridik shaxs (MChJ, XK, OK va h.k.) rahbari yoki ta'sischisi:</div>
+          <div class="subbox-title">${escapeHtml(dt('entrepreneurBoxTitle'))}</div>
           <div class="decl-grid2">
-            <div class="field"><label>Yuridik shaxs nomi <span class="req">*</span></label><input type="text" value="${escapeHtml(d.legalEntityName || '')}" oninput="declModalData.legalEntityName=this.value; declPersist();"></div>
-            <div class="field"><label>STIR (INN) <span class="req">*</span></label><input type="text" maxlength="9" placeholder="9 raqam" value="${escapeHtml(d.stir || '')}" oninput="declModalData.stir=this.value; declPersist();"></div>
+            <div class="field"><label>${escapeHtml(dt('legalEntityNameLabel'))} <span class="req">*</span></label><input type="text" value="${escapeHtml(d.legalEntityName || '')}" oninput="declModalData.legalEntityName=this.value; declPersist();"></div>
+            <div class="field"><label>${escapeHtml(dt('stirLabel'))} <span class="req">*</span></label><input type="text" maxlength="9" placeholder="${escapeHtml(dt('stirPh'))}" value="${escapeHtml(d.stir || '')}" oninput="declModalData.stir=this.value; declPersist();"></div>
           </div>
           <div class="decl-grid2">
-            <div class="field"><label>Egalik ulushi (%)</label><input type="text" placeholder="Masalan: 50%" value="${escapeHtml(d.ownershipShare || '')}" oninput="declModalData.ownershipShare=this.value; declPersist();"></div>
-            <div class="field"><label>Boshqaruvdagi roli <span class="req">*</span></label><input type="text" placeholder="Direktor / ta'sischi" value="${escapeHtml(d.managementRole || '')}" oninput="declModalData.managementRole=this.value; declPersist();"></div>
+            <div class="field"><label>${escapeHtml(dt('ownershipShareLabel'))}</label><input type="text" placeholder="${escapeHtml(dt('ownershipSharePh'))}" value="${escapeHtml(d.ownershipShare || '')}" oninput="declModalData.ownershipShare=this.value; declPersist();"></div>
+            <div class="field"><label>${escapeHtml(dt('managementRoleLabel'))} <span class="req">*</span></label><input type="text" placeholder="${escapeHtml(dt('managementRolePh'))}" value="${escapeHtml(d.managementRole || '')}" oninput="declModalData.managementRole=this.value; declPersist();"></div>
           </div>
         </div>`;
     }
@@ -2367,23 +2756,23 @@ function declModalFieldsHtml(){
 
   html += `
     <div class="decl-modal-footer">
-      <button class="decl-btn outline" onclick="closeModal('declFillModal')">Bekor qilish</button>
-      <button class="decl-btn primary" onclick="declSaveModal()">Saqlash</button>
+      <button class="decl-btn outline" onclick="closeModal('declFillModal')">${escapeHtml(dt('cancelBtn'))}</button>
+      <button class="decl-btn primary" onclick="declSaveModal()">${escapeHtml(dt('saveBtn'))}</button>
     </div>`;
   return html;
 }
 
 function declSaveModal(){
   const d = declModalData;
-  if(!d.holat){ alert('Holatni tanlang'); return; }
+  if(!d.holat){ alert(dt('alertHolatTanlang')); return; }
   if(d.holat === 'info'){
-    if(!d.fullName || !d.fullName.trim()){ alert("F.I.Sh. maydonini to'ldiring"); return; }
-    if(!d.workType){ alert("Ish joyi bo'yicha variantni tanlang"); return; }
-    if(d.workType === 'other' && (!d.workplacePosition || !d.workplacePosition.trim())){ alert("Ish joyi va lavozimini kiriting"); return; }
+    if(!d.fullName || !d.fullName.trim()){ alert(dt('alertFishToldiring')); return; }
+    if(!d.workType){ alert(dt('alertIshJoyiTanlang')); return; }
+    if(d.workType === 'other' && (!d.workplacePosition || !d.workplacePosition.trim())){ alert(dt('alertIshJoyiKiriting')); return; }
     if(d.workType === 'entrepreneur'){
-      if(!d.legalEntityName || !d.legalEntityName.trim()){ alert("Yuridik shaxs nomini kiriting"); return; }
-      if(!d.stir || !d.stir.trim()){ alert("STIR (INN) raqamini kiriting"); return; }
-      if(!d.managementRole || !d.managementRole.trim()){ alert("Boshqaruvdagi rolini kiriting"); return; }
+      if(!d.legalEntityName || !d.legalEntityName.trim()){ alert(dt('alertYuridikShaxsKiriting')); return; }
+      if(!d.stir || !d.stir.trim()){ alert(dt('alertStirKiriting')); return; }
+      if(!d.managementRole || !d.managementRole.trim()){ alert(dt('alertBoshqaruvRoliKiriting')); return; }
     }
   }
   const r = declRelatives.find(x => x.id === declModalRelId);
@@ -2399,7 +2788,8 @@ function declSaveModal(){
 /* ---------- 5-bosqich: Savollar ---------- */
 function declStepQuestionsHtml(){
   const idx = declQuestionIndex;
-  const meta = DECL_QUESTIONS[idx];
+  const questions = dt('questions');
+  const meta = questions[idx];
   const a = declAnswers[idx];
   let body;
 
@@ -2407,14 +2797,14 @@ function declStepQuestionsHtml(){
     const showIzoh = a.choice === 'ha';
     body = `
       <div class="decl-radio-row" style="max-width:260px;">
-        <div class="decl-radio-opt ${a.choice === 'ha' ? 'selected' : ''}" onclick="declSetAnswerChoice(${idx}, 'ha')"><span class="decl-radio-dot"></span>Ha</div>
-        <div class="decl-radio-opt ${a.choice === 'yoq' ? 'selected' : ''}" onclick="declSetAnswerChoice(${idx}, 'yoq')"><span class="decl-radio-dot"></span>Yo'q</div>
+        <div class="decl-radio-opt ${a.choice === 'ha' ? 'selected' : ''}" onclick="declSetAnswerChoice(${idx}, 'ha')"><span class="decl-radio-dot"></span>${escapeHtml(dt('haLabel'))}</div>
+        <div class="decl-radio-opt ${a.choice === 'yoq' ? 'selected' : ''}" onclick="declSetAnswerChoice(${idx}, 'yoq')"><span class="decl-radio-dot"></span>${escapeHtml(dt('yoqLabel'))}</div>
       </div>
       ${showIzoh ? `
       <div class="decl-subbox" style="margin-top:16px;">
-        <label style="display:block; font-weight:700; font-size:12.5px; margin-bottom:8px;">Izohlar <span class="req">*</span> (tegishli tashkilotlar, lavozimlar, ulushlar...)</label>
+        <label style="display:block; font-weight:700; font-size:12.5px; margin-bottom:8px;">${escapeHtml(dt('izohLabel'))} <span class="req">*</span>${escapeHtml(dt('izohHintSuffix'))}</label>
         <textarea class="decl-textarea ${declQuestionError ? 'error' : ''}" rows="4" oninput="declAnswers[${idx}].note=this.value; declQuestionError=false; declPersist();">${escapeHtml(a.note || '')}</textarea>
-        ${declQuestionError ? `<div class="decl-field-error">«Ha» javobida izoh kiritilishi shart</div>` : ''}
+        ${declQuestionError ? `<div class="decl-field-error">${escapeHtml(dt('izohRequiredError'))}</div>` : ''}
       </div>` : ''}`;
   } else {
     body = `
@@ -2424,11 +2814,11 @@ function declStepQuestionsHtml(){
       </div>`;
   }
 
-  const prevLabel = idx > 0 ? 'Oldingi savol' : 'Oldingi bosqich';
+  const prevLabel = idx > 0 ? dt('prevQuestionBtn') : dt('prevStepBtn');
   return `
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2 style="margin-bottom:0;">Deklaratsiya savollari</h2>
-      <span class="decl-hrm-badge">Savol ${idx + 1} / ${DECL_QUESTIONS.length}</span>
+      <h2 style="margin-bottom:0;">${escapeHtml(dt('step5Title'))}</h2>
+      <span class="decl-hrm-badge">${escapeHtml(dt('questionBadgeTpl').replace('{n}', idx + 1).replace('{total}', questions.length))}</span>
     </div>
     <div style="display:flex; gap:12px; align-items:flex-start; margin-top:20px; margin-bottom:20px;">
       <div class="decl-q-num">${idx + 1}</div>
@@ -2439,10 +2829,10 @@ function declStepQuestionsHtml(){
     </div>
     ${body}
     <div class="decl-nav">
-      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declQuestionPrev()">${prevLabel}</button></div>
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declQuestionPrev()">${escapeHtml(prevLabel)}</button></div>
       <div class="decl-nav-right">
-        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
-        <button class="decl-btn primary" onclick="declQuestionNext()">Keyingisi</button>
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
+        <button class="decl-btn primary" onclick="declQuestionNext()">${escapeHtml(dt('nextBtn'))}</button>
       </div>
     </div>
   `;
@@ -2467,13 +2857,14 @@ function declQuestionPrev(){
 
 function declQuestionNext(){
   const idx = declQuestionIndex;
-  const meta = DECL_QUESTIONS[idx];
+  const questions = dt('questions');
+  const meta = questions[idx];
   const a = declAnswers[idx];
   if(meta.type === 'yesno'){
-    if(!a.choice){ alert("Savolga javob bering"); return; }
+    if(!a.choice){ alert(dt('answerRequiredAlert')); return; }
     if(a.choice === 'ha' && (!a.note || !a.note.trim())){ declQuestionError = true; declRenderCard(); return; }
   }
-  if(idx < DECL_QUESTIONS.length - 1){
+  if(idx < questions.length - 1){
     declQuestionIndex++;
     declQuestionError = false;
     declRenderCard();
@@ -2487,35 +2878,35 @@ function declQuestionNext(){
 function declStepConfirmHtml(){
   const c = declConfirm;
   return `
-    <h2>Yakuniy tasdiqlash</h2>
-    <p class="decl-sub">Deklaratsiyani imzolashdan oldin quyidagilarni tasdiqlang.</p>
+    <h2>${escapeHtml(dt('step6Title'))}</h2>
+    <p class="decl-sub">${escapeHtml(dt('step6Sub'))}</p>
     <div class="decl-radio-opt-wide ${c.hasConflict === true ? 'selected' : ''}" style="margin-bottom:10px;" onclick="declSetConflict(true)">
       <span class="decl-radio-dot"></span>
       <div>
-        <div style="font-weight:700; font-size:13.5px;">Menda manfaatlar to'qnashuviga olib keladigan holatlar MAVJUD</div>
-        <div style="font-weight:400; color:var(--text-dim); font-size:12px; margin-top:3px;">Savollarda «Ha» deb belgilagan yoki jadvalda ko'rsatgan holatlaringiz bo'lsa, ushbu variantni tanlang.</div>
+        <div style="font-weight:700; font-size:13.5px;">${escapeHtml(dt('conflictExistsTitle'))}</div>
+        <div style="font-weight:400; color:var(--text-dim); font-size:12px; margin-top:3px;">${escapeHtml(dt('conflictExistsSub'))}</div>
       </div>
     </div>
     <div class="decl-radio-opt-wide ${c.hasConflict === false ? 'selected' : ''}" onclick="declSetConflict(false)">
       <span class="decl-radio-dot"></span>
       <div>
-        <div style="font-weight:700; font-size:13.5px;">Menda manfaatlar to'qnashuviga olib keladigan holatlar MAVJUD EMAS</div>
-        <div style="font-weight:400; color:var(--text-dim); font-size:12px; margin-top:3px;">Hech qanday to'qnashuv holati bo'lmasa, ushbu variantni tanlang.</div>
+        <div style="font-weight:700; font-size:13.5px;">${escapeHtml(dt('conflictNoneTitle'))}</div>
+        <div style="font-weight:400; color:var(--text-dim); font-size:12px; margin-top:3px;">${escapeHtml(dt('conflictNoneSub'))}</div>
       </div>
     </div>
     <div class="decl-check-row">
       <input type="checkbox" id="declAck1" ${c.ack1 ? 'checked' : ''} onchange="declConfirm.ack1=this.checked; declRenderCard(); declPersist();">
-      <label for="declAck1">Ushbu deklaratsiyada aks ettirilgan ma'lumotlar <b>to'liqligi va haqqoniyligini tasdiqlayman</b> hamda ushbu ma'lumotlar tegishli huquq-tartibot organlari tomonidan tekshirilishiga rozilik bildiraman.</label>
+      <label for="declAck1">${dt('ack1Label')}</label>
     </div>
     <div class="decl-check-row">
       <input type="checkbox" id="declAck2" ${c.ack2 ? 'checked' : ''} onchange="declConfirm.ack2=this.checked; declRenderCard(); declPersist();">
-      <label for="declAck2">Nizom talablariga binoan, deklaratsiya haqqoniyligiga ta'sir qiladigan <b>yangi holatlar to'g'risida</b> Kompaniyaga darhol xabar berish majburiyatini zimmamga olaman.</label>
+      <label for="declAck2">${dt('ack2Label')}</label>
     </div>
     <div class="decl-nav">
-      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(4)">Oldingi</button></div>
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(4)">${escapeHtml(dt('prevBtn'))}</button></div>
       <div class="decl-nav-right">
-        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
-        <button class="decl-btn primary" ${(c.hasConflict !== null && c.ack1 && c.ack2) ? '' : 'disabled'} onclick="declAdvanceTo(6)">Ko'rib chiqish</button>
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
+        <button class="decl-btn primary" ${(c.hasConflict !== null && c.ack1 && c.ack2) ? '' : 'disabled'} onclick="declAdvanceTo(6)">${escapeHtml(dt('reviewBtn'))}</button>
       </div>
     </div>
   `;
@@ -2539,66 +2930,67 @@ function declStepReviewHtml(){
   const fullName = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || '—';
   const bolinma = currentUser.bolinma || '—';
   const lavozim = currentUser.lavozim || '—';
+  const holatLabels = dt('holatLabels');
 
   const relRows = declRelatives.map(r => {
     const d = r.data;
     const nameCell = (d && d.holat === 'info' && d.fullName)
       ? escapeHtml(d.fullName)
-      : `— <span class="decl-pill gray">${escapeHtml((d && DECL_HOLAT_LABELS[d.holat]) || "ma'lumot yo'q")}</span>`;
+      : `— <span class="decl-pill gray">${escapeHtml((d && holatLabels[d.holat]) || dt('maLumotYoq'))}</span>`;
     return `<tr><td><b>${escapeHtml(r.label)}</b></td><td>${nameCell}</td><td>${escapeHtml(declWorkplaceText(d))}</td></tr>`;
   }).join('');
 
-  const qRows = DECL_QUESTIONS.map((meta, i) => {
+  const qRows = dt('questions').map((meta, i) => {
     const a = declAnswers[i];
     const short = meta.q.length > 78 ? meta.q.slice(0, 78) + '…' : meta.q;
     let badge = '<span class="decl-dash">—</span>';
     if(meta.type === 'yesno' && a.choice){
-      badge = `<span class="decl-pill ${a.choice === 'ha' ? 'coral' : 'teal'}">${a.choice === 'ha' ? 'HA' : "YO'Q"}</span>`;
+      badge = `<span class="decl-pill ${a.choice === 'ha' ? 'coral' : 'teal'}">${a.choice === 'ha' ? escapeHtml(dt('haLabel')).toUpperCase() : escapeHtml(dt('yoqLabel')).toUpperCase()}</span>`;
     }
     return `<tr><td>${i + 1}. ${escapeHtml(short)}</td><td style="text-align:right;">${badge}</td></tr>`;
   }).join('');
 
   const conflictBadge = declConfirm.hasConflict === true
-    ? `<span class="decl-pill coral">Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD</span>`
+    ? `<span class="decl-pill coral">${escapeHtml(dt('conflictExistsBadge'))}</span>`
     : declConfirm.hasConflict === false
-      ? `<span class="decl-pill teal">Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD EMAS</span>`
-      : `<span class="decl-pill gray">Tanlanmagan</span>`;
+      ? `<span class="decl-pill teal">${escapeHtml(dt('conflictNoneBadge'))}</span>`
+      : `<span class="decl-pill gray">${escapeHtml(dt('notSelected'))}</span>`;
 
   return `
-    <h2>Ko'rib chiqish</h2>
-    <p class="decl-sub">Yuborishdan oldin barcha javoblaringizni tekshiring. Kerak bo'lsa, tegishli bo'limga qaytib tahrirlang.</p>
+    <h2>${escapeHtml(dt('step7Title'))}</h2>
+    <p class="decl-sub">${escapeHtml(dt('step7Sub'))}</p>
 
     <div class="decl-review-section">
-      <div class="decl-review-head"><b>Xodim ma'lumotlari</b><a href="javascript:void(0)" onclick="declGoToStep(1)">Ko'rish</a></div>
-      <div class="decl-review-row"><span>F.I.Sh. / JShShIR</span><b>${escapeHtml(fullName)} · ${escapeHtml(declEmployeeJshshir || '—')}</b></div>
-      <div class="decl-review-row"><span>Bo'linma / lavozim</span><b>${escapeHtml(bolinma)} · ${escapeHtml(lavozim)}</b></div>
+      <div class="decl-review-head"><b>${escapeHtml(dt('employeeSectionTitle'))}</b><a href="javascript:void(0)" onclick="declGoToStep(1)">${escapeHtml(dt('viewLinkText'))}</a></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('fishJshshirLabel'))}</span><b>${escapeHtml(fullName)} · ${escapeHtml(declEmployeeJshshir || '—')}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('bolinmaLavozimLabel'))}</span><b>${escapeHtml(bolinma)} · ${escapeHtml(lavozim)}</b></div>
     </div>
 
     <div class="decl-review-section">
-      <div class="decl-review-head"><b>Yaqin qarindoshlar (${declRelatives.length})</b><a href="javascript:void(0)" onclick="declGoToStep(3)">Tahrirlash</a></div>
+      <div class="decl-review-head"><b>${escapeHtml(dt('relativesSectionTitleTpl').replace('{n}', declRelatives.length))}</b><a href="javascript:void(0)" onclick="declGoToStep(3)">${escapeHtml(dt('editLinkText'))}</a></div>
       <div style="overflow-x:auto;">
         <table class="decl-review-table">
-          <thead><tr><th>Daraja</th><th>F.I.Sh.</th><th>Ish joyi</th></tr></thead>
+          <thead><tr><th>${escapeHtml(dt('tblDaraja'))}</th><th>${escapeHtml(dt('tblFish'))}</th><th>${escapeHtml(dt('tblIshJoyi'))}</th></tr></thead>
           <tbody>${relRows}</tbody>
         </table>
       </div>
     </div>
 
     <div class="decl-review-section">
-      <div class="decl-review-head"><b>Savollar javoblari</b><a href="javascript:void(0)" onclick="declGoToStep(4)">Tahrirlash</a></div>
+      <div class="decl-review-head"><b>${escapeHtml(dt('questionsSectionTitle'))}</b><a href="javascript:void(0)" onclick="declGoToStep(4)">${escapeHtml(dt('editLinkText'))}</a></div>
       <table class="decl-review-table"><tbody>${qRows}</tbody></table>
     </div>
 
     <div class="decl-review-section">
-      <div class="decl-review-head"><b>Yakuniy tasdiq</b><a href="javascript:void(0)" onclick="declGoToStep(5)">Tahrirlash</a></div>
+      <div class="decl-review-head"><b>${escapeHtml(dt('finalConfirmSectionTitle'))}</b><a href="javascript:void(0)" onclick="declGoToStep(5)">${escapeHtml(dt('editLinkText'))}</a></div>
       ${conflictBadge}
     </div>
 
     <div class="decl-nav">
-      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(5)">Oldingi</button></div>
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(5)">${escapeHtml(dt('prevBtn'))}</button></div>
       <div class="decl-nav-right">
-        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
-        <button class="decl-btn primary" onclick="declAdvanceTo(7)">E-IMZO bosqichiga o'tish</button>
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
+        <button class="decl-btn primary" onclick="declAdvanceTo(7)">${escapeHtml(dt('goToEsignBtn'))}</button>
       </div>
     </div>
   `;
@@ -2607,16 +2999,16 @@ function declStepReviewHtml(){
 /* ---------- 8-bosqich: E-IMZO ---------- */
 function declStepEsignHtml(){
   return `
-    <h2>E-IMZO bilan imzolash</h2>
-    <p class="decl-sub">Deklaratsiya faqat elektron raqamli imzo qo'yilgandan so'ng yakunlangan hisoblanadi. Jarayon: To'ldirish &rarr; Ko'rib chiqish &rarr; Tasdiqlash &rarr; <b>E-IMZO</b> &rarr; Imzo tasdiqlanishi &rarr; Yakunlanishi.</p>
-    <div class="decl-notice">Imzolash uchun E-IMZO kalitingiz (sertifikatingiz) tanlanadi. Imzolangandan so'ng har bir deklaratsiya uchun <b>unikal QR-kod va Verification ID</b> shakllantiriladi — ular orqali imzoni istalgan vaqtda tekshirish mumkin.</div>
+    <h2>${escapeHtml(dt('step8Title'))}</h2>
+    <p class="decl-sub">${dt('step8SubHtml')}</p>
+    <div class="decl-notice">${dt('step8NoticeHtml')}</div>
     <div style="text-align:center; padding:30px 0;">
-      <button class="decl-btn primary" style="padding:14px 32px; font-size:14px;" onclick="declOpenSignModal()">E-IMZO bilan imzolash</button>
+      <button class="decl-btn primary" style="padding:14px 32px; font-size:14px;" onclick="declOpenSignModal()">${escapeHtml(dt('signBtn'))}</button>
     </div>
     <div class="decl-nav">
-      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(6)">Oldingi</button></div>
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(6)">${escapeHtml(dt('prevBtn'))}</button></div>
       <div class="decl-nav-right">
-        <button class="decl-btn outline" onclick="declSaveDraft()">Saqlash</button>
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
       </div>
     </div>
   `;
@@ -2633,9 +3025,20 @@ let declSignature = null;
 function declOpenSignModal(){
   const fullName = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || currentUser.login;
   document.getElementById('declCertName').textContent = fullName;
-  document.getElementById('declCertNameOld').textContent = fullName + ' (eski)';
+  document.getElementById('declCertNameOld').textContent = fullName + dt('oldSuffix');
   document.getElementById('declSignPassword').value = '';
+  declApplySignModalLang();
   openModal('declSignModal');
+}
+
+function declApplySignModalLang(){
+  document.getElementById('declSignModalTitle').textContent = dt('signModalTitle');
+  document.getElementById('declSignModalSub').textContent = dt('signModalSub');
+  document.getElementById('declCertValidUntil').textContent = dt('certValidUntil');
+  document.getElementById('declCertExpired').textContent = dt('certExpired');
+  document.getElementById('declKeyPasswordLabel').textContent = dt('keyPasswordLabel');
+  document.getElementById('declSignCancelBtn').textContent = dt('cancelBtn');
+  document.getElementById('declSignActionBtn').textContent = dt('signActionBtn');
 }
 
 function declBuildPayload(){
@@ -2649,7 +3052,7 @@ function declBuildPayload(){
 
 async function declConfirmSign(){
   const pwd = document.getElementById('declSignPassword').value;
-  if(!pwd){ alert('Kalit parolini kiriting'); return; }
+  if(!pwd){ alert(dt('signPasswordRequired')); return; }
   const rand = () => Math.random().toString(36).slice(2, 10).toUpperCase();
   const now = new Date();
   const signature = {
@@ -2659,8 +3062,8 @@ async function declConfirmSign(){
     certName: "DS E-1042-2026 · «O'zbektelekom» AK UC",
   };
 
-  const signBtn = document.querySelector('#declSignModal .decl-modal-footer .decl-btn.primary');
-  if(signBtn){ signBtn.disabled = true; signBtn.textContent = 'Yuborilmoqda...'; }
+  const signBtn = document.getElementById('declSignActionBtn');
+  if(signBtn){ signBtn.disabled = true; signBtn.textContent = dt('signingInProgress'); }
 
   let data;
   try{
@@ -2674,10 +3077,10 @@ async function declConfirmSign(){
     data = { success:false, message: ex.message };
   }
 
-  if(signBtn){ signBtn.disabled = false; signBtn.textContent = 'Imzolash'; }
+  if(signBtn){ signBtn.disabled = false; signBtn.textContent = dt('signActionBtn'); }
 
   if(!data.success){
-    alert('Xatolik: ' + (data.message || "Deklaratsiyani yuborib bo'lmadi. Qaytadan urinib ko'ring."));
+    alert(dt('submitErrorPrefix') + (data.message || dt('submitFailedGeneric')));
     return;
   }
 
@@ -2685,8 +3088,15 @@ async function declConfirmSign(){
   closeModal('declSignModal');
   document.getElementById('declSignPassword').value = '';
   document.getElementById('declVerificationIdBadge').textContent = declSignature.verificationId;
-  document.getElementById('declSuccessDept').textContent = "Hujjat " + (currentUser.bolinma || 'tegishli') + " bo'limiga yuborildi.";
+  document.getElementById('declSuccessDept').textContent = dt('successDeptTpl').replace('{dept}', currentUser.bolinma || dt('tegishli'));
+  declApplySuccessModalLang();
   openModal('declSignSuccessModal');
+}
+
+function declApplySuccessModalLang(){
+  document.getElementById('declSuccessTitle').textContent = dt('successTitle');
+  document.getElementById('declVerificationIdLabel').textContent = dt('verificationIdLabel');
+  document.getElementById('declViewDeclarationBtn').textContent = dt('viewDeclarationBtn');
 }
 
 function declShowRecord(){
@@ -2705,7 +3115,7 @@ function declBackToHomeFromRecord(){
 }
 
 function declVerifyStub(){
-  alert("QR orqali imzoni tekshirish tizimi hali serverga ulanmagan — bu funksiya keyingi bosqichda qo'shiladi.");
+  alert(dt('verifyStubMsg'));
 }
 
 function declPrintRecord(){
@@ -2744,22 +3154,23 @@ function declRenderRecord(){
   const lavozim = currentUser.lavozim || '—';
   const sig = declSignature || {};
   const signedAtStr = sig.signedAt ? declFormatDateTime(sig.signedAt) : '—';
+  const holatLabels = dt('holatLabels');
 
   const relRows = declRelatives.map(r => {
     const d = r.data;
     const nameCell = (d && d.holat === 'info' && d.fullName)
       ? escapeHtml(d.fullName)
-      : `<span class="decl-pill gray">${escapeHtml((d && DECL_HOLAT_LABELS[d.holat]) || "ma'lumot yo'q")}</span>`;
+      : `<span class="decl-pill gray">${escapeHtml((d && holatLabels[d.holat]) || dt('maLumotYoq'))}</span>`;
     const jshCell = (d && d.holat === 'info' && d.jshshir) ? escapeHtml(d.jshshir) : '—';
     const addrCell = (d && d.holat === 'info' && d.address) ? escapeHtml(d.address) : '—';
     return `<tr><td><b>${escapeHtml(r.label)}</b></td><td>${nameCell}</td><td>${jshCell}</td><td>${escapeHtml(declWorkplaceText(d))}</td><td>${addrCell}</td></tr>`;
   }).join('');
 
-  const qBlocks = DECL_QUESTIONS.map((meta, i) => {
+  const qBlocks = dt('questions').map((meta, i) => {
     const a = declAnswers[i];
     let badge = '';
     if(meta.type === 'yesno' && a.choice){
-      badge = `<div style="margin-top:6px;"><span class="decl-pill ${a.choice === 'ha' ? 'coral' : 'teal'}">${a.choice === 'ha' ? 'HA' : "YO'Q"}</span></div>`;
+      badge = `<div style="margin-top:6px;"><span class="decl-pill ${a.choice === 'ha' ? 'coral' : 'teal'}">${a.choice === 'ha' ? escapeHtml(dt('haLabel')).toUpperCase() : escapeHtml(dt('yoqLabel')).toUpperCase()}</span></div>`;
     }
     const noteHtml = a.note ? `<div style="color:var(--text-dim); font-size:12px; margin-top:6px; line-height:1.5;">${escapeHtml(a.note)}</div>` : '';
     return `<div class="decl-record-q">
@@ -2774,37 +3185,37 @@ function declRenderRecord(){
   }).join('');
 
   const conflictBadge = declConfirm.hasConflict === true
-    ? `<span class="decl-pill coral">Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD</span>`
-    : `<span class="decl-pill teal">Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD EMAS</span>`;
+    ? `<span class="decl-pill coral">${escapeHtml(dt('conflictExistsBadge'))}</span>`
+    : `<span class="decl-pill teal">${escapeHtml(dt('conflictNoneBadge'))}</span>`;
 
   document.getElementById('declRecordBody').innerHTML = `
-    <div class="decl-record-eyebrow">${escapeHtml(sig.refId || 'DEK-2026')}</div>
+    <div class="decl-record-eyebrow">${escapeHtml(sig.refId || dt('recordEyebrowFallback'))}</div>
     <div class="decl-record-head">
-      <h1 class="decl-title" style="margin:0;">Deklaratsiya</h1>
-      <button class="decl-btn primary" onclick="declPrintRecord()">PDF / Chop etish</button>
+      <h1 class="decl-title" style="margin:0;">${escapeHtml(dt('recordTitle'))}</h1>
+      <button class="decl-btn primary" onclick="declPrintRecord()">${escapeHtml(dt('pdfPrintBtn'))}</button>
     </div>
     <div class="decl-card" style="margin-top:20px;">
-      <div class="decl-review-row"><span>F.I.Sh.</span><b>${escapeHtml(fullName)}</b></div>
-      <div class="decl-review-row"><span>JShShIR</span><b>${escapeHtml(declEmployeeJshshir || '—')}</b></div>
-      <div class="decl-review-row"><span>Tarkibiy bo'linma</span><b>${escapeHtml(bolinma)}</b></div>
-      <div class="decl-review-row"><span>Lavozim</span><b>${escapeHtml(lavozim)}</b></div>
-      <div class="decl-review-row"><span>Turi / sababi</span><b>Yangi deklaratsiya</b></div>
-      <div class="decl-review-row"><span>Sana</span><b>${declTodayFormatted()}</b></div>
-      <div class="decl-review-row"><span>Status</span><span class="decl-pill teal">Yuborilgan</span></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('fishReqLabel'))}</span><b>${escapeHtml(fullName)}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('jshshirShortLabel'))}</span><b>${escapeHtml(declEmployeeJshshir || '—')}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('bolinmaNomiLabel'))}</span><b>${escapeHtml(bolinma)}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('lavozimLabel'))}</span><b>${escapeHtml(lavozim)}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('turiSababiLabel'))}</span><b>${escapeHtml(dt('yangiDeklaratsiya'))}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('sanaLabel'))}</span><b>${declTodayFormatted()}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('statusLabel'))}</span><span class="decl-pill teal">${escapeHtml(dt('statusSent'))}</span></div>
     </div>
 
     <div class="decl-card" style="margin-top:16px;">
-      <h2 style="margin-bottom:14px;">Yaqin qarindoshlar</h2>
+      <h2 style="margin-bottom:14px;">${escapeHtml(dt('relativesTitle'))}</h2>
       <div style="overflow-x:auto;">
         <table class="decl-review-table">
-          <thead><tr><th>Daraja</th><th>F.I.Sh.</th><th>JShShIR</th><th>Ish joyi</th><th>Manzil</th></tr></thead>
+          <thead><tr><th>${escapeHtml(dt('tblDaraja'))}</th><th>${escapeHtml(dt('tblFish'))}</th><th>${escapeHtml(dt('tblJshshir'))}</th><th>${escapeHtml(dt('tblIshJoyi'))}</th><th>${escapeHtml(dt('tblManzil'))}</th></tr></thead>
           <tbody>${relRows}</tbody>
         </table>
       </div>
     </div>
 
     <div class="decl-card" style="margin-top:16px;">
-      <h2 style="margin-bottom:6px;">Savollar va javoblar</h2>
+      <h2 style="margin-bottom:6px;">${escapeHtml(dt('questionsAnswersTitle'))}</h2>
       ${qBlocks}
       <div style="margin-top:14px;">${conflictBadge}</div>
     </div>
@@ -2813,23 +3224,23 @@ function declRenderRecord(){
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
         <div style="display:flex; align-items:center; gap:10px;">
           <div class="decl-esign-icon">&check;</div>
-          <h2 style="margin-bottom:0;">Elektron imzo (E-IMZO)</h2>
+          <h2 style="margin-bottom:0;">${escapeHtml(dt('esignBlockTitle'))}</h2>
         </div>
-        <span class="decl-pill teal">Imzo tasdiqlangan</span>
+        <span class="decl-pill teal">${escapeHtml(dt('signConfirmedBadge'))}</span>
       </div>
       <div style="display:flex; gap:24px; margin-top:18px; flex-wrap:wrap;">
         <div style="flex:1; min-width:260px;">
-          <div class="decl-esign-row"><span>Imzolovchi F.I.Sh.</span><b>${escapeHtml(fullName)}</b></div>
-          <div class="decl-esign-row"><span>Lavozimi</span><b>${escapeHtml(lavozim)}</b></div>
-          <div class="decl-esign-row"><span>Imzolangan sana va vaqt</span><b>${signedAtStr}</b></div>
-          <div class="decl-esign-row"><span>E-IMZO sertifikati</span><b>${escapeHtml(sig.certName || '—')}<br>amal qilish: 31.12.2026 gacha</b></div>
-          <div class="decl-esign-row"><span>Imzo holati</span><b style="color:var(--teal);">&check; Haqiqiy, hujjat o'zgartirilmagan</b></div>
-          <div class="decl-esign-row"><span>Verification ID</span><span class="decl-pill gray" style="font-family:monospace;">${escapeHtml(sig.verificationId || '—')}</span></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('signerFishLabel'))}</span><b>${escapeHtml(fullName)}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('signerLavozimLabel'))}</span><b>${escapeHtml(lavozim)}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('signedAtLabel'))}</span><b>${signedAtStr}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('certLabel'))}</span><b>${escapeHtml(sig.certName || '—')}<br>${escapeHtml(dt('certValidUntilSuffix'))}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('signStatusLabel'))}</span><b style="color:var(--teal);">&check; ${escapeHtml(dt('signValidText'))}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('verificationIdRowLabel'))}</span><span class="decl-pill gray" style="font-family:monospace;">${escapeHtml(sig.verificationId || '—')}</span></div>
         </div>
         <div class="decl-qr-box">
           <div class="decl-qr-placeholder">${DECL_QR_PLACEHOLDER_SVG}</div>
-          <div style="font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px;">QR orqali imzoni tekshirish</div>
-          <button class="decl-btn outline" style="width:100%; margin-top:8px;" onclick="declVerifyStub()">Tekshirish</button>
+          <div style="font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px;">${escapeHtml(dt('qrCaption'))}</div>
+          <button class="decl-btn outline" style="width:100%; margin-top:8px;" onclick="declVerifyStub()">${escapeHtml(dt('verifyBtn'))}</button>
         </div>
       </div>
     </div>
