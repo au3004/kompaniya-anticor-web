@@ -95,6 +95,15 @@ final class ProfileController
             Response::error('Rasm hajmi juda katta', 'PHOTO_TOO_LARGE', 422);
         }
 
+        // Boshqa yuklashlardagi (hujjat PDF va h.k.) kabi — mijoz yuborgan
+        // "data:image/..." prefiksidagi da'vo qilingan turga emas, faylning
+        // haqiqiy ikkilik "magic bytes"iga tayanamiz. Aks holda ixtiyoriy
+        // ikkilik (masalan HTML/JS) tarkib rasm kengaytmasi bilan saqlanib,
+        // /uploads/photos/ orqali ochiq serverdan uzatilishi mumkin edi.
+        if (!self::hasValidImageSignature($binary, $ext)) {
+            Response::error("Fayl haqiqiy rasm emas", 'INVALID_PHOTO', 422);
+        }
+
         $uploadDir = dirname(__DIR__, 2) . '/public/uploads/photos';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
@@ -120,6 +129,17 @@ final class ProfileController
         $upd->execute(['url' => $relativeUrl, 'id' => $user['id']]);
 
         Response::success(['url' => Util::photoUrl($relativeUrl)]);
+    }
+
+    /** Dekodlangan ikkilik ma'lumot haqiqatan $ext turidagi rasm ekanligini "magic bytes" orqali tekshiradi. */
+    private static function hasValidImageSignature(string $binary, string $ext): bool
+    {
+        return match ($ext) {
+            'jpeg' => str_starts_with($binary, "\xFF\xD8\xFF"),
+            'png' => str_starts_with($binary, "\x89PNG\x0D\x0A\x1A\x0A"),
+            'webp' => str_starts_with($binary, 'RIFF') && substr($binary, 8, 4) === 'WEBP',
+            default => false,
+        };
     }
 
     /**

@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Auth;
 use App\Config;
 use App\Database;
+use App\RateLimit;
 use App\Response;
 use App\Totp;
 use App\Util;
@@ -108,6 +109,13 @@ final class TotpController
      */
     public static function verifyLogin(array $input): void
     {
+        // IP asosidagi qo'shimcha cheklov — parolni to'g'ri bilgan (shu bois
+        // registerFailedAttempt/isLocked mexanizmini har safar login()dagi
+        // Auth::resetAttempts() orqali "yangilab" qayta pendingToken olishi
+        // mumkin bo'lgan) tajovuzkorning kodni cheksiz taxmin qilishiga
+        // qo'shimcha to'siq bo'ladi.
+        RateLimit::enforce('verifyTotpLogin', 10, 300);
+
         $pendingToken = trim((string) ($input['pendingToken'] ?? ''));
         $code = Validate::requiredStr($input, 'code', 10);
 
@@ -131,10 +139,27 @@ final class TotpController
             Response::error("Vaqt tugagan, qaytadan kiring", 'SESSION_EXPIRED', 401);
         }
 
+        // MUHIM: kodni tekshirishdan OLDIN bloklanganligini tekshiramiz —
+        // aks holda registerFailedAttempt() faqat bazaga yozib qo'yadigan,
+        // lekin hech narsani to'xtatmaydigan "bezak" bo'lib qolardi (kod
+        // cheksiz taxmin qilinishi mumkin edi). AuthController::login()dagi
+        // bilan bir xil xabar/kod — parolni bilgan tajovuzkor "TOTP kodi
+        // bloklandi" javobidan foydalanuvchining 2FA yoqilganini bilib
+        // olmasin (u buni pendingToken olishning o'zidayoq bilib bo'lgan).
+        if (Auth::isLocked((string) $row['login'])) {
+            Response::error(
+                "Ko'p marta noto'g'ri urinildi. 15 daqiqadan so'ng qayta urinib ko'ring.",
+                'LOCKED',
+                423
+            );
+        }
+
         if (!Totp::verifyCode((string) $row['totp_secret'], $code)) {
             Auth::registerFailedAttempt((string) $row['login'], Config::int('PASSWORD_MAX_ATTEMPTS', 5));
             Response::error("Kod noto'g'ri", 'INVALID_CODE', 422);
         }
+
+        Auth::resetAttempts((string) $row['login']);
 
         $del = $db->prepare('DELETE FROM totp_pending WHERE token = :token');
         $del->execute(['token' => $pendingToken]);

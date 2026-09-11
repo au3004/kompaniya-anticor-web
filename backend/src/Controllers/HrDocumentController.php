@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Auth;
 use App\Database;
+use App\RateLimit;
 use App\Response;
 use App\Roles;
 use App\Util;
@@ -76,6 +77,12 @@ final class HrDocumentController
     public static function submit(array $input): void
     {
         $user = Auth::requireUser($input);
+        // Bu amal (boshqa "submit*" amallaridan farqli o'laroq) hech qanday
+        // maxsus rol talab qilmaydi va har biri 25MB gacha bo'lgan fayl
+        // qabul qiladi — chastota cheklovisiz istalgan xodim diskni
+        // cheksiz PDF bilan to'ldirib yuborishi mumkin edi.
+        RateLimit::enforce('submitHrDocument', 10, 3600);
+
         $db = Database::connection();
         Util::ensureSchema($db, self::DDL);
 

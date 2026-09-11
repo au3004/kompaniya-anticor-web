@@ -45,9 +45,15 @@ if (!$realDir || !$realBase || !str_starts_with($realDir, $realBase) || !is_dir(
     exit;
 }
 
-$tmpZip = tempnam(sys_get_temp_dir(), 'backup_') . '.zip';
+// tempnam() darhol shu nomdagi bo'sh faylni yaratib qo'yadi — ZipArchive esa
+// ".zip" bilan tugaydigan yo'lni talab qiladi, shuning uchun asl (tasodifiy)
+// nomni saqlab, ustiga ".zip" qo'shilgan alohida yo'ldan foydalanamiz va
+// pastda ikkalasini ham tozalaymiz (aks holda asl bo'sh fayl /tmp'da abadiy qolib ketardi).
+$tmpBase = tempnam(sys_get_temp_dir(), 'backup_');
+$tmpZip = $tmpBase . '.zip';
 $zip = new ZipArchive();
 if ($zip->open($tmpZip, ZipArchive::CREATE) !== true) {
+    @unlink($tmpBase);
     http_response_code(500);
     echo 'Zip yaratib bo\'lmadi';
     exit;
@@ -68,3 +74,4 @@ header('Content-Disposition: attachment; filename="backup_' . $name . '.zip"');
 header('Content-Length: ' . (string) filesize($tmpZip));
 readfile($tmpZip);
 unlink($tmpZip);
+@unlink($tmpBase);
