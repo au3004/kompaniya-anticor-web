@@ -87,7 +87,13 @@ final class Auth
      * o'zi hech qachon uzaytirilmaydi, shuning uchun qurilma egasi bo'lmagan
      * odam 1 soatdan keyin baribir parolni qayta kiritishga majbur bo'ladi.
      */
-    public static function issueRememberToken(PDO $db, int $userId): void
+    /**
+     * $setCookie=false bo'lsa (mobil ilovalar), cookie o'rnatilmaydi —
+     * chaqiruvchi qaytgan tokenni o'zi (JSON javobda) uzatadi, mobil ilova
+     * esa uni Keychain/Keystore'da saqlaydi va mobileLoginViaRememberToken
+     * orqali ishlatadi.
+     */
+    public static function issueRememberToken(PDO $db, int $userId, bool $setCookie = true): string
     {
         Util::ensureSchema($db, self::REMEMBER_DDL);
         $token = self::generateToken();
@@ -98,6 +104,10 @@ final class Auth
         );
         $ins->execute(['token' => $token, 'user_id' => $userId, 'expires_at' => $expiresAt]);
 
+        if (!$setCookie) {
+            return $token;
+        }
+
         $secure = Config::get('FORCE_HTTPS', 'false') === 'true';
         setcookie(self::REMEMBER_COOKIE_NAME, $token, [
             'expires' => strtotime($expiresAt),
@@ -107,6 +117,8 @@ final class Auth
             'httponly' => true,
             'samesite' => 'Strict',
         ]);
+
+        return $token;
     }
 
     public static function clearRememberCookie(): void

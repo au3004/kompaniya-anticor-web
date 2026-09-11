@@ -175,7 +175,69 @@ final class AuthController
         );
         $ins->execute(['token' => $token, 'user_id' => $user['id'], 'expires_at' => $expiresAt]);
 
-        Response::success(array_merge(['sessionToken' => $token], self::userProfileFields($user)));
+        $extra = ['sessionToken' => $token];
+        if (!empty($input['rememberMe'])) {
+            $extra['rememberToken'] = Auth::issueRememberToken($db, (int) $user['id'], false);
+        }
+
+        Response::success(array_merge($extra, self::userProfileFields($user)));
+    }
+
+    /**
+     * Mobil ilova uchun "meni eslab qol" — loginViaRememberToken() bilan
+     * bir xil (bitta martalik, mutlaq 1 soatlik) mantiq, faqat token
+     * cookie'dan emas, so'rov tanasidan ("rememberToken") olinadi va
+     * yangi sessiya/remember tokenlar cookie o'rniga javob tanasida
+     * qaytariladi.
+     */
+    public static function mobileLoginViaRememberToken(array $input): void
+    {
+        $token = trim((string) ($input['rememberToken'] ?? ''));
+        if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
+            Response::error('Sessiya topilmadi', 'NO_REMEMBER_SESSION', 401);
+        }
+
+        $db = Database::connection();
+        Util::ensureSchema($db, self::REMEMBER_DDL);
+
+        $stmt = $db->prepare(
+            'SELECT rt.user_id, rt.expires_at, u.*
+             FROM remember_tokens rt
+             JOIN users u ON u.id = rt.user_id
+             WHERE rt.token = :token LIMIT 1'
+        );
+        $stmt->execute(['token' => $token]);
+        $row = $stmt->fetch();
+
+        if (!$row || strtotime((string) $row['expires_at']) < time()) {
+            if ($row) {
+                $del = $db->prepare('DELETE FROM remember_tokens WHERE token = :token');
+                $del->execute(['token' => $token]);
+            }
+            Response::error("Muddati o'tgan, qaytadan kiring", 'NO_REMEMBER_SESSION', 401);
+        }
+
+        $del = $db->prepare('DELETE FROM remember_tokens WHERE token = :token');
+        $del->execute(['token' => $token]);
+
+        $newToken = Auth::generateToken();
+        $ins = $db->prepare(
+            'INSERT INTO remember_tokens (token, user_id, created_at, expires_at) VALUES (:token, :user_id, NOW(), :expires_at)'
+        );
+        $ins->execute(['token' => $newToken, 'user_id' => $row['user_id'], 'expires_at' => $row['expires_at']]);
+
+        $sessToken = Auth::generateToken();
+        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 10);
+        $sessExpiresAt = date('Y-m-d H:i:s', time() + $idleMinutes * 60);
+        $insSess = $db->prepare(
+            'INSERT INTO sessions (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)'
+        );
+        $insSess->execute(['token' => $sessToken, 'user_id' => $row['user_id'], 'expires_at' => $sessExpiresAt]);
+
+        Response::success(array_merge(
+            ['sessionToken' => $sessToken, 'rememberToken' => $newToken],
+            self::userProfileFields($row)
+        ));
     }
 
     /**

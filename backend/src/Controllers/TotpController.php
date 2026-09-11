@@ -224,6 +224,11 @@ final class TotpController
         $ins = $db->prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)');
         $ins->execute(['token' => $token, 'user_id' => $row['user_id'], 'expires_at' => $expiresAt]);
 
-        Response::success(array_merge(['sessionToken' => $token], self::userProfileFields($row)));
+        $extra = ['sessionToken' => $token];
+        if (!empty($input['rememberMe'])) {
+            $extra['rememberToken'] = Auth::issueRememberToken($db, (int) $row['user_id'], false);
+        }
+
+        Response::success(array_merge($extra, self::userProfileFields($row)));
     }
 }

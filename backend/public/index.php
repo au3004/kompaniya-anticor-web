@@ -101,6 +101,7 @@ $routes = [
     'mobileLogin' => [AuthController::class, 'mobileLogin'],
     'me' => [AuthController::class, 'me'],
     'loginViaRememberToken' => [AuthController::class, 'loginViaRememberToken'],
+    'mobileLoginViaRememberToken' => [AuthController::class, 'mobileLoginViaRememberToken'],
     'requestPasswordReset' => [AuthController::class, 'requestPasswordReset'],
     'logout' => [AuthController::class, 'logout'],
     'changePassword' => [AuthController::class, 'changePassword'],
