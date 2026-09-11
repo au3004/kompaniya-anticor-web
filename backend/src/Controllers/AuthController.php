@@ -59,12 +59,13 @@ final class AuthController
         $passwordOk = Auth::verifyPassword($parol, $hashToCheck);
 
         if (!$user || !$passwordOk) {
-            // Login mavjud bo'lmasa qattiqroq (tezroq bloklaydigan) chegara, mavjud
-            // bo'lib parol xato bo'lsa birozroq yumshoqroq chegara qo'llaniladi.
-            $maxAttempts = $user
-                ? Config::int('PASSWORD_MAX_ATTEMPTS', 5)
-                : Config::int('LOGIN_UNKNOWN_MAX_ATTEMPTS', 3);
-            Auth::registerFailedAttempt($login, $maxAttempts);
+            // MUHIM: bloklanish chegarasi mavjud/mavjud bo'lmagan login uchun
+            // ATAYLAB bir xil (PASSWORD_MAX_ATTEMPTS) — avval bu ikkisi turlicha
+            // (3 va 5) edi, bu esa javob vaqtini (bcrypt hisoblangan/hisoblanmagan)
+            // kuzatib, "bu login mavjudmi?" ni ANIQ bilib olish imkonini berardi:
+            // login N-chi urinishda bloklansa — N=3 bo'lsa login yo'q, N=5 bo'lsa
+            // login bor. Bir xil chegara bu kanalni butunlay yopadi.
+            Auth::registerFailedAttempt($login, Config::int('PASSWORD_MAX_ATTEMPTS', 5));
             Response::error("Login yoki parol noto'g'ri", 'INVALID_CREDENTIALS');
         }
 

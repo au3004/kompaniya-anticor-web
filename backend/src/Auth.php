@@ -245,9 +245,11 @@ final class Auth
     }
 
     /**
-     * $maxAttempts qiymati chaqiruvchi tomonidan beriladi — login mavjud
-     * bo'lmasa (LOGIN_UNKNOWN_MAX_ATTEMPTS, standart 3) va login mavjud lekin
-     * parol noto'g'ri bo'lsa (PASSWORD_MAX_ATTEMPTS, standart 5) turlicha.
+     * $maxAttempts qiymati chaqiruvchi tomonidan beriladi. MUHIM: login mavjud
+     * yoki mavjud bo'lmasa ham chaqiruvchi BIR XIL qiymatni (PASSWORD_MAX_ATTEMPTS)
+     * berishi shart — ikkisi turlicha bo'lsa, "nechinchi urinishda bloklandi"
+     * kuzatuvi orqali login mavjudligini bilib olish (timing/enumeration
+     * kanali) mumkin bo'lib qolardi.
      */
     public static function registerFailedAttempt(string $login, int $maxAttempts): void
     {

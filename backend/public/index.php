@@ -46,10 +46,38 @@ if (Config::get('FORCE_HTTPS', 'false') === 'true') {
     header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 }
 
+// Serverning o'zi ("X-Powered-By: PHP/x.y.z") aniq versiyani oshkor qilib
+// qo'ymasligi uchun — bu tashqi hujumchiga versiyaga xos zaifliklarni
+// qidirish uchun ortiqcha ma'lumot berardi.
+header_remove('X-Powered-By');
+
 Cors::handle();
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     Response::error('Faqat POST so\'rovlar qabul qilinadi', 'METHOD_NOT_ALLOWED', 405);
+}
+
+// Brauzerdan JSON matnli (form emas) so'rov kelayotganini talab qilamiz —
+// aks holda oddiy HTML <form enctype="text/plain"> orqali (JavaScript'siz,
+// kesishma-sayt sahifadan) shu manzilga deyarli haqiqiy JSON tanasi yuborish
+// mumkin bo'lardi. Amalda sessiya cookie'si SameSite=Strict bo'lgani uchun
+// bunday so'rovga baribir cookie biriktirilmaydi — bu shunchaki qo'shimcha
+// himoya qatlami.
+$contentType = (string) ($_SERVER['CONTENT_TYPE'] ?? '');
+if (!str_starts_with(strtolower(trim($contentType)), 'application/json')) {
+    Response::error('Content-Type: application/json talab qilinadi', 'BAD_REQUEST', 400);
+}
+
+// So'rov tanasi hajmini, qaysi amal ekanini (uni bilish uchun JSON'ni
+// dekodlash kerak) hali bilmasdan turib ham cheklaymiz — aks holda fayl
+// yuklamaydigan har qanday amal (masalan oddiy "login") ham cheksiz katta
+// tana bilan xotira/protsessorni band qilib qo'yishi mumkin edi.
+const MAX_BODY_BYTES = 2 * 1024 * 1024; // 2 MB — fayl yubormaydigan amallar uchun yetarli
+const MAX_FILE_BODY_BYTES = 36 * 1024 * 1024; // ~25 MB fayl * 1.4 (base64) + zaxira
+
+$contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+if ($contentLength > MAX_FILE_BODY_BYTES) {
+    Response::error("So'rov tanasi juda katta", 'PAYLOAD_TOO_LARGE', 413);
 }
 
 $raw = file_get_contents('php://input');
@@ -59,6 +87,13 @@ if (!is_array($input)) {
 }
 
 $action = (string) ($input['action'] ?? '');
+
+// Fayl (base64 PDF/rasm) olib yuruvchi amallardan tashqari hammasi uchun
+// ancha qattiqroq chegara — faqat shu amallarga katta tana kerak bo'lishi mumkin.
+$fileCarryingActions = ['updateProfilePhoto', 'addDocument', 'editDocument', 'submitHrDocument', 'addPurchase'];
+if (!in_array($action, $fileCarryingActions, true) && strlen($raw) > MAX_BODY_BYTES) {
+    Response::error("So'rov tanasi juda katta", 'PAYLOAD_TOO_LARGE', 413);
+}
 
 /** @var array<string, array{0: class-string, 1: string}> $routes */
 $routes = [
