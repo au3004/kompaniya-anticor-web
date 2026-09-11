@@ -1,0 +1,16 @@
+# Xcode/Swift standart .gitignore (mobile/ios/KompaniyaAnticor ostida
+# .xcodeproj yaratilgach amal qiladi — qarang: README.md)
+
+.DS_Store
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+.swiftpm/
+Package.resolved
+*.ipa
+*.dSYM.zip
+*.dSYM

@@ -1,0 +1,33 @@
+# Bu katalog (public/) — veb-server document root shu yerga qaratilishi kerak.
+# Yuqoridagi backend/.htaccess'dagi umumiy taqiqni shu yerda bekor qilamiz.
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+</IfModule>
+
+# Hujjat (PDF, maksimal 25MB) base64 shaklida JSON so'rov tanasi ichida
+# yuboriladi — bu haqiqiy fayldan ~1.37 baravar katta bo'ladi, shuning uchun
+# standart php.ini cheklovlari (odatda 8M) buni rad etib qo'yishi mumkin.
+# MUHIM: bu faqat PHP Apache moduli (mod_php) sifatida ishlaganda ta'sir
+# qiladi — agar serveringiz PHP-FPM orqali ishlasa, shu qiymatlarni
+# php.ini faylining o'zida (yoki pool sozlamalarida) qo'lda oshiring.
+<IfModule mod_php.c>
+    php_value post_max_size 40M
+    php_value upload_max_filesize 40M
+    php_value memory_limit 192M
+</IfModule>
+
+# Apache o'zi "Authorization" sarlavhasini odatiy holda PHP'ga
+# ($_SERVER['HTTP_AUTHORIZATION']) uzatmaydi (o'zining autorizatsiya
+# ishlovi uchun "yutib" qo'yadi) — mobil ilovalar "Authorization: Bearer
+# <token>" orqali kirganda buni majburan qayta uzatamiz
+# (Auth::tokenFromRequest()). PHP-FPM/nginx orqali ishlaganda bu odatda
+# server blokining o'zida (fastcgi_param HTTP_AUTHORIZATION) sozlanadi.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>

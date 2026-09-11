@@ -11,8 +11,8 @@
   --navy-950:#071B33;
   --navy-900:#0B2545;
   --navy-800:#12356b;
-  --azure:#00A3E0;
-  --teal:#00D9C0;
+  --azure:#004491;
+  --teal:#1D6FBF;
   --amber:#FFB020;
   --white:#FFFFFF;
 
@@ -26,34 +26,48 @@
   --input-border:rgba(255,255,255,0.18);
   --accent:var(--azure);
   --accent-2:var(--teal);
+
+  /* ===== Neumorfik (yumshoq qabariq/botiq) soyalar — kirish kartasi uchun.
+     Uslub manbasi: github.com/Nazia-99/Neumorphic-Login-Form (kod to'liq
+     o'qib chiqilgan — faqat CSS dual-shadow texnikasi, tashqi so'rov yoki
+     skript yo'q), loyihaning o'z to'q-ko'k/azure/teal palitrasiga moslab
+     qayta yozilgan. Fon rangidan biroz ochroq/tiniqroq va biroz to'qroq
+     nurlar bir-biriga qarama-qarshi burchaklardan tushib, sirtni "bosib
+     chiqargan" (raised) yoki "botirilgan" (pressed/inset) qilib ko'rsatadi. */
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.035), 10px 10px 26px rgba(0,0,0,0.55);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.035), 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.03), inset 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.025), inset 5px 5px 13px rgba(0,0,0,0.6);
 }
 
 [data-theme="light"]{
-  --bg:#EAF3FA;
-  --bg-deep:#DCEAF5;
+  --bg:#F1F2F4;
+  --bg-deep:#E4E6E9;
   --card:rgba(255,255,255,0.75);
   --card-border:rgba(11,37,69,0.10);
   --text:#0B2545;
   --text-dim:#4E6A88;
   --input-bg:rgba(11,37,69,0.04);
   --input-border:rgba(11,37,69,0.15);
+
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.9), 10px 10px 26px rgba(163,177,198,0.5);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.85), 6px 6px 16px rgba(163,177,198,0.45);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.75), inset 6px 6px 16px rgba(163,177,198,0.55);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.7), inset 5px 5px 13px rgba(163,177,198,0.65);
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
 
 body{
   font-family:'Inter', sans-serif;
+  /* Neumorfik effekt fon rangi bir tekis bo'lishini talab qiladi — soyalar
+     shu fondan hisoblab chiqariladi, gradient bo'lsa illyuziya buziladi. */
   background:var(--bg);
   color:var(--text);
   min-height:100vh;
   overflow-x:hidden;
   transition:background .5s ease, color .5s ease;
   position:relative;
-}
-
-canvas#net{
-  position:fixed; inset:0; width:100%; height:100%; z-index:0;
-  background:radial-gradient(ellipse at 70% 20%, var(--bg-deep), var(--bg) 70%);
 }
 
 /* ===== Top bar ===== */
@@ -76,30 +90,157 @@ canvas#net{
 
 .controls{ display:flex; align-items:center; gap:10px; }
 
-.lang-toggle{
-  display:flex; background:var(--card); border:1px solid var(--card-border);
-  border-radius:999px; padding:3px; backdrop-filter:blur(10px);
+/* ===== Til almashtirgich: kichik tugma + belgilash ro'yxati (checkmark list)
+   uslubidagi ochiluvchi menyu — bosilganda tillar ro'yxati ochiladi, tanlangani
+   azure/teal rangli belgi bilan ko'rsatiladi. ===== */
+.lang-picker{ position:relative; }
+.lang-picker-btn{
+  display:flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px;
+  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
+  backdrop-filter:blur(16px);
+  border:1px solid var(--card-border);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  cursor:pointer; color:var(--text-dim); font-family:'Inter'; font-weight:700; font-size:12px;
+  transition:border-color .25s ease, color .25s ease;
 }
-.lang-toggle button{
-  border:none; background:transparent; cursor:pointer;
-  font-family:'Inter'; font-weight:600; font-size:12px;
-  color:var(--text-dim); padding:6px 12px; border-radius:999px;
-  transition:all .25s ease;
+.lang-picker-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.lang-picker-btn svg{ width:15px; height:15px; flex:none; }
+.lang-menu{
+  position:absolute; top:calc(100% + 10px); right:0; width:200px;
+  background:var(--bg-deep); border:1px solid var(--card-border); border-radius:14px;
+  padding:5px; box-shadow:0 20px 40px -12px rgba(0,0,0,0.5);
+  opacity:0; visibility:hidden; transform:translateY(-8px);
+  transition:all .2s ease; z-index:40;
 }
-.lang-toggle button.active{
-  background:linear-gradient(135deg, var(--azure), var(--teal));
-  color:#00263F;
+.lang-menu.show{ opacity:1; visibility:visible; transform:translateY(0); }
+.lang-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+  border:none; background:transparent; cursor:pointer; text-align:left;
+  padding:9px 10px; border-radius:10px; transition:background .2s ease;
+  font-family:'Inter';
+}
+.lang-row:hover{ background:rgba(255,255,255,.07); }
+.lang-row-text{ display:flex; flex-direction:column; gap:1px; }
+.lang-row-name{ font-size:13px; font-weight:600; color:var(--text); }
+.lang-row-sub{ font-size:11px; color:var(--text-dim); }
+.lang-row-check{
+  flex:none; width:18px; height:18px; border-radius:50%; border:1.5px solid var(--card-border);
+  display:flex; align-items:center; justify-content:center; color:transparent;
+  transition:background .25s ease, border-color .25s ease, color .25s ease;
+}
+.lang-row-check svg{ width:11px; height:11px; }
+.lang-row.active{ background:rgba(0,68,145,.10); }
+.lang-row.active .lang-row-name{ color:var(--azure); }
+.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#FFFFFF; }
+
+/* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
+   Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
+   — kod to'liq o'qib chiqilgan (faqat CSS animatsiya + oddiy klass
+   almashtirish, tashqi so'rov/skript yo'q), loyihaning o'z rang
+   palitrasi, shrifti va o'lchamiga moslab qayta yozildi. Barcha asl
+   effektlar (blobning organik "nafas olish" animatsiyasi, ikki qatlamli
+   nur, bosilganda siqilish, matnli yorliqlar) o'lchamga proportsional
+   CSS o'zgaruvchilari orqali saqlab qolindi — .theme-toggle-lg klassi
+   bilan katta (Sozlamalar sahifasidagi) versiyaga ham xizmat qiladi. */
+.theme-toggle{
+  --tt-w:56px; --tt-h:28px; --tt-thumb:40px; --tt-off:-6px;
+  position:relative; width:var(--tt-w); height:var(--tt-h); padding:0; flex-shrink:0;
+  border:none; background:none; cursor:pointer;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.18));
+}
+/* VAQTINCHALIK: kun/tun almashtirgich butun saytda yashirilgan — sayt
+   faqat kunduzgi rejimda ishlaydi. Yuqoridagi asl tugma kodi (CSS,
+   animatsiya) to'liq saqlanib qolgan — qayta ko'rsatish uchun shu
+   qoidani (pastdagi bitta qator) o'chirib tashlash kifoya. */
+.theme-toggle{ display:none !important; }
+.theme-toggle-lg{ --tt-w:270px; --tt-h:92px; --tt-thumb:130px; --tt-off:-21px; }
+
+.tt-track{
+  position:absolute; inset:0; border-radius:999px; overflow:hidden;
+  backdrop-filter:blur(20px);
+  background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+  border:1px solid var(--card-border);
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.4), inset 0 -10px 20px rgba(0,0,0,.12), 0 15px 30px rgba(0,0,0,.08);
+}
+.tt-track::before{
+  content:""; position:absolute; inset:9%; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.18), transparent 45%, rgba(255,255,255,.05));
+}
+.tt-track::after{
+  content:""; position:absolute; inset:-45%; border-radius:999px; pointer-events:none;
+  filter:blur(30px); opacity:.55; transition:.7s ease;
+  background:radial-gradient(circle, rgba(255,200,0,.35), transparent 70%);
+}
+.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,68,145,.4), transparent 70%); }
+
+.tt-glow{
+  position:absolute; left:-15%; top:-30%; width:65%; height:160%; border-radius:50%;
+  background:radial-gradient(circle at center, var(--amber), rgba(255,176,32,.7) 45%, rgba(255,255,255,.1) 100%);
+  filter:blur(18px);
+  transition:.7s cubic-bezier(.68,-0.55,.27,1.55);
+}
+.theme-toggle.active .tt-glow{
+  left:50%;
+  background:radial-gradient(circle at center, rgba(0,68,145,.95), rgba(0,68,145,.55) 45%, transparent 80%);
 }
 
-.theme-toggle{
-  width:38px; height:38px; border-radius:50%;
-  background:var(--card); border:1px solid var(--card-border);
-  backdrop-filter:blur(10px);
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer; color:var(--text); transition:transform .3s ease;
+.tt-label{
+  display:none; position:absolute; top:50%; transform:translateY(-50%);
+  color:#fff; font-family:'Unbounded',sans-serif; font-weight:600;
+  font-size:calc(var(--tt-h) * .28);
+  pointer-events:none; z-index:5; transition:.5s ease; white-space:nowrap;
 }
-.theme-toggle:hover{ transform:rotate(20deg); }
-.theme-toggle svg{ width:18px; height:18px; }
+.theme-toggle-lg .tt-label{ display:block; }
+.tt-label-left{ left:13%; }
+.tt-label-right{ right:13%; opacity:0; }
+.theme-toggle.active .tt-label-left{ opacity:0; transform:translateY(-50%) translateX(-10px); }
+.theme-toggle.active .tt-label-right{ opacity:1; transform:translateY(-50%) translateX(0); }
+
+.tt-thumb{
+  position:absolute; left:var(--tt-off); top:var(--tt-off);
+  width:var(--tt-thumb); height:var(--tt-thumb);
+  border-radius:42% 58% 70% 30% / 45% 45% 55% 55%;
+  overflow:hidden; display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,.14); border:2px solid rgba(255,255,255,.4);
+  box-shadow:0 16px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25), inset 0 0 24px rgba(255,255,255,.06);
+  transition:
+    left .7s cubic-bezier(.68,-0.55,.27,1.55),
+    transform .3s cubic-bezier(.68,-0.55,.27,1.55),
+    background .6s ease, border-color .6s ease, box-shadow .6s ease;
+  animation:ttBlobFloat 7s ease-in-out infinite;
+  z-index:10;
+}
+.theme-toggle.active .tt-thumb{
+  left:calc(100% - var(--tt-thumb) - var(--tt-off));
+  background:rgba(11,37,69,.55); border-color:rgba(255,255,255,.22);
+  box-shadow:
+    inset 0 6px 14px rgba(255,255,255,.15),
+    inset 0 -14px 22px rgba(0,0,0,.15),
+    0 0 26px rgba(0,68,145,.5),
+    0 0 48px rgba(0,68,145,.25);
+}
+.theme-toggle:not(.active) .tt-thumb{
+  box-shadow:
+    inset 0 5px 10px rgba(255,255,255,.45),
+    inset 0 -3px 8px rgba(255,255,255,.16),
+    inset 0 0 14px rgba(255,255,255,.16),
+    0 16px 32px rgba(0,0,0,.35);
+}
+.theme-toggle:hover .tt-thumb{ transform:scale(1.06); }
+.theme-toggle:active .tt-thumb{ transform:scaleX(1.1) scaleY(.9); }
+
+@keyframes ttBlobFloat{
+  0%,100%{ border-radius:42% 58% 70% 30% / 45% 45% 55% 55%; }
+  34%{ border-radius:70% 30% 46% 54% / 30% 29% 71% 70%; }
+  67%{ border-radius:100% 60% 60% 100% / 100% 100% 60% 60%; }
+}
+
+.tt-icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; transition:opacity .4s ease, transform .4s ease; z-index:3; }
+.tt-icon svg{ width:38%; height:38%; }
+.tt-icon.tt-moon{ opacity:0; transform:scale(.6) rotate(-90deg); }
+.theme-toggle.active .tt-icon.tt-sun{ opacity:0; transform:scale(.55) rotate(90deg); }
+.theme-toggle.active .tt-icon.tt-moon{ opacity:1; transform:scale(1) rotate(0deg); }
 
 /* ===== Login card ===== */
 .wrap{
@@ -108,16 +249,93 @@ canvas#net{
   padding:100px 20px 40px;
 }
 
-.card{
-  width:100%; max-width:400px;
-  background:var(--card);
-  border:1px solid var(--card-border);
-  border-radius:20px;
-  padding:38px 34px 32px;
-  backdrop-filter:blur(18px);
-  box-shadow:0 30px 60px -20px rgba(0,0,0,0.5);
+/* ===== Aylanuvchi (flip) kirish/ro'yxatdan o'tish kartasi =====
+   Uslub manbasi: github.com/Nazia-99/Neumorphic-Login-Form (kod to'liq
+   o'qib chiqilgan — faqat rotateY(180deg) 3D-aylanish texnikasi, tashqi
+   so'rov/skript yo'q). Manbada doira (glass-circle) shaklida, lekin bizda
+   ko'p qatorli va uzunroq (o'zbek/rus) matnli forma bo'lgani uchun to'g'ri
+   burchakli (yumaloq qirrali) ramka saqlab qolindi — doira shaklda matn
+   burchaklarga sig'may qolib, ko'p bo'sh joy qoldirar edi. Faqat
+   aylanish animatsiyasi va orqa tomon g'oyasi olib, ro'yxatdan o'tish
+   hozircha "tez orada" ekanini shu animatsiya bilan ko'rsatish uchun
+   qayta yozilgan. */
+.flip-scene{
+  width:100%; max-width:400px; perspective:1800px;
+  /* Sahifa ochilishidagi "ko'tarilib chiqish" animatsiyasi ataylab .card
+     emas, shu tashqi qatlamga qo'yilgan — .card ikkala (old/orqa) tomon
+     tomonidan bo'lishiladigan preserve-3d ierarxiyaning ICHIDA bo'lgani
+     uchun, animatsiya opacity'ni o'zgartirsa ba'zi brauzerlarda backface
+     hisob-kitobi bilan to'qnashib, ikkala tomon ham ko'rinmay qolishi
+     mumkin edi. */
   animation:rise .7s cubic-bezier(.2,.9,.25,1) both;
 }
+.flip-card{
+  position:relative; width:100%;
+  transition:transform .8s cubic-bezier(.22,1,.36,1);
+  transform-style:preserve-3d;
+}
+.flip-scene.flipped .flip-card{ transform:rotateY(180deg); }
+
+.card{
+  width:100%;
+  background:var(--bg);
+  border-radius:32px;
+  padding:38px 34px 32px;
+  box-shadow:var(--neu-out);
+  transition:box-shadow .5s ease, background .5s ease;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+}
+/* Ikkala tomon ham "position"lashtirilgan (relative/absolute) bo'lishi
+   shart — aks holda bittasi oddiy (static) oqimda, ikkinchisi absolute
+   bo'lib qolsa, brauzer ularni bitta 3D tekislikda emas, alohida
+   qatlamlarda chizadi va backface-visibility to'g'ri ishlamay qoladi. */
+.card-front{ position:relative; }
+.card-back{
+  position:absolute; inset:0;
+  transform:rotateY(180deg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; gap:14px;
+  /* backface-visibility yashirsa ham, ba'zi brauzerlarda orqa tomon hali
+     ham sichqoncha bosishlarini "tutib qolishi" mumkin — shu sabab qaysi
+     tomon ko'rinmasa, o'sha tomon uchun pointer-events ham o'chiriladi. */
+  pointer-events:none;
+}
+.flip-scene.flipped .card-back{ pointer-events:auto; }
+.flip-scene.flipped .card-front{ pointer-events:none; }
+.card-back h1{ margin-bottom:0; }
+.card-back .sub{ margin-bottom:0; padding:0 6px; line-height:1.55; }
+.card-back .submit-btn{ margin-top:8px; }
+.signup-icon{
+  width:60px; height:60px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg); box-shadow:var(--neu-out-sm);
+  color:var(--azure);
+}
+.signup-icon svg{ width:26px; height:26px; }
+
+/* ===== "Parolni unutdim" — kirish/tiklash formalari orasidagi ichki
+   aylanish (mini-flip). Tashqi flip-scene bilan bir xil rotateY(180deg)
+   texnikasi, faqat .card fon/padding qayta qo'llanmaydi — bu ikkalasi
+   allaqachon tashqi .card-front ichida turibdi. ===== */
+.pw-flip-scene{ width:100%; perspective:1800px; }
+.pw-flip-card{
+  position:relative; width:100%;
+  transition:transform .7s cubic-bezier(.22,1,.36,1);
+  transform-style:preserve-3d;
+}
+.pw-flip-scene.flipped .pw-flip-card{ transform:rotateY(180deg); }
+.pw-flip-front,.pw-flip-back{
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+}
+.pw-flip-front{ position:relative; }
+.pw-flip-back{
+  position:absolute; inset:0;
+  transform:rotateY(180deg);
+  pointer-events:none;
+}
+.pw-flip-scene.flipped .pw-flip-back{ pointer-events:auto; }
+.pw-flip-scene.flipped .pw-flip-front{ pointer-events:none; }
+
 @keyframes rise{
   from{ opacity:0; transform:translateY(24px) scale(.98); }
   to{ opacity:1; transform:translateY(0) scale(1); }
@@ -141,27 +359,27 @@ canvas#net{
 }
 .field input{
   width:100%; padding:13px 14px;
-  background:var(--input-bg); border:1px solid var(--input-border);
-  border-radius:11px; color:var(--text); font-size:14.5px; font-family:'Inter';
-  outline:none; transition:border-color .2s ease, box-shadow .2s ease;
+  background:var(--bg); border:none;
+  border-radius:14px; color:var(--text); font-size:14.5px; font-family:'Inter';
+  outline:none; box-shadow:var(--neu-in);
+  transition:box-shadow .25s ease;
 }
 .field input::placeholder{ color:var(--text-dim); opacity:.6; }
 .field input:focus{
-  border-color:var(--azure);
-  box-shadow:0 0 0 3px rgba(0,163,224,0.18);
+  box-shadow:var(--neu-in-deep), 0 0 0 3px rgba(0,68,145,0.18);
 }
 
 .submit-btn{
   width:100%; padding:13px; margin-top:6px;
-  border:none; border-radius:11px; cursor:pointer;
+  border:none; border-radius:14px; cursor:pointer;
   background:linear-gradient(135deg, var(--azure), var(--teal));
-  color:#00263F; font-family:'Inter'; font-weight:700; font-size:14.5px;
+  color:#FFFFFF; font-family:'Inter'; font-weight:700; font-size:14.5px;
   letter-spacing:.2px;
   transition:transform .15s ease, box-shadow .2s ease;
-  box-shadow:0 10px 25px -8px rgba(0,163,224,0.55);
+  box-shadow:var(--neu-out-sm), 0 10px 22px -10px rgba(0,68,145,0.55);
 }
-.submit-btn:active{ transform:translateY(1px) scale(.99); }
-.submit-btn:hover{ box-shadow:0 14px 30px -8px rgba(0,163,224,0.7); }
+.submit-btn:active{ transform:translateY(1px) scale(.99); box-shadow:var(--neu-in-deep), 0 4px 10px -6px rgba(0,68,145,0.4); }
+.submit-btn:hover{ box-shadow:var(--neu-out-sm), 0 14px 28px -10px rgba(0,68,145,0.7); }
 .submit-btn:disabled{ opacity:.6; cursor:default; }
 
 .error-msg{
@@ -178,6 +396,67 @@ canvas#net{
   75%{transform:translateX(5px);}
 }
 
+.success-msg{
+  display:none; align-items:center; gap:8px;
+  background:rgba(29,111,191,0.12);
+  border:1px solid rgba(29,111,191,0.35);
+  color:var(--teal);
+  font-size:13px; font-weight:500;
+  padding:10px 12px; border-radius:10px; margin-bottom:16px;
+}
+.success-msg.show{ display:flex; }
+
+.field-eye-wrap{ position:relative; }
+.eye-toggle{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  width:28px; height:28px; border:none; background:transparent; cursor:pointer;
+  color:var(--text-dim); display:flex; align-items:center; justify-content:center; padding:0;
+  transition:color .2s ease;
+}
+.eye-toggle:hover{ color:var(--text); }
+.eye-toggle svg{ width:18px; height:18px; }
+
+.forgot-row{
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:8px 14px; margin:-2px 0 20px;
+}
+.remember-inline{ display:flex; align-items:center; gap:9px; }
+.remember-inline span{ font-size:12px; font-weight:600; color:var(--text-dim); cursor:pointer; user-select:none; }
+.forgot-row > a{
+  color:var(--azure); font-size:12px; font-weight:600; text-decoration:none; cursor:pointer; white-space:nowrap;
+}
+.forgot-row > a:hover{ text-decoration:underline; }
+
+.signup-text{ text-align:center; margin-top:20px; font-size:12.5px; color:var(--text-dim); }
+.signup-text a{ color:var(--azure); font-weight:700; text-decoration:none; cursor:pointer; }
+.signup-text a:hover{ text-decoration:underline; }
+
+.remember-toggle{
+  --rt-w:44px; --rt-h:24px; --rt-thumb:18px; --rt-pad:3px;
+  position:relative; width:var(--rt-w); height:var(--rt-h); border:none; padding:0;
+  border-radius:999px; cursor:pointer; flex-shrink:0;
+  background:var(--bg); box-shadow:var(--neu-in);
+  transition:box-shadow .3s ease;
+}
+.remember-toggle .rt-thumb{
+  position:absolute; top:var(--rt-pad); left:var(--rt-pad);
+  width:var(--rt-thumb); height:var(--rt-thumb); border-radius:50%;
+  background:var(--bg); box-shadow:var(--neu-out-sm);
+  transition:left .3s cubic-bezier(.34,1.56,.64,1), background .3s ease, box-shadow .3s ease;
+}
+.remember-toggle.active{ box-shadow:var(--neu-in-deep); }
+.remember-toggle.active .rt-thumb{
+  left:calc(var(--rt-w) - var(--rt-thumb) - var(--rt-pad));
+  background:linear-gradient(135deg, var(--azure), var(--teal));
+  box-shadow:0 0 10px rgba(0,68,145,.6), var(--neu-out-sm);
+}
+
+.link-row{ text-align:center; margin-top:16px; }
+.link-row a{
+  color:var(--azure); font-size:12.5px; font-weight:600; text-decoration:none; cursor:pointer;
+}
+.link-row a:hover{ text-decoration:underline; }
+
 .foot{
   margin-top:26px; text-align:center;
   font-size:11.5px; color:var(--text-dim);
@@ -189,41 +468,131 @@ canvas#net{
 }
 </style>
 </head>
-<body data-theme="dark">
-
-<canvas id="net"></canvas>
+<body data-theme="light">
 
 <div class="topbar">
   <div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div>
   <div class="controls">
-    <div class="lang-toggle">
-      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
-      <button id="lang-ru" onclick="setLang('ru')">RU</button>
+    <div class="lang-picker" id="langPicker">
+      <button class="lang-picker-btn" onclick="toggleLangMenu()" aria-label="Til" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+        <span id="langPickerCode">UZ</span>
+      </button>
+      <div class="lang-menu" id="langMenu">
+        <button id="lang-uz" class="lang-row active" onclick="setLang('uz')">
+          <span class="lang-row-text"><span class="lang-row-name">O'zbekcha</span><span class="lang-row-sub">Uzbek</span></span>
+          <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
+        <button id="lang-ru" class="lang-row" onclick="setLang('ru')">
+          <span class="lang-row-text"><span class="lang-row-name">Русский</span><span class="lang-row-sub">Russian</span></span>
+          <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
+      </div>
     </div>
-    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema"></button>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema">
+      <span class="tt-track">
+        <span class="tt-glow"></span>
+        <span class="tt-label tt-label-left">Kun</span>
+        <span class="tt-label tt-label-right">Tun</span>
+      </span>
+      <span class="tt-thumb">
+        <span class="tt-icon tt-sun"></span>
+        <span class="tt-icon tt-moon"></span>
+      </span>
+    </button>
   </div>
 </div>
 
 <div class="wrap">
-  <div class="card">
-    <h1 data-i18n="loginTitle">Tizimga kirish</h1>
-    <p class="sub" data-i18n="loginSub">Ish akkountingiz orqali davom eting</p>
+  <div class="flip-scene" id="flipScene">
+    <div class="flip-card">
+      <div class="card card-front">
+        <div class="pw-flip-scene" id="pwFlipScene">
+        <div class="pw-flip-card">
+        <div class="pw-flip-front" id="loginView">
+          <h1 data-i18n="loginTitle">Tizimga kirish</h1>
 
-    <div class="error-msg" id="errorBox">⚠ <span id="errorText" data-i18n="errText">Login yoki parol noto'g'ri kiritilgan</span></div>
+          <div class="error-msg" id="errorBox">⚠ <span id="errorText" data-i18n="errText">Login yoki parol noto'g'ri kiritilgan</span></div>
 
-    <form id="loginForm" onsubmit="return handleLogin(event)">
-      <div class="field">
-        <label data-i18n="loginLabel">Login</label>
-        <input type="text" id="loginInput" autocomplete="username" required>
+          <form id="loginForm" onsubmit="return handleLogin(event)">
+            <div class="field">
+              <label data-i18n="loginLabel">Login</label>
+              <input type="text" id="loginInput" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label data-i18n="passLabel">Parol</label>
+              <div class="field-eye-wrap">
+                <input type="password" id="passInput" autocomplete="current-password" required placeholder="••••••••" style="padding-right:42px;">
+                <button type="button" class="eye-toggle" id="passEyeBtn" onclick="togglePasswordVisibility()" aria-label="Parolni ko'rsatish/yashirish"></button>
+              </div>
+            </div>
+            <div class="forgot-row">
+              <div class="remember-inline">
+                <button type="button" class="remember-toggle" id="rememberToggle" role="switch" aria-checked="false" onclick="toggleRememberMe()" aria-label="Meni eslab qol">
+                  <span class="rt-thumb"></span>
+                </button>
+                <span onclick="toggleRememberMe()" data-i18n="rememberLabel">Meni eslab qol</span>
+              </div>
+              <a onclick="showForgotForm()" data-i18n="forgotLink">Parolni unutdim</a>
+            </div>
+            <button class="submit-btn" type="submit" id="submitBtn" data-i18n="submitBtn">Kirish</button>
+          </form>
+
+          <div class="signup-text"><span data-i18n="noAccountText">Akkauntingiz yo'qmi?</span> <a id="toSignup" onclick="flipToSignup()" data-i18n="registerBtn">Ro'yxatdan o'tish</a></div>
+        </div>
+
+        <div class="pw-flip-back" id="forgotView">
+          <h1 data-i18n="forgotTitle">Parolni tiklash</h1>
+          <p class="sub" data-i18n="forgotSub">Login va telefon raqamingizni kiriting</p>
+
+          <div class="error-msg" id="forgotErrorBox">⚠ <span id="forgotErrorText"></span></div>
+          <div class="success-msg" id="forgotSuccessBox">✓ <span id="forgotSuccessText"></span></div>
+
+          <form id="forgotForm" onsubmit="return handleForgotPassword(event)">
+            <div class="field">
+              <label data-i18n="loginLabel">Login</label>
+              <input type="text" id="forgotLoginInput" required>
+            </div>
+            <div class="field">
+              <label data-i18n="phoneLabel">Telefon raqam</label>
+              <input type="text" id="forgotPhoneInput" required placeholder="+998 XX XXX XX XX">
+            </div>
+            <button class="submit-btn" type="submit" id="forgotSubmitBtn" data-i18n="forgotSubmitBtn">Yuborish</button>
+          </form>
+
+          <div class="link-row"><a onclick="showLoginForm()" data-i18n="backToLoginLink">Kirishga qaytish</a></div>
+        </div>
+
+        </div>
+        </div>
+
+        <div id="totpView" style="display:none;">
+          <h1 data-i18n="totpTitle">Ikki bosqichli tasdiqlash</h1>
+          <p class="sub" data-i18n="totpSub">Avtentifikator ilovasidagi 6 xonali kodni kiriting</p>
+
+          <div class="error-msg" id="totpErrorBox">⚠ <span id="totpErrorText"></span></div>
+
+          <form id="totpForm" onsubmit="return handleTotpVerify(event)">
+            <div class="field">
+              <label data-i18n="totpCodeLabel">Tasdiqlash kodi</label>
+              <input type="text" id="totpCodeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
+            </div>
+            <button class="submit-btn" type="submit" id="totpSubmitBtn" data-i18n="submitBtn">Kirish</button>
+          </form>
+
+          <div class="link-row"><a onclick="showLoginForm()" data-i18n="backToLoginLink">Kirishga qaytish</a></div>
+        </div>
+
+        <div class="foot" data-i18n="footText">© «O'zbektelekom» AK — Ichki portal</div>
       </div>
-      <div class="field">
-        <label data-i18n="passLabel">Parol</label>
-        <input type="password" id="passInput" autocomplete="current-password" required placeholder="••••••••">
-      </div>
-      <button class="submit-btn" type="submit" id="submitBtn" data-i18n="submitBtn">Kirish</button>
-    </form>
 
-    <div class="foot" data-i18n="footText">© «O'zbektelekom» AK — Ichki portal</div>
+      <div class="card card-back">
+        <div class="signup-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 3"/></svg></div>
+        <h1 data-i18n="registerBtn">Ro'yxatdan o'tish</h1>
+        <p class="sub" data-i18n="registerStubMsg">Bu funksiya tez orada ishga tushiriladi</p>
+        <button type="button" class="submit-btn" onclick="flipToLogin()" data-i18n="backToLoginLink">Kirishga qaytish</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -233,26 +602,56 @@ const dict = {
   uz:{
     brandName:"\"O'zbektelekom\" AK",
     loginTitle:"Tizimga kirish",
-    loginSub:"Ish akkountingiz orqali davom eting",
     loginLabel:"Login",
     passLabel:"Parol",
+    rememberLabel:"Meni eslab qol",
+    noAccountText:"Akkauntingiz yo'qmi?",
     submitBtn:"Kirish",
+    registerBtn:"Ro'yxatdan o'tish",
+    registerStubMsg:"Bu funksiya tez orada ishga tushiriladi",
+    forgotLink:"Parolni unutdim",
+    forgotTitle:"Parolni tiklash",
+    forgotSub:"Login va telefon raqamingizni kiriting",
+    phoneLabel:"Telefon raqam",
+    forgotSubmitBtn:"Yuborish",
+    backToLoginLink:"Kirishga qaytish",
+    forgotLoginNotFound:"Login aniqlanmadi, iltimos tekshirib qaytadan kiriting",
+    forgotSuccessMsg:"So'rovingiz qabul qilindi. Agar 1 kun ichida yangi parolni olmasangiz, 55-501-77-87 raqami orqali bog'laning.",
+    forgotGenericErr:"Xatolik yuz berdi, qayta urinib ko'ring",
     errText:"Login yoki parol noto'g'ri kiritilgan",
     lockedErr:"Ko'p marta noto'g'ri urinildi. 15 daqiqadan so'ng qayta urinib ko'ring.",
     footText:"© «O'zbektelekom» AK — Ichki portal",
-    submitting:"Tekshirilmoqda..."
+    submitting:"Tekshirilmoqda...",
+    totpTitle:"Ikki bosqichli tasdiqlash", totpSub:"Avtentifikator ilovasidagi 6 xonali kodni kiriting",
+    totpCodeLabel:"Tasdiqlash kodi", totpInvalidErr:"Kod noto'g'ri, qaytadan urinib ko'ring",
+    totpExpiredErr:"Vaqt tugagan, qaytadan kiring"
   },
   ru:{
     brandName:"АО «Узтелеком»",
     loginTitle:"Вход в систему",
-    loginSub:"Продолжите с рабочей учётной записью",
     loginLabel:"Логин",
     passLabel:"Пароль",
+    rememberLabel:"Запомнить меня",
+    noAccountText:"Нет аккаунта?",
     submitBtn:"Войти",
+    registerBtn:"Регистрация",
+    registerStubMsg:"Эта функция скоро будет запущена",
+    forgotLink:"Забыли пароль?",
+    forgotTitle:"Восстановление пароля",
+    forgotSub:"Введите логин и номер телефона",
+    phoneLabel:"Номер телефона",
+    forgotSubmitBtn:"Отправить",
+    backToLoginLink:"Вернуться ко входу",
+    forgotLoginNotFound:"Логин не найден, проверьте и попробуйте снова",
+    forgotSuccessMsg:"Ваш запрос принят. Если в течение 1 дня не получите новый пароль, свяжитесь по номеру 55-501-77-87.",
+    forgotGenericErr:"Произошла ошибка, попробуйте снова",
     errText:"Неверный логин или пароль",
     lockedErr:"Слишком много неверных попыток. Повторите через 15 минут.",
     footText:"© АО «Узтелеком» — Внутренний портал",
-    submitting:"Проверка..."
+    submitting:"Проверка...",
+    totpTitle:"Двухфакторная аутентификация", totpSub:"Введите 6-значный код из приложения-аутентификатора",
+    totpCodeLabel:"Код подтверждения", totpInvalidErr:"Неверный код, попробуйте снова",
+    totpExpiredErr:"Время истекло, войдите заново"
   }
 };
 let currentLang = localStorage.getItem('km_lang') || 'uz';
@@ -264,23 +663,37 @@ function applyLang(){
   });
   document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
   document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
+  document.getElementById('langPickerCode').textContent = currentLang.toUpperCase();
   document.documentElement.lang = currentLang;
 }
 function setLang(l){
   currentLang = l;
   localStorage.setItem('km_lang', l); // eslatma: artefaktda ishlamaydi, saytda ishlaydi
   applyLang();
+  document.getElementById('langMenu').classList.remove('show');
 }
+function toggleLangMenu(){ document.getElementById('langMenu').classList.toggle('show'); }
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.lang-picker')){
+    document.getElementById('langMenu').classList.remove('show');
+  }
+});
 applyLang();
 
 /* ---------- Theme ---------- */
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
 
-let theme = localStorage.getItem('km_theme') || 'dark';
+document.querySelector('.tt-sun').innerHTML = sunIcon;
+document.querySelector('.tt-moon').innerHTML = moonIcon;
+
+// VAQTINCHALIK: kunduzgi rejim majburiy qilingan (tugma yashirilgan).
+// Qayta yoqish uchun quyidagi qatorni qaytaring:
+// let theme = localStorage.getItem('km_theme') || 'dark';
+let theme = 'light';
 function applyTheme(){
   document.body.setAttribute('data-theme', theme);
-  document.getElementById('themeBtn').innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+  document.getElementById('themeBtn').classList.toggle('active', theme === 'dark');
   document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; });
 }
 function toggleTheme(){
@@ -290,18 +703,104 @@ function toggleTheme(){
 }
 applyTheme();
 
-/* ---------- Login logic — Google Apps Script (Sheets) bilan ulangan ---------- */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+/* ---------- Parolni ko'rsatish/yashirish ---------- */
+const eyeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const eyeOffIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M6.61 6.61A18.24 18.24 0 0 0 1 12s4 8 11 8a9.26 9.26 0 0 0 5.39-1.61M1 1l22 22"/></svg>`;
+let passVisible = false;
+document.getElementById('passEyeBtn').innerHTML = eyeIcon;
+function togglePasswordVisibility(){
+  passVisible = !passVisible;
+  document.getElementById('passInput').type = passVisible ? 'text' : 'password';
+  document.getElementById('passEyeBtn').innerHTML = passVisible ? eyeOffIcon : eyeIcon;
+}
 
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+/* ---------- Meni eslab qol ---------- */
+let rememberMe = false;
+function toggleRememberMe(){
+  rememberMe = !rememberMe;
+  const t = document.getElementById('rememberToggle');
+  t.classList.toggle('active', rememberMe);
+  t.setAttribute('aria-checked', String(rememberMe));
+}
+
+/* ---------- Parolni unutdim / Ro'yxatdan o'tish ---------- */
+function showForgotForm(){
+  document.getElementById('pwFlipScene').classList.add('flipped');
+}
+function showLoginForm(){
+  document.getElementById('pwFlipScene').style.display = '';
+  document.getElementById('pwFlipScene').classList.remove('flipped');
+  document.getElementById('totpView').style.display = 'none';
+  document.getElementById('forgotErrorBox').classList.remove('show');
+  document.getElementById('forgotSuccessBox').classList.remove('show');
+}
+function showTotpForm(){
+  document.getElementById('pwFlipScene').style.display = 'none';
+  document.getElementById('totpView').style.display = 'block';
+  document.getElementById('totpCodeInput').value = '';
+  document.getElementById('totpErrorBox').classList.remove('show');
+  setTimeout(() => document.getElementById('totpCodeInput').focus(), 50);
+}
+/* ---------- Ro'yxatdan o'tish — aylanish (flip) animatsiyasi ---------- */
+function flipToSignup(){
+  document.getElementById('flipScene').classList.add('flipped');
+}
+function flipToLogin(){
+  document.getElementById('flipScene').classList.remove('flipped');
+}
+
+async function handleForgotPassword(e){
+  e.preventDefault();
+  const login = document.getElementById('forgotLoginInput').value.trim();
+  const telefon = document.getElementById('forgotPhoneInput').value.trim();
+  const btn = document.getElementById('forgotSubmitBtn');
+  const errBox = document.getElementById('forgotErrorBox');
+  const okBox = document.getElementById('forgotSuccessBox');
+
+  errBox.classList.remove('show');
+  okBox.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = dict[currentLang].submitting;
+
+  try{
+    const data = await apiCall({ action: 'requestPasswordReset', login, telefon });
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].forgotSubmitBtn;
+
+    if(data.success){
+      document.getElementById('forgotSuccessText').textContent = dict[currentLang].forgotSuccessMsg;
+      okBox.classList.add('show');
+      document.getElementById('forgotForm').reset();
+    } else if(data.code === 'LOGIN_NOT_FOUND'){
+      document.getElementById('forgotErrorText').textContent = dict[currentLang].forgotLoginNotFound;
+      errBox.classList.add('show');
+    } else {
+      document.getElementById('forgotErrorText').textContent = dict[currentLang].forgotGenericErr;
+      errBox.classList.add('show');
+    }
+  } catch(ex){
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].forgotSubmitBtn;
+    document.getElementById('forgotErrorText').textContent = 'Xatolik: ' + ex.message;
+    errBox.classList.add('show');
+  }
+
+  return false;
+}
+
+/* ---------- Login logic — Google Apps Script (Sheets) bilan ulangan ---------- */
+// PHP backend'ning ochiq API manzili (backend/public/index.php) — sahifa qayerdan
+// ochilgan bo'lsa (localhost, mahalliy tarmoq IP'si, ngrok, haqiqiy domen), o'sha
+// joyning o'ziga nisbatan avtomatik hisoblanadi, qo'lda o'zgartirish shart emas.
+const API_BASE_URL = new URL('backend/public/index.php', window.location.href).href;
+
+// Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
   const body = JSON.stringify(payload);
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body, credentials:'same-origin' });
       const text = await res.text();
       try{ return JSON.parse(text); }
       catch(parseErr){
@@ -329,12 +828,16 @@ async function handleLogin(e){
   btn.textContent = dict[currentLang].submitting;
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action: 'login', login, parol });
+    const data = await apiCall({ action: 'login', login, parol, rememberMe });
 
     btn.disabled = false;
     btn.textContent = dict[currentLang].submitBtn;
 
-    if(data.success){
+    if(data.success && data.needsTotp){
+      pendingTotpToken = data.pendingToken;
+      pendingLogin = login;
+      showTotpForm();
+    } else if(data.success){
       // Endi barcha sahifalar bitta domenda (GitHub Pages) ishlagani uchun
       // ma'lumot faqat sessionStorage orqali uzatiladi — URL'da emas
       // (token kabi maxfiy ma'lumotni URL'ga chiqarmaslik xavfsizroq).
@@ -359,66 +862,59 @@ async function handleLogin(e){
   return false;
 }
 
-/* ---------- Network background animation ---------- */
-const canvas = document.getElementById('net');
-const ctx = canvas.getContext('2d');
-let W, H, nodes;
+let pendingTotpToken = null;
+let pendingLogin = null;
 
-function resize(){
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resize);
-resize();
+async function handleTotpVerify(e){
+  e.preventDefault();
+  const code = document.getElementById('totpCodeInput').value.trim();
+  const btn = document.getElementById('totpSubmitBtn');
+  const err = document.getElementById('totpErrorBox');
+  err.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = dict[currentLang].submitting;
 
-function initNodes(){
-  const count = Math.min(70, Math.floor((W*H)/22000));
-  nodes = Array.from({length:count}, ()=>({
-    x: Math.random()*W,
-    y: Math.random()*H,
-    vx: (Math.random()-0.5)*0.35,
-    vy: (Math.random()-0.5)*0.35,
-    r: Math.random()*1.6+0.6
-  }));
-}
-initNodes();
-window.addEventListener('resize', initNodes);
+  try{
+    const data = await apiCall({ action:'verifyTotpLogin', pendingToken: pendingTotpToken, code, rememberMe });
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].submitBtn;
 
-function isLight(){ return document.body.getAttribute('data-theme') === 'light'; }
-
-function draw(){
-  ctx.clearRect(0,0,W,H);
-  const lineColor = isLight() ? 'rgba(11,37,69,' : 'rgba(0,217,192,';
-  const dotColor  = isLight() ? 'rgba(0,163,224,0.55)' : 'rgba(0,217,192,0.75)';
-
-  for(let i=0;i<nodes.length;i++){
-    const n = nodes[i];
-    n.x += n.vx; n.y += n.vy;
-    if(n.x<0||n.x>W) n.vx*=-1;
-    if(n.y<0||n.y>H) n.vy*=-1;
-
-    for(let j=i+1;j<nodes.length;j++){
-      const m = nodes[j];
-      const dx=n.x-m.x, dy=n.y-m.y;
-      const dist = Math.sqrt(dx*dx+dy*dy);
-      if(dist < 130){
-        ctx.strokeStyle = lineColor + (0.12*(1-dist/130)) + ')';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(n.x,n.y); ctx.lineTo(m.x,m.y);
-        ctx.stroke();
-      }
+    if(data.success){
+      sessionStorage.setItem('km_user', JSON.stringify({...data, login: pendingLogin}));
+      document.querySelector('.card').style.transition='opacity .3s ease, transform .3s ease';
+      document.querySelector('.card').style.opacity='0';
+      document.querySelector('.card').style.transform='translateY(-10px) scale(.98)';
+      setTimeout(()=>{ window.location.href = 'main.html'; }, 300);
+    } else {
+      document.getElementById('totpErrorText').textContent = data.code === 'SESSION_EXPIRED' ? dict[currentLang].totpExpiredErr : dict[currentLang].totpInvalidErr;
+      err.classList.add('show');
     }
+  } catch(ex){
+    btn.disabled = false;
+    btn.textContent = dict[currentLang].submitBtn;
+    document.getElementById('totpErrorText').textContent = 'Xatolik: ' + ex.message;
+    err.classList.add('show');
   }
-  for(const n of nodes){
-    ctx.fillStyle = dotColor;
-    ctx.beginPath();
-    ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
-    ctx.fill();
-  }
-  requestAnimationFrame(draw);
+  return false;
 }
-draw();
+
+/* ---------- "Meni eslab qol" — jim (silent) qayta kirish ----------
+   Sahifa ochilganda, foydalanuvchi hech narsa kiritmasdan, avvalgi
+   kirishda "Meni eslab qol" belgilangan bo'lsa (va 1 soatlik muddat
+   hali o'tmagan bo'lsa) HttpOnly remember-cookie orqali avtomatik
+   qayta kirishga urinadi. Cookie yo'q/muddati o'tgan bo'lsa (eng ko'p
+   uchraydigan holat), backend shunchaki xatolik qaytaradi — bu yerda
+   hech qanday xabar ko'rsatilmaydi, forma oddiy holida qoladi. */
+(async function attemptSilentRelogin(){
+  try{
+    const data = await apiCall({ action: 'loginViaRememberToken' });
+    if(data && data.success){
+      sessionStorage.setItem('km_user', JSON.stringify(data));
+      window.location.href = 'main.html';
+    }
+  }catch(ex){ /* jim: forma ko'rsatilaveradi */ }
+})();
+
 </script>
 </body>
 </html>

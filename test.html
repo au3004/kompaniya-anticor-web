@@ -8,13 +8,24 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root{
-  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
+  --navy-950:#071B33; --navy-900:#0B2545; --azure:#004491; --teal:#1D6FBF; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
   --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
   --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
+  /* Embossed (neomorfik) soya texnikasi — login.html'dagi bilan bir xil,
+     rang o'zgartirilmagan, faqat sirtlarga chuqurlik (bosib chiqqan/
+     botirilgan ko'rinish) qo'shiladi. */
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.035), 10px 10px 26px rgba(0,0,0,0.55);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.035), 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.03), inset 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.025), inset 5px 5px 13px rgba(0,0,0,0.6);
 }
 [data-theme="light"]{
-  --bg:#EAF3FA; --bg-deep:#DCEAF5; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
+  --bg:#F1F2F4; --bg-deep:#E4E6E9; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
   --text:#0B2545; --text-dim:#4E6A88; --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.9), 10px 10px 26px rgba(163,177,198,0.5);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.85), 6px 6px 16px rgba(163,177,198,0.45);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.75), inset 6px 6px 16px rgba(163,177,198,0.55);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.7), inset 5px 5px 13px rgba(163,177,198,0.65);
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .5s ease, color .5s ease; }
@@ -23,19 +34,169 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .brand{ display:flex; align-items:center; gap:10px; font-family:'Unbounded', sans-serif; font-weight:700; font-size:14px; text-decoration:none; color:var(--text); }
 .brand-logo{ height:22px; width:auto; display:block; }
 .controls{ display:flex; align-items:center; gap:12px; }
-.lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
-.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; }
-.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
-.home-icon-btn{ width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); text-decoration:none; transition:border-color .2s ease, color .2s ease; margin-left:2px; }
-.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
-.theme-toggle{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
-.theme-toggle svg{ width:17px; height:17px; }
+/* ===== Til almashtirgich: kichik tugma + belgilash ro'yxati (checkmark list)
+   uslubidagi ochiluvchi menyu — bosilganda tillar ro'yxati ochiladi, tanlangani
+   azure/teal rangli belgi bilan ko'rsatiladi. ===== */
+.lang-picker{ position:relative; }
+.lang-picker-btn{
+  display:flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:999px;
+  background:var(--bg);
+  box-shadow:var(--neu-out-sm); border:none;
+  cursor:pointer; color:var(--text-dim); font-family:'Inter'; font-weight:700; font-size:12px;
+  transition:border-color .25s ease, color .25s ease;
+}
+.lang-picker-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.lang-picker-btn svg{ width:15px; height:15px; flex:none; }
+.lang-menu{
+  position:absolute; top:calc(100% + 10px); right:0; width:200px;
+  background:var(--bg-deep); border:1px solid var(--card-border); border-radius:14px;
+  padding:5px; box-shadow:0 20px 40px -12px rgba(0,0,0,0.5);
+  opacity:0; visibility:hidden; transform:translateY(-8px);
+  transition:all .2s ease; z-index:40;
+}
+.lang-menu.show{ opacity:1; visibility:visible; transform:translateY(0); }
+.lang-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+  border:none; background:transparent; cursor:pointer; text-align:left;
+  padding:9px 10px; border-radius:10px; transition:background .2s ease;
+  font-family:'Inter';
+}
+.lang-row:hover{ background:rgba(255,255,255,.07); }
+.lang-row-text{ display:flex; flex-direction:column; gap:1px; }
+.lang-row-name{ font-size:13px; font-weight:600; color:var(--text); }
+.lang-row-sub{ font-size:11px; color:var(--text-dim); }
+.lang-row-check{
+  flex:none; width:18px; height:18px; border-radius:50%; border:1.5px solid var(--card-border);
+  display:flex; align-items:center; justify-content:center; color:transparent;
+  transition:background .25s ease, border-color .25s ease, color .25s ease;
+}
+.lang-row-check svg{ width:11px; height:11px; }
+.lang-row.active{ background:rgba(0,68,145,.10); }
+.lang-row.active .lang-row-name{ color:var(--azure); }
+.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#FFFFFF; }
+.home-icon-btn{
+  position:relative; width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg);
+  box-shadow:var(--neu-out-sm); border:none;
+  cursor:pointer; color:var(--text-dim); text-decoration:none;
+  transition:border-color .25s ease, color .25s ease, transform .2s ease, box-shadow .25s ease;
+  margin-left:2px;
+}
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,68,145,.28); }
+/* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
+   Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
+   — kod to'liq o'qib chiqilgan (faqat CSS animatsiya + oddiy klass
+   almashtirish, tashqi so'rov/skript yo'q), loyihaning o'z rang
+   palitrasi, shrifti va o'lchamiga moslab qayta yozildi. Barcha asl
+   effektlar (blobning organik "nafas olish" animatsiyasi, ikki qatlamli
+   nur, bosilganda siqilish, matnli yorliqlar) o'lchamga proportsional
+   CSS o'zgaruvchilari orqali saqlab qolindi. */
+.theme-toggle{
+  --tt-w:56px; --tt-h:28px; --tt-thumb:40px; --tt-off:-6px;
+  position:relative; width:var(--tt-w); height:var(--tt-h); padding:0; flex-shrink:0;
+  border:none; background:none; cursor:pointer;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.18));
+}
+/* VAQTINCHALIK: kun/tun almashtirgich butun saytda yashirilgan — sayt
+   faqat kunduzgi rejimda ishlaydi. Yuqoridagi asl tugma kodi (CSS,
+   animatsiya) to'liq saqlanib qolgan — qayta ko'rsatish uchun shu
+   qoidani (pastdagi bitta qator) o'chirib tashlash kifoya. */
+.theme-toggle{ display:none !important; }
+.theme-toggle-lg{ --tt-w:270px; --tt-h:92px; --tt-thumb:130px; --tt-off:-21px; margin:0 auto; }
+
+.tt-track{
+  position:absolute; inset:0; border-radius:999px; overflow:hidden;
+  backdrop-filter:blur(20px);
+  background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+  border:1px solid var(--card-border);
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.4), inset 0 -10px 20px rgba(0,0,0,.12), 0 15px 30px rgba(0,0,0,.08);
+}
+.tt-track::before{
+  content:""; position:absolute; inset:9%; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.18), transparent 45%, rgba(255,255,255,.05));
+}
+.tt-track::after{
+  content:""; position:absolute; inset:-45%; border-radius:999px; pointer-events:none;
+  filter:blur(30px); opacity:.55; transition:.7s ease;
+  background:radial-gradient(circle, rgba(255,200,0,.35), transparent 70%);
+}
+.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,68,145,.4), transparent 70%); }
+
+.tt-glow{
+  position:absolute; left:-15%; top:-30%; width:65%; height:160%; border-radius:50%;
+  background:radial-gradient(circle at center, var(--amber), rgba(255,176,32,.7) 45%, rgba(255,255,255,.1) 100%);
+  filter:blur(18px);
+  transition:.7s cubic-bezier(.68,-0.55,.27,1.55);
+}
+.theme-toggle.active .tt-glow{
+  left:50%;
+  background:radial-gradient(circle at center, rgba(0,68,145,.95), rgba(0,68,145,.55) 45%, transparent 80%);
+}
+
+.tt-label{
+  display:none; position:absolute; top:50%; transform:translateY(-50%);
+  color:#fff; font-family:'Unbounded',sans-serif; font-weight:600;
+  font-size:calc(var(--tt-h) * .28);
+  pointer-events:none; z-index:5; transition:.5s ease; white-space:nowrap;
+}
+.theme-toggle-lg .tt-label{ display:block; }
+.tt-label-left{ left:13%; }
+.tt-label-right{ right:13%; opacity:0; }
+.theme-toggle.active .tt-label-left{ opacity:0; transform:translateY(-50%) translateX(-10px); }
+.theme-toggle.active .tt-label-right{ opacity:1; transform:translateY(-50%) translateX(0); }
+
+.tt-thumb{
+  position:absolute; left:var(--tt-off); top:var(--tt-off);
+  width:var(--tt-thumb); height:var(--tt-thumb);
+  border-radius:42% 58% 70% 30% / 45% 45% 55% 55%;
+  overflow:hidden; display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,.14); border:2px solid rgba(255,255,255,.4);
+  box-shadow:0 16px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25), inset 0 0 24px rgba(255,255,255,.06);
+  transition:
+    left .7s cubic-bezier(.68,-0.55,.27,1.55),
+    transform .3s cubic-bezier(.68,-0.55,.27,1.55),
+    background .6s ease, border-color .6s ease, box-shadow .6s ease;
+  animation:ttBlobFloat 7s ease-in-out infinite;
+  z-index:10;
+}
+.theme-toggle.active .tt-thumb{
+  left:calc(100% - var(--tt-thumb) - var(--tt-off));
+  background:rgba(11,37,69,.55); border-color:rgba(255,255,255,.22);
+  box-shadow:
+    inset 0 6px 14px rgba(255,255,255,.15),
+    inset 0 -14px 22px rgba(0,0,0,.15),
+    0 0 26px rgba(0,68,145,.5),
+    0 0 48px rgba(0,68,145,.25);
+}
+.theme-toggle:not(.active) .tt-thumb{
+  box-shadow:
+    inset 0 5px 10px rgba(255,255,255,.45),
+    inset 0 -3px 8px rgba(255,255,255,.16),
+    inset 0 0 14px rgba(255,255,255,.16),
+    0 16px 32px rgba(0,0,0,.35);
+}
+.theme-toggle:hover .tt-thumb{ transform:scale(1.06); }
+.theme-toggle:active .tt-thumb{ transform:scaleX(1.1) scaleY(.9); }
+
+@keyframes ttBlobFloat{
+  0%,100%{ border-radius:42% 58% 70% 30% / 45% 45% 55% 55%; }
+  34%{ border-radius:70% 30% 46% 54% / 30% 29% 71% 70%; }
+  67%{ border-radius:100% 60% 60% 100% / 100% 100% 60% 60%; }
+}
+
+.tt-icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; transition:opacity .4s ease, transform .4s ease; z-index:3; }
+.tt-icon svg{ width:38%; height:38%; }
+.tt-icon.tt-moon{ opacity:0; transform:scale(.6) rotate(-90deg); }
+.theme-toggle.active .tt-icon.tt-sun{ opacity:0; transform:scale(.55) rotate(90deg); }
+.theme-toggle.active .tt-icon.tt-moon{ opacity:1; transform:scale(1) rotate(0deg); }
 .back-link{ display:flex; align-items:center; gap:6px; color:var(--text-dim); font-size:13px; text-decoration:none; margin-right:6px; }
 
 .main{ max-width:680px; margin:0 auto; padding:120px 24px 80px; }
 .page-head{ margin-bottom:10px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
 .back-btn{
-  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--card-border);
+  display:inline-flex; align-items:center; gap:6px; background:var(--bg); box-shadow:var(--neu-out-sm); border:none;
   color:var(--text); font-size:13px; font-weight:600; padding:9px 16px; border-radius:11px; cursor:pointer;
   text-decoration:none; transition:border-color .2s ease; white-space:nowrap; flex-shrink:0;
 }
@@ -47,7 +208,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--azure), var(--teal)); transition:width .3s ease; }
 
 .q-card{
-  background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:24px; margin-bottom:16px;
+  background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:16px; padding:24px; margin-bottom:16px;
   transition:box-shadow .2s ease; opacity:0; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both;
 }
 .q-card:hover{ box-shadow:0 16px 32px -18px rgba(0,0,0,0.4); }
@@ -62,21 +223,21 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   font-size:13.5px; transition:border-color .15s ease, background .15s ease, transform .1s ease;
 }
 .opt:hover{ border-color:var(--azure); transform:translateX(2px); }
-.opt.selected{ border-color:var(--teal); background:rgba(0,217,192,0.12); }
+.opt.selected{ border-color:var(--teal); background:rgba(29,111,191,0.12); }
 .opt input{ accent-color:var(--teal); width:16px; height:16px; }
 
 .submit-wrap{ text-align:center; margin-top:24px; }
 .submit-btn{
   padding:14px 32px; border:none; border-radius:12px; cursor:pointer;
-  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:14.5px;
+  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; font-weight:700; font-size:14.5px;
   transition:transform .15s ease, box-shadow .2s ease;
 }
-.submit-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,163,224,0.6); }
+.submit-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,68,145,0.6); }
 .submit-btn:active:not(:disabled){ transform:translateY(0) scale(.98); }
 .submit-btn:disabled{ opacity:.4; cursor:default; }
 
 .result-card{
-  display:none; text-align:center; background:var(--card); border:1px solid var(--card-border);
+  display:none; text-align:center; background:var(--bg); box-shadow:var(--neu-out-sm); border:none;
   border-radius:20px; padding:40px 30px;
 }
 .result-card.show{ display:block; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both; }
@@ -93,12 +254,12 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .wrong-list li::before{ content:"✕"; position:absolute; left:0; color:var(--coral); font-size:11px; top:3px; }
 .result-card a{
   display:inline-block; padding:12px 24px; border-radius:11px; text-decoration:none;
-  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px;
+  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; font-weight:700; font-size:13.5px;
   transition:transform .15s ease;
 }
 .result-card a:hover{ transform:translateY(-2px); }
 #quizForm.hidden{ display:none; }
-.inactive-card{ display:none; text-align:center; background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:40px 30px; }
+.inactive-card{ display:none; text-align:center; background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:20px; padding:40px 30px; }
 .inactive-card.show{ display:block; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both; }
 .inactive-card .icon{ width:52px; height:52px; margin:0 auto 16px; color:var(--text-dim); }
 .inactive-card .msg{ font-size:15px; font-weight:600; margin-bottom:22px; }
@@ -108,20 +269,82 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   .q-card{ padding:18px; }
   .result-card{ padding:30px 20px; }
 }
+
+/* ===== Xabarnomalar modali (main.html bilan bir xil) ===== */
+@keyframes rise{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(4,15,30,0.65); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+.modal-overlay.show{ display:flex; }
+.modal{
+  width:100%; max-width:420px; background:var(--bg-deep); border:1px solid var(--card-border);
+  border-radius:20px; padding:30px; animation:rise .3s ease both;
+  max-height:85vh; overflow-y:auto;
+}
+.modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+.modal-head h3{ font-family:'Unbounded', sans-serif; font-size:17px; }
+.modal-close{ background:var(--bg); box-shadow:var(--neu-out-sm); border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
+.notif-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:12px; padding:13px 14px; position:relative; }
+.notif-item.unread{ border-color:var(--azure); }
+.notif-item.unread::before{ content:''; position:absolute; top:14px; left:-6px; width:8px; height:8px; border-radius:50%; background:var(--azure); }
+.notif-item .notif-text{ font-size:13.5px; line-height:1.5; white-space:pre-wrap; }
 </style>
 </head>
-<body data-theme="dark">
+<body data-theme="light">
 
 <div class="topbar">
   <div style="display:flex; align-items:center; gap:10px;">
     <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
   </div>
   <div class="controls">
-    <div class="lang-toggle">
-      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
-      <button id="lang-ru" onclick="setLang('ru')">RU</button>
+    <div class="lang-picker" id="langPicker">
+      <button class="lang-picker-btn" onclick="toggleLangMenu()" aria-label="Til" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+        <span id="langPickerCode">UZ</span>
+      </button>
+      <div class="lang-menu" id="langMenu">
+        <button id="lang-uz" class="lang-row active" onclick="setLang('uz')">
+          <span class="lang-row-text"><span class="lang-row-name">O'zbekcha</span><span class="lang-row-sub">Uzbek</span></span>
+          <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
+        <button id="lang-ru" class="lang-row" onclick="setLang('ru')">
+          <span class="lang-row-text"><span class="lang-row-name">Русский</span><span class="lang-row-sub">Russian</span></span>
+          <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
+      </div>
     </div>
-    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"></button>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema">
+      <span class="tt-track">
+        <span class="tt-glow"></span>
+        <span class="tt-label tt-label-left">Kun</span>
+        <span class="tt-label tt-label-right">Tun</span>
+      </span>
+      <span class="tt-thumb">
+        <span class="tt-icon tt-sun"></span>
+        <span class="tt-icon tt-moon"></span>
+      </span>
+    </button>
+    <a class="home-icon-btn" href="main.html?openHelp=1" title="Yordam">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
+    </a>
+    <button class="home-icon-btn" id="notifBtn" onclick="openNotifPanel()" title="Xabarnomalar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px; border-radius:9px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:10px; font-weight:700; line-height:13px; text-align:center;"></span>
+    </button>
+  </div>
+</div>
+
+<!-- Xabarnomalar modal -->
+<div class="modal-overlay" id="notifModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h3 data-i18n="notifTitle">Xabarnomalar</h3>
+      <button class="modal-close" onclick="closeModal('notifModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div id="notifList" style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+      <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
+    </div>
   </div>
 </div>
 
@@ -164,17 +387,18 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 </div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+// PHP backend'ning ochiq API manzili (backend/public/index.php) — sahifa qayerdan
+// ochilgan bo'lsa (localhost, mahalliy tarmoq IP'si, ngrok, haqiqiy domen), o'sha
+// joyning o'ziga nisbatan avtomatik hisoblanadi, qo'lda o'zgartirish shart emas.
+const API_BASE_URL = new URL('backend/public/index.php', window.location.href).href;
 
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+// Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
   const body = JSON.stringify(payload);
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body, credentials:'same-origin' });
       const text = await res.text();
       try{
         const parsed = JSON.parse(text);
@@ -203,12 +427,14 @@ const dict = {
     submitBtn:"Testni yakunlash", backHome:"Asosiy sahifaga qaytish", noQuestions:"Savollar topilmadi",
     passVerdict:"Tabriklaymiz, test muvaffaqiyatli topshirildi! 🎉", failVerdict:"Afsuski, o'tish balliga yetmadingiz",
     passSub:"Natijangiz saqlandi", failSub:"Hujjatlarni qayta ko'rib chiqib, testni qayta urinib ko'ring", savingErr:"Natijani saqlashda xatolik",
-    pointsLabel:"ball", wrongHeader:"Xato javob berilgan savollar:", inactiveMsg:"Test yakunlangan" },
+    pointsLabel:"ball", wrongHeader:"Xato javob berilgan savollar:", inactiveMsg:"Test yakunlangan",
+    loading:"Yuklanmoqda...", notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q" },
   ru:{ brandName:"АО «Узтелеком»", backBtn:"Назад", eyebrow:"Проверьте свои знания", pageTitle:"Тест по темам противодействия коррупции",
     submitBtn:"Завершить тест", backHome:"Вернуться на главную", noQuestions:"Вопросы не найдены",
     passVerdict:"Поздравляем, тест успешно пройден! 🎉", failVerdict:"К сожалению, вы не набрали проходной балл",
     passSub:"Результат сохранён", failSub:"Пересмотрите документы и попробуйте снова", savingErr:"Ошибка при сохранении результата",
-    pointsLabel:"баллов", wrongHeader:"Вопросы с неверным ответом:", inactiveMsg:"Тест завершён" }
+    pointsLabel:"баллов", wrongHeader:"Вопросы с неверным ответом:", inactiveMsg:"Тест завершён",
+    loading:"Загрузка...", notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений" }
 };
 
 // Sheets'dan kelgan matnni HTML sifatida joylashtirishdan oldin xavfsizlashtiradi (XSS himoyasi)
@@ -247,7 +473,7 @@ function renderQuestions(){
 
 async function loadQuestions(){
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getTestQuestions' });
+    const data = await apiCall({ action:'getTestQuestions' });
     if(data.success && data.active === false){
       document.getElementById('quizForm').style.display = 'none';
       document.getElementById('submitBtn').style.display = 'none';
@@ -274,22 +500,95 @@ function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
   document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
   document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
+  document.getElementById('langPickerCode').textContent = currentLang.toUpperCase();
 }
 function setLang(l){
   currentLang=l; localStorage.setItem('km_lang', l);
   applyLang(); renderQuestions();
+  document.getElementById('langMenu').classList.remove('show');
 }
+function toggleLangMenu(){ document.getElementById('langMenu').classList.toggle('show'); }
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.lang-picker')){ document.getElementById('langMenu').classList.remove('show'); }
+});
 applyLang();
 
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
-let theme = localStorage.getItem('km_theme') || 'dark';
-function applyTheme(){ document.body.setAttribute('data-theme', theme); document.getElementById('themeBtn').innerHTML = theme==='dark'?sunIcon:moonIcon; document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; }); }
+// VAQTINCHALIK: kunduzgi rejim majburiy qilingan (tugma yashirilgan).
+// Qayta yoqish uchun quyidagi qatorni qaytaring:
+// let theme = localStorage.getItem('km_theme') || 'dark';
+let theme = 'light';
+document.querySelectorAll('.tt-sun').forEach(function(el){ el.innerHTML = sunIcon; });
+document.querySelectorAll('.tt-moon').forEach(function(el){ el.innerHTML = moonIcon; });
+function applyTheme(){
+  document.body.setAttribute('data-theme', theme);
+  document.querySelectorAll('.theme-toggle').forEach(function(btn){ btn.classList.toggle('active', theme === 'dark'); });
+  document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; });
+}
 function toggleTheme(){ theme = theme==='dark'?'light':'dark'; localStorage.setItem('km_theme', theme); applyTheme(); }
 applyTheme();
 
 function getToken(){
   try{ return JSON.parse(sessionStorage.getItem('km_user'))?.token; }catch(e){ return null; }
+}
+
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+/* ---------- Xabarnomalar ---------- */
+let notifCache = null;
+
+function updateNotifBadge(){
+  const count = (notifCache || []).filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if(count > 0){ badge.textContent = count > 99 ? '99+' : String(count); badge.style.display = 'flex'; badge.style.alignItems = 'center'; badge.style.justifyContent = 'center'; }
+  else { badge.style.display = 'none'; }
+}
+
+async function loadNotifBadge(){
+  if(!getToken()) return;
+  try{
+    const data = await apiCall({ action:'getMyNotifications', token: getToken() });
+    if(data.success){ notifCache = data.notifications; updateNotifBadge(); }
+  } catch(ex){ /* jimgina o'tkazib yuboramiz */ }
+}
+if(getToken()) setTimeout(loadNotifBadge, 400);
+
+function renderNotifList(){
+  const box = document.getElementById('notifList');
+  if(!notifCache || notifCache.length === 0){
+    box.innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].notifEmpty}</p>`;
+    return;
+  }
+  box.innerHTML = notifCache.map(n => `
+    <div class="notif-item ${n.read?'':'unread'}" data-id="${n.id}">
+      <div class="notif-text">${escapeHtml(n.text)}</div>
+    </div>
+  `).join('');
+}
+
+async function openNotifPanel(){
+  openModal('notifModal');
+  if(!notifCache){
+    document.getElementById('notifList').innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].loading}</p>`;
+  }
+  try{
+    const token = getToken();
+    const data = await apiCall({ action:'getMyNotifications', token });
+    if(data.success){
+      notifCache = data.notifications;
+      renderNotifList();
+      const unread = notifCache.filter(n => !n.read);
+      for(const n of unread){
+        apiCall({ action:'markNotificationRead', token, notifId: n.id }).catch(()=>{});
+        n.read = true;
+      }
+      updateNotifBadge();
+    }
+  } catch(ex){
+    document.getElementById('notifList').innerHTML = `<p style="color:var(--coral); font-size:13px;">Xatolik: ${ex.message}</p>`;
+  }
 }
 
 async function submitTest(){
@@ -309,7 +608,7 @@ async function submitTest(){
   }
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'submitTest', token, answers: answerList });
+    const data = await apiCall({ action:'submitTest', token, answers: answerList });
     if(!data.success){ throw new Error(data.message || 'error'); }
 
     rc.classList.add('show');
@@ -346,6 +645,28 @@ window.addEventListener('pageshow', function(event){
     if (!u || !u.token) { window.location.href = 'login.html'; }
   }
 });
+
+// XAVFSIZLIK: 10 daqiqa harakatsizlikdan so'ng avtomat chiqish (faqat tizimga
+// kirgan foydalanuvchi uchun — sessiyasiz sahifani ko'rishga bu ta'sir qilmaydi).
+(function initIdleLogout(){
+  if(!getToken()) return;
+  const IDLE_LIMIT_MS = 10 * 60 * 1000;
+  let idleTimer = null;
+  function doIdleLogout(){
+    const token = getToken();
+    try{ sessionStorage.removeItem('km_user'); }catch(e){}
+    if(token){ fetch(API_BASE_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{}); }
+    window.location.href = 'login.html';
+  }
+  function resetIdleTimer(){
+    if(idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(doIdleLogout, IDLE_LIMIT_MS);
+  }
+  ['mousedown','mousemove','keydown','wheel','touchstart','click'].forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive:true });
+  });
+  resetIdleTimer();
+})();
 </script>
 </body>
 </html>

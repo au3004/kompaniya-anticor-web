@@ -1,0 +1,11 @@
+.env
+public/uploads/photos/*
+!public/uploads/photos/.gitkeep
+backups/*
+!backups/.gitkeep
+documents/*
+!documents/.gitkeep
+hr_documents/*
+!hr_documents/.gitkeep
+purchase_contracts/*
+!purchase_contracts/.gitkeep

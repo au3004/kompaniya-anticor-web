@@ -1,0 +1,214 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Auth;
+use App\Config;
+use App\Database;
+use App\Response;
+use App\Util;
+use App\Validate;
+
+final class ProfileController
+{
+    // "Deklaratsiya to'ldirish" (Manfaatlar to'qnashuvi) ConflictDeclarationController
+    // orqali shu jadvalga yozadi — bu yerda faqat holat tekshirish ("Deklaratsiya
+    // to'ldirilgan" sanasi) uchun eng so'nggi yozuv o'qib olinadi. Ustunlarning
+    // to'liq ro'yxati ConflictDeclarationController::ALTER_DDL'da.
+    private const DECLARATIONS_DDL = 'CREATE TABLE IF NOT EXISTS declarations (
+        id            INT AUTO_INCREMENT PRIMARY KEY,
+        user_id       INT NOT NULL,
+        submitted_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_user (user_id)
+    ) ENGINE=InnoDB';
+
+    public static function checkStatus(array $input): void
+    {
+        $user = Auth::requireUser($input);
+        $telefon = Validate::requiredStr($input, 'telefon', 20);
+
+        $normalize = static fn (string $v): string => preg_replace('/\D+/', '', $v) ?? '';
+        if ($normalize($telefon) === '' || $normalize($telefon) !== $normalize((string) $user['telefon'])) {
+            Response::error('Bu raqam sizga tegishli emas', 'NOT_YOUR_NUMBER');
+        }
+
+        $db = Database::connection();
+        Util::ensureSchema($db, self::DECLARATIONS_DDL);
+
+        $docStmt = $db->prepare(
+            'SELECT read_at FROM doc_reads WHERE user_id = :id ORDER BY read_at DESC LIMIT 1'
+        );
+        $docStmt->execute(['id' => $user['id']]);
+        $docRow = $docStmt->fetch();
+        $hujjatSana = $docRow ? date('Y-m-d', strtotime((string) $docRow['read_at'])) : null;
+
+        $testStmt = $db->prepare(
+            'SELECT points, max_points, percent, passed FROM test_attempts
+             WHERE user_id = :id ORDER BY attempted_at DESC LIMIT 1'
+        );
+        $testStmt->execute(['id' => $user['id']]);
+        $testRow = $testStmt->fetch();
+
+        $declStmt = $db->prepare(
+            'SELECT submitted_at FROM declarations WHERE user_id = :id ORDER BY submitted_at DESC LIMIT 1'
+        );
+        $declStmt->execute(['id' => $user['id']]);
+        $declRow = $declStmt->fetch();
+        $deklaratsiyaSana = $declRow ? date('Y-m-d', strtotime((string) $declRow['submitted_at'])) : null;
+
+        Response::success([
+            'hujjatSana' => $hujjatSana,
+            'testPoints' => $testRow ? (int) $testRow['points'] : null,
+            'testPercent' => $testRow ? (int) $testRow['percent'] : null,
+            'passed' => $testRow ? (bool) $testRow['passed'] : null,
+            'deklaratsiyaSana' => $deklaratsiyaSana,
+        ]);
+    }
+
+    public static function updateProfilePhoto(array $input): void
+    {
+        $user = Auth::requireUser($input);
+        $maxBytes = Config::int('UPLOAD_MAX_BYTES', 2 * 1024 * 1024);
+
+        // base64_decode()'ga yuborishdan oldin xom qatorning o'zi (base64 kodlash
+        // hajmni ~4/3 ga oshiradi) haddan tashqari katta bo'lmasligini tekshiramiz —
+        // aks holda juda katta matnni xotiraga yuklab dekodlash xotira sarflovchi
+        // (DoS) hujumga eshik ochib qo'yardi.
+        $dataUrl = (string) ($input['rasm'] ?? '');
+        if (strlen($dataUrl) > (int) ($maxBytes * 1.4) + 100) {
+            Response::error('Rasm hajmi juda katta', 'PHOTO_TOO_LARGE', 422);
+        }
+
+        if (!preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i', $dataUrl, $m)) {
+            Response::error("Rasm formati noto'g'ri", 'INVALID_PHOTO', 422);
+        }
+
+        $ext = strtolower($m[1]) === 'jpg' ? 'jpeg' : strtolower($m[1]);
+        $binary = base64_decode($m[2], true);
+        if ($binary === false) {
+            Response::error("Rasmni o'qib bo'lmadi", 'INVALID_PHOTO', 422);
+        }
+
+        if (strlen($binary) > $maxBytes) {
+            Response::error('Rasm hajmi juda katta', 'PHOTO_TOO_LARGE', 422);
+        }
+
+        // Boshqa yuklashlardagi (hujjat PDF va h.k.) kabi — mijoz yuborgan
+        // "data:image/..." prefiksidagi da'vo qilingan turga emas, faylning
+        // haqiqiy ikkilik "magic bytes"iga tayanamiz. Aks holda ixtiyoriy
+        // ikkilik (masalan HTML/JS) tarkib rasm kengaytmasi bilan saqlanib,
+        // /uploads/photos/ orqali ochiq serverdan uzatilishi mumkin edi.
+        if (!self::hasValidImageSignature($binary, $ext)) {
+            Response::error("Fayl haqiqiy rasm emas", 'INVALID_PHOTO', 422);
+        }
+
+        $uploadDir = dirname(__DIR__, 2) . '/public/uploads/photos';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $filename = $user['id'] . '_' . time() . '.' . $ext;
+        $fullPath = $uploadDir . '/' . $filename;
+        if (file_put_contents($fullPath, $binary) === false) {
+            Response::error('Rasmni saqlab bo\'lmadi', 'SAVE_FAILED', 500);
+        }
+
+        // Eski rasmni tozalash (bor bo'lsa)
+        if (!empty($user['rasm_url']) && str_starts_with((string) $user['rasm_url'], '/uploads/photos/')) {
+            $oldPath = dirname(__DIR__, 2) . '/public' . $user['rasm_url'];
+            if (is_file($oldPath)) {
+                @unlink($oldPath);
+            }
+        }
+
+        $relativeUrl = '/uploads/photos/' . $filename;
+        $db = Database::connection();
+        $upd = $db->prepare('UPDATE users SET rasm_url = :url WHERE id = :id');
+        $upd->execute(['url' => $relativeUrl, 'id' => $user['id']]);
+
+        Response::success(['url' => Util::photoUrl($relativeUrl)]);
+    }
+
+    /** Dekodlangan ikkilik ma'lumot haqiqatan $ext turidagi rasm ekanligini "magic bytes" orqali tekshiradi. */
+    private static function hasValidImageSignature(string $binary, string $ext): bool
+    {
+        return match ($ext) {
+            'jpeg' => str_starts_with($binary, "\xFF\xD8\xFF"),
+            'png' => str_starts_with($binary, "\x89PNG\x0D\x0A\x1A\x0A"),
+            'webp' => str_starts_with($binary, 'RIFF') && substr($binary, 8, 4) === 'WEBP',
+            default => false,
+        };
+    }
+
+    /**
+     * Foydalanuvchining o'zi kirgan barcha faol sessiyalari (qurilmalar) ro'yxati.
+     * Haqiqiy token hech qachon mijozga yuborilmaydi — faqat uni aniqlash uchun
+     * bir tomonlama hash (idHash) beriladi, shu bilan bitta sessiyani nishonlab
+     * bekor qilish (revokeSession) mumkin bo'ladi.
+     */
+    public static function getMySessions(array $input): void
+    {
+        $user = Auth::requireUser($input);
+        $db = Database::connection();
+
+        // Muddati o'tgan (endi ishlamaydigan) sessiyalar jadvalda faqat ularning
+        // tokeni qayta ishlatilib ko'rilgandagina o'chirilardi — hech kim qayta
+        // urinmasa, ro'yxatda "kecha kirilgan" bo'lib abadiy osilib qolardi.
+        // Shu yerda ham har safar tozalab qo'yamiz. MySQL'ning o'z NOW()'i emas,
+        // aynan PHP'da hisoblangan vaqt bilan solishtiramiz — expires_at ham
+        // har doim shu tarzda (Auth::requireUser'da) yozilgan, shu bilan ikkala
+        // tomon qanday sozlangan bo'lishidan qat'i nazar hamisha izchil bo'ladi.
+        $cleanup = $db->prepare('DELETE FROM sessions WHERE user_id = :id AND expires_at < :now');
+        $cleanup->execute(['id' => $user['id'], 'now' => date('Y-m-d H:i:s')]);
+
+        $stmt = $db->prepare(
+            'SELECT token, created_at, expires_at FROM sessions WHERE user_id = :id ORDER BY created_at DESC'
+        );
+        $stmt->execute(['id' => $user['id']]);
+
+        $list = array_map(static fn (array $r) => [
+            'idHash' => substr(hash('sha256', $r['token']), 0, 16),
+            'createdAt' => date('d.m.Y G:i', strtotime((string) $r['created_at'])),
+            'expiresAt' => date('d.m.Y G:i', strtotime((string) $r['expires_at'])),
+            'isCurrent' => hash_equals($r['token'], (string) $user['token']),
+        ], $stmt->fetchAll());
+
+        Response::success(['sessions' => $list]);
+    }
+
+    public static function revokeSession(array $input): void
+    {
+        $user = Auth::requireUser($input);
+        $idHash = Validate::requiredStr($input, 'idHash', 16);
+
+        $db = Database::connection();
+        $stmt = $db->prepare('SELECT token FROM sessions WHERE user_id = :id');
+        $stmt->execute(['id' => $user['id']]);
+
+        foreach ($stmt->fetchAll() as $row) {
+            if (hash_equals(substr(hash('sha256', $row['token']), 0, 16), $idHash)) {
+                $del = $db->prepare('DELETE FROM sessions WHERE token = :token');
+                $del->execute(['token' => $row['token']]);
+                break;
+            }
+        }
+
+        Response::success();
+    }
+
+    /**
+     * Joriy sessiyadan tashqari, shu foydalanuvchining barcha boshqa faol
+     * sessiyalarini bekor qiladi ("boshqa qurilmalardan chiqish").
+     */
+    public static function revokeOtherSessions(array $input): void
+    {
+        $user = Auth::requireUser($input);
+        $db = Database::connection();
+        $stmt = $db->prepare('DELETE FROM sessions WHERE user_id = :id AND token != :token');
+        $stmt->execute(['id' => $user['id'], 'token' => $user['token']]);
+
+        Response::success();
+    }
+}

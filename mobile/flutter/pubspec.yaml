@@ -1,0 +1,43 @@
+name: kompaniya_anticor
+description: "Korrupsiyaga qarshi kurashish — kompaniya xodimlari uchun mobil ilova"
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # Tarmoq
+  http: ^1.2.1
+
+  # Token'ni xavfsiz saqlash (iOS Keychain / Android Keystore)
+  flutter_secure_storage: ^9.2.2
+
+  # Holat boshqaruvi
+  provider: ^6.1.2
+
+  # Bearer-token bilan himoyalangan PDF'larni (hujjatlar, HR hujjatlari,
+  # xarid shartnomalari) yuklab, vaqtincha faylga saqlab, tizim ko'ruvchisida
+  # ochish uchun — bu fayllar oddiy havola sifatida ochilmaydi, chunki
+  # ularga kirish "Authorization: Bearer" sarlavhasi bilan tekshiriladi.
+  path_provider: ^2.1.4
+  open_filex: ^4.5.0
+
+  # Fayl tanlash (HR hujjat, xarid shartnomasi PDF'i)
+  file_picker: ^8.1.2
+  image_picker: ^1.1.2
+
+  # Sana formatlash
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

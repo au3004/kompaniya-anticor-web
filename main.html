@@ -10,25 +10,34 @@
 
 :root{
   --navy-950:#071B33; --navy-900:#0B2545; --navy-800:#12356b;
-  --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
+  --azure:#004491; --teal:#1D6FBF; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
   --bg:#0B2545; --bg-deep:#071B33;
   --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
   --text:#F3F7FB; --text-dim:#A9BBD1;
   --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
+  /* Embossed (neomorfik) soya texnikasi — login.html'dagi bilan bir xil,
+     rang o'zgartirilmagan, faqat sirtlarga chuqurlik qo'shiladi. */
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.035), 10px 10px 26px rgba(0,0,0,0.55);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.035), 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.03), inset 6px 6px 16px rgba(0,0,0,0.5);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.025), inset 5px 5px 13px rgba(0,0,0,0.6);
 }
 [data-theme="light"]{
-  --bg:#EAF3FA; --bg-deep:#DCEAF5;
+  --bg:#F1F2F4; --bg-deep:#E4E6E9;
   --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
   --text:#0B2545; --text-dim:#4E6A88;
   --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
+  --neu-out:-10px -10px 22px rgba(255,255,255,0.9), 10px 10px 26px rgba(163,177,198,0.5);
+  --neu-out-sm:-6px -6px 14px rgba(255,255,255,0.85), 6px 6px 16px rgba(163,177,198,0.45);
+  --neu-in:inset -6px -6px 14px rgba(255,255,255,0.75), inset 6px 6px 16px rgba(163,177,198,0.55);
+  --neu-in-deep:inset -4px -4px 10px rgba(255,255,255,0.7), inset 5px 5px 13px rgba(163,177,198,0.65);
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 body{
-  font-family:'Inter', sans-serif; background:var(--bg); color:var(--text);
+  font-family:'Inter', sans-serif; color:var(--text);
+  background:radial-gradient(ellipse at 70% 10%, var(--bg-deep), var(--bg) 70%);
   min-height:100vh; overflow-x:hidden; transition:background .5s ease, color .5s ease; position:relative;
 }
-canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
-  background:radial-gradient(ellipse at 70% 10%, var(--bg-deep), var(--bg) 70%); }
 
 /* ===== Topbar ===== */
 .topbar{
@@ -42,22 +51,166 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .brand-logo{ height:22px; width:auto; display:block; }
 
 .controls{ display:flex; align-items:center; gap:12px; }
-.lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
-.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; transition:all .25s ease; }
-.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
-.home-icon-btn{ width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); text-decoration:none; transition:border-color .2s ease, color .2s ease; margin-left:2px; }
-.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
-.theme-toggle{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
-.theme-toggle svg{ width:17px; height:17px; }
+/* ===== Til almashtirgich: belgilash ro'yxati (checkmark list) uslubida =====
+   Profil ochiluvchi menyusi ichida, eng tepada — har bir til alohida qatorda,
+   tanlangani o'ng tomonda azure/teal rangli belgi (check) bilan ko'rsatiladi. */
+.dropdown-lang{
+  display:flex; flex-direction:column; gap:2px;
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+  backdrop-filter:blur(16px);
+  border:1px solid var(--card-border); border-radius:14px; padding:4px;
+  margin-bottom:6px;
+}
+.lang-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+  border:none; background:transparent; cursor:pointer; text-align:left;
+  padding:9px 10px; border-radius:10px; transition:background .2s ease;
+}
+.lang-row:hover{ background:rgba(255,255,255,.07); }
+.lang-row-text{ display:flex; flex-direction:column; gap:1px; }
+.lang-row-name{ font-size:13px; font-weight:600; color:var(--text); }
+.lang-row-sub{ font-size:11px; color:var(--text-dim); }
+.lang-row-check{
+  flex:none; width:18px; height:18px; border-radius:50%; border:1.5px solid var(--card-border);
+  display:flex; align-items:center; justify-content:center; color:transparent;
+  transition:background .25s ease, border-color .25s ease, color .25s ease;
+}
+.lang-row-check svg{ width:11px; height:11px; }
+.lang-row.active{ background:rgba(0,68,145,.10); }
+.lang-row.active .lang-row-name{ color:var(--azure); }
+.lang-row.active .lang-row-check{ background:linear-gradient(135deg, var(--azure), var(--teal)); border-color:transparent; color:#FFFFFF; }
+.dropdown-divider{ height:1px; background:var(--card-border); margin:2px 4px 8px; }
+.home-icon-btn{
+  position:relative; width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg);
+  box-shadow:var(--neu-out-sm); border:none;
+  cursor:pointer; color:var(--text-dim); text-decoration:none;
+  transition:border-color .25s ease, color .25s ease, transform .2s ease, box-shadow .25s ease;
+  margin-left:2px;
+}
+.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,68,145,.28); }
+/* ===== Theme toggle: "glass blob" kun/tun almashtirgichi =====
+   Manba (dizayn g'oyasi): github.com/Nazia-99/Glass-Blob-Toggle-Switch-
+   — kod to'liq o'qib chiqilgan (faqat CSS animatsiya + oddiy klass
+   almashtirish, tashqi so'rov/skript yo'q), loyihaning o'z rang
+   palitrasi, shrifti va o'lchamiga moslab qayta yozildi. Barcha asl
+   effektlar (blobning organik "nafas olish" animatsiyasi, ikki qatlamli
+   nur, bosilganda siqilish, matnli yorliqlar) o'lchamga proportsional
+   CSS o'zgaruvchilari orqali saqlab qolindi — .theme-toggle-lg klassi
+   bilan Sozlamalardagi katta versiyaga ham xizmat qiladi. */
+.theme-toggle{
+  --tt-w:56px; --tt-h:28px; --tt-thumb:40px; --tt-off:-6px;
+  position:relative; width:var(--tt-w); height:var(--tt-h); padding:0; flex-shrink:0;
+  border:none; background:none; cursor:pointer;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.18));
+}
+/* VAQTINCHALIK: kun/tun almashtirgich butun saytda yashirilgan — sayt
+   faqat kunduzgi rejimda ishlaydi. Yuqoridagi asl tugma kodi (CSS,
+   animatsiya) to'liq saqlanib qolgan — qayta ko'rsatish uchun shu
+   qoidani (pastdagi bitta qator) o'chirib tashlash kifoya. */
+.theme-toggle{ display:none !important; }
+.theme-toggle-lg{ --tt-w:270px; --tt-h:92px; --tt-thumb:130px; --tt-off:-21px; margin:0 auto; }
+
+.tt-track{
+  position:absolute; inset:0; border-radius:999px; overflow:hidden;
+  backdrop-filter:blur(20px);
+  background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+  border:1px solid var(--card-border);
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.4), inset 0 -10px 20px rgba(0,0,0,.12), 0 15px 30px rgba(0,0,0,.08);
+}
+.tt-track::before{
+  content:""; position:absolute; inset:9%; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.18), transparent 45%, rgba(255,255,255,.05));
+}
+.tt-track::after{
+  content:""; position:absolute; inset:-45%; border-radius:999px; pointer-events:none;
+  filter:blur(30px); opacity:.55; transition:.7s ease;
+  background:radial-gradient(circle, rgba(255,200,0,.35), transparent 70%);
+}
+.theme-toggle.active .tt-track::after{ background:radial-gradient(circle, rgba(0,68,145,.4), transparent 70%); }
+
+.tt-glow{
+  position:absolute; left:-15%; top:-30%; width:65%; height:160%; border-radius:50%;
+  background:radial-gradient(circle at center, var(--amber), rgba(255,176,32,.7) 45%, rgba(255,255,255,.1) 100%);
+  filter:blur(18px);
+  transition:.7s cubic-bezier(.68,-0.55,.27,1.55);
+}
+.theme-toggle.active .tt-glow{
+  left:50%;
+  background:radial-gradient(circle at center, rgba(0,68,145,.95), rgba(0,68,145,.55) 45%, transparent 80%);
+}
+
+.tt-label{
+  display:none; position:absolute; top:50%; transform:translateY(-50%);
+  color:#fff; font-family:'Unbounded',sans-serif; font-weight:600;
+  font-size:calc(var(--tt-h) * .28);
+  pointer-events:none; z-index:5; transition:.5s ease; white-space:nowrap;
+}
+.theme-toggle-lg .tt-label{ display:block; }
+.tt-label-left{ left:13%; }
+.tt-label-right{ right:13%; opacity:0; }
+.theme-toggle.active .tt-label-left{ opacity:0; transform:translateY(-50%) translateX(-10px); }
+.theme-toggle.active .tt-label-right{ opacity:1; transform:translateY(-50%) translateX(0); }
+
+.tt-thumb{
+  position:absolute; left:var(--tt-off); top:var(--tt-off);
+  width:var(--tt-thumb); height:var(--tt-thumb);
+  border-radius:42% 58% 70% 30% / 45% 45% 55% 55%;
+  overflow:hidden; display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,.14); border:2px solid rgba(255,255,255,.4);
+  box-shadow:0 16px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25), inset 0 0 24px rgba(255,255,255,.06);
+  transition:
+    left .7s cubic-bezier(.68,-0.55,.27,1.55),
+    transform .3s cubic-bezier(.68,-0.55,.27,1.55),
+    background .6s ease, border-color .6s ease, box-shadow .6s ease;
+  animation:ttBlobFloat 7s ease-in-out infinite;
+  z-index:10;
+}
+.theme-toggle.active .tt-thumb{
+  left:calc(100% - var(--tt-thumb) - var(--tt-off));
+  background:rgba(11,37,69,.55); border-color:rgba(255,255,255,.22);
+  box-shadow:
+    inset 0 6px 14px rgba(255,255,255,.15),
+    inset 0 -14px 22px rgba(0,0,0,.15),
+    0 0 26px rgba(0,68,145,.5),
+    0 0 48px rgba(0,68,145,.25);
+}
+.theme-toggle:not(.active) .tt-thumb{
+  box-shadow:
+    inset 0 5px 10px rgba(255,255,255,.45),
+    inset 0 -3px 8px rgba(255,255,255,.16),
+    inset 0 0 14px rgba(255,255,255,.16),
+    0 16px 32px rgba(0,0,0,.35);
+}
+.theme-toggle:hover .tt-thumb{ transform:scale(1.06); }
+.theme-toggle:active .tt-thumb{ transform:scaleX(1.1) scaleY(.9); }
+
+@keyframes ttBlobFloat{
+  0%,100%{ border-radius:42% 58% 70% 30% / 45% 45% 55% 55%; }
+  34%{ border-radius:70% 30% 46% 54% / 30% 29% 71% 70%; }
+  67%{ border-radius:100% 60% 60% 100% / 100% 100% 60% 60%; }
+}
+
+.tt-icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; transition:opacity .4s ease, transform .4s ease; z-index:3; }
+.tt-icon svg{ width:38%; height:38%; }
+.tt-icon.tt-moon{ opacity:0; transform:scale(.6) rotate(-90deg); }
+.theme-toggle.active .tt-icon.tt-sun{ opacity:0; transform:scale(.55) rotate(90deg); }
+.theme-toggle.active .tt-icon.tt-moon{ opacity:1; transform:scale(1) rotate(0deg); }
 
 /* Profile chip */
 .profile-chip{ position:relative; }
 .chip-btn{
-  display:flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--card-border);
+  display:flex; align-items:center; gap:9px;
+  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
+  backdrop-filter:blur(16px);
+  border:1px solid var(--card-border);
   padding:5px 14px 5px 5px; border-radius:999px; cursor:pointer; color:var(--text); font-family:'Inter';
-  transition:border-color .2s ease, transform .15s ease;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06);
+  transition:border-color .25s ease, transform .2s ease, box-shadow .25s ease;
 }
-.chip-btn:hover{ border-color:var(--azure); transform:translateY(-1px); }
+.chip-btn:hover{ border-color:var(--azure); transform:translateY(-1px); box-shadow:inset 0 1px 2px rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.08), 0 10px 22px rgba(0,68,145,.22); }
 .chip-btn .avatar{
   width:30px; height:30px; border-radius:50%; object-fit:cover;
   border:1.5px solid var(--teal); background:linear-gradient(135deg, var(--azure), var(--teal));
@@ -81,11 +234,79 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 }
 .dropdown button:hover{ background:var(--card); }
 
+/* ===== Chap panel: shisha uslubidagi navigatsiya (glassmorphism sidebar) =====
+   Dizayn g'oyasi manbasi: github.com/Nazia-99/Glassmorphism-Settings-Sidebar-UI-using-HTML-CSS
+   — barcha fayllar to'liq o'qib chiqilgan, zararli/tashqi so'rov yo'q
+   (faqat CSS shisha effekti va oddiy ro'yxat tuzilishi), shu bois
+   loyihaning o'z rang palitrasi, ikonkalari va shriftiga moslab qayta
+   yozildi (tashqi CDN/shrift ishlatilmadi). */
+:root{ --topbar-h:76px; --sidebar-w:64px; --sidebar-w-open:270px; }
+.app-sidebar{
+  position:fixed; left:0; top:var(--topbar-h); bottom:0; z-index:25;
+  width:var(--sidebar-w); padding:14px 10px;
+  display:flex; flex-direction:column; align-items:stretch; gap:6px;
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border-right:1px solid var(--card-border);
+  box-shadow:inset -1px 0 0 rgba(255,255,255,.05), 8px 0 24px rgba(0,0,0,.10);
+  transition:width .3s cubic-bezier(.2,.9,.25,1);
+  overflow:hidden;
+}
+.app-sidebar.expanded{ width:var(--sidebar-w-open); box-shadow:inset -1px 0 0 rgba(255,255,255,.05), 14px 0 34px rgba(0,0,0,.22); }
+.sidebar-toggle{
+  flex:none; width:36px; height:36px; border-radius:11px; border:1px solid var(--card-border);
+  background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.03));
+  color:var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.2), inset 0 -3px 6px rgba(0,0,0,.08);
+  transition:color .2s ease, border-color .2s ease, transform .2s ease; margin-bottom:2px;
+}
+.sidebar-toggle:hover{ color:var(--azure); border-color:var(--azure); }
+.sidebar-divider{ height:1px; background:var(--card-border); margin:2px 4px 8px; flex:none; }
+.sidebar-nav{ display:flex; flex-direction:column; gap:5px; min-width:calc(var(--sidebar-w-open) - 20px); }
+.sidebar-item{
+  position:relative; display:flex; align-items:flex-start; gap:12px;
+  padding:10px 11px; border-radius:11px; text-decoration:none; color:var(--text-dim);
+  font-size:13.5px; font-weight:600; line-height:1.3;
+  transition:background .25s ease, color .2s ease;
+}
+.sidebar-item:hover{ background:rgba(255,255,255,.08); color:var(--text); }
+.sidebar-item.active{
+  color:var(--text);
+  background:linear-gradient(135deg, rgba(0,68,145,.22), rgba(29,111,191,.14));
+  box-shadow:inset 0 0 0 1px rgba(0,68,145,.35);
+}
+.si-icon{ flex:none; width:22px; height:22px; display:flex; align-items:center; justify-content:center; }
+.si-label{ opacity:0; white-space:nowrap; transition:opacity .2s ease .05s; padding-top:1px; }
+.app-sidebar.expanded .si-label{ opacity:1; white-space:normal; }
+.si-soon{
+  margin-left:auto; flex:none; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.3px;
+  color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px;
+  padding:2px 7px; opacity:0; transition:opacity .2s ease .05s;
+}
+.app-sidebar.expanded .si-soon{ opacity:1; }
+#sectionHome, #sectionAnticor, #sectionHR, #sectionAdmin{ padding-left:var(--sidebar-w); transition:padding-left .3s ease; }
+.home-tiles{ position:relative; z-index:5; max-width:920px; margin:0 auto; padding:0 32px 60px; display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:16px; }
+.home-tile{
+  position:relative; display:flex; flex-direction:column; gap:8px; text-align:left; text-decoration:none; color:var(--text);
+  background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:16px; padding:20px;
+  transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.home-tile:hover{ transform:translateY(-3px); border-color:var(--azure); box-shadow:0 14px 30px -12px rgba(0,68,145,0.35); }
+.home-tile-icon{ width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; color:var(--azure); background:rgba(0,68,145,0.12); }
+.home-tile-title{ font-weight:700; font-size:15px; }
+.home-tile-desc{ font-size:12.5px; color:var(--text-dim); line-height:1.5; }
+.home-tile-badge{ position:absolute; top:16px; right:16px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px; padding:2px 7px; }
+#sectionAdmin{ padding-top:var(--topbar-h); position:relative; z-index:5; }
+#sectionAdmin #adminFrame{ display:block; width:100%; border:0; height:calc(100vh - var(--topbar-h)); }
+@media (max-width:640px){
+  :root{ --sidebar-w:52px; --sidebar-w-open:220px; }
+}
+
 /* ===== Hero ===== */
 .hero{ position:relative; z-index:5; padding:150px 32px 60px; max-width:920px; margin:0 auto; text-align:center; }
 .hero .eyebrow{
   display:inline-block; font-size:12.5px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
-  color:var(--azure); background:rgba(0,163,224,0.12); border:1px solid rgba(0,163,224,0.3);
+  color:var(--azure); background:rgba(0,68,145,0.12); border:1px solid rgba(0,68,145,0.3);
   padding:6px 16px; border-radius:999px; margin-bottom:22px;
   opacity:0; animation:rise .6s cubic-bezier(.2,.9,.25,1) .05s both;
 }
@@ -102,18 +323,21 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   transition:transform .15s ease, box-shadow .2s ease;
 }
 .hero .hero-actions a:hover{ transform:translateY(-2px); }
-.hero .hero-actions a.primary{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; box-shadow:0 10px 25px -10px rgba(0,163,224,0.55); }
+.hero .hero-actions a.primary{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; box-shadow:0 10px 25px -10px rgba(0,68,145,0.55); }
 .hero .hero-actions a.secondary{ border:1px solid var(--card-border); color:var(--text); background:var(--card); }
+.hero .hero-actions a.soon{ opacity:.6; position:relative; cursor:pointer; }
+.hero .hero-actions a.soon:hover{ transform:none; }
+.hero .hero-actions a.soon .soon-badge{ position:absolute; top:-9px; right:-9px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-dim); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:99px; padding:2px 7px; }
 @keyframes rise{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
 
 /* ===== Status check card ===== */
 .status-section{ position:relative; z-index:5; max-width:560px; margin:0 auto; padding:0 24px 100px; opacity:0; animation:rise .7s cubic-bezier(.2,.9,.25,1) .5s both; }
 .status-card{
-  background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:32px;
+  background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:20px; padding:32px;
   backdrop-filter:blur(16px); box-shadow:0 30px 60px -25px rgba(0,0,0,0.4);
   transition:box-shadow .3s ease, transform .3s ease;
 }
-.status-card:hover{ box-shadow:0 35px 70px -20px rgba(0,163,224,0.25); }
+.status-card:hover{ box-shadow:0 35px 70px -20px rgba(0,68,145,0.25); }
 .status-card h2{ font-family:'Unbounded', sans-serif; font-size:17px; margin-bottom:6px; }
 .status-card p.sub{ color:var(--text-dim); font-size:13px; margin-bottom:22px; }
 .status-row{ display:flex; gap:10px; }
@@ -123,13 +347,13 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   width:100%; padding:12px 14px 12px 40px; background:var(--input-bg); border:1px solid var(--input-border);
   border-radius:11px; color:var(--text); font-size:14px; font-family:'Inter'; outline:none;
 }
-.status-row input:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,163,224,0.18); }
+.status-row input:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,68,145,0.18); }
 .status-row button{
   padding:12px 20px; border:none; border-radius:11px; cursor:pointer;
-  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px;
+  background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; font-weight:700; font-size:13.5px;
   white-space:nowrap; transition:transform .15s ease, box-shadow .2s ease;
 }
-.status-row button:hover{ transform:translateY(-2px); box-shadow:0 12px 24px -10px rgba(0,163,224,0.6); }
+.status-row button:hover{ transform:translateY(-2px); box-shadow:0 12px 24px -10px rgba(0,68,145,0.6); }
 .status-row button:active{ transform:translateY(0) scale(.98); }
 .status-result{ margin-top:20px; display:none; flex-direction:column; gap:10px; }
 .status-result.show{ display:flex; animation:rise .4s ease both; }
@@ -138,10 +362,197 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   border-radius:11px; background:var(--input-bg); border:1px solid var(--input-border); font-size:13.5px;
 }
 .badge{ font-size:12px; font-weight:700; padding:4px 11px; border-radius:999px; }
-.badge.ok{ background:rgba(0,217,192,0.15); color:var(--teal); border:1px solid rgba(0,217,192,0.4); }
+.badge.ok{ background:rgba(29,111,191,0.15); color:var(--teal); border:1px solid rgba(29,111,191,0.4); }
 .badge.no{ background:rgba(255,107,107,0.15); color:var(--coral); border:1px solid rgba(255,107,107,0.4); }
 .status-error{ margin-top:14px; color:var(--amber); font-size:13px; display:none; }
 .status-error.show{ display:block; }
+
+/* ===== Deklaratsiya (Manfaatlar to'qnashuvi) wizard ===== */
+.decl-wrap{ position:relative; z-index:5; max-width:900px; margin:0 auto; padding:calc(var(--topbar-h) + 24px) 24px 100px; }
+.decl-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:26px; }
+.decl-eyebrow{ font-size:11.5px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--azure); margin-bottom:8px; }
+.decl-title{ font-family:'Unbounded', sans-serif; font-weight:800; font-size:clamp(22px,4vw,30px); }
+.decl-save-btn{ flex:none; padding:11px 18px; border-radius:11px; border:none; background:var(--bg); box-shadow:var(--neu-out-sm); color:var(--azure); font-weight:700; font-size:12.5px; cursor:pointer; white-space:nowrap; font-family:'Inter'; }
+.decl-save-btn:hover{ transform:translateY(-1px); }
+.decl-stepper-wrap{ display:flex; align-items:center; gap:6px; margin-bottom:26px; }
+.decl-step-arrow{ flex:none; width:28px; height:28px; border-radius:50%; border:none; background:var(--bg); box-shadow:var(--neu-out-sm); color:var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.decl-stepper{ flex:1; display:flex; align-items:center; overflow-x:auto; scrollbar-width:none; padding:4px 2px; }
+.decl-stepper::-webkit-scrollbar{ display:none; }
+.decl-step{ display:flex; align-items:center; gap:7px; flex:none; opacity:.55; cursor:not-allowed; padding:2px 0; }
+.decl-step.reachable{ opacity:1; cursor:pointer; }
+.decl-step-circle{ width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700; border:2px solid var(--card-border); color:var(--text-dim); flex:none; background:var(--bg); }
+.decl-step.active .decl-step-circle{ border-color:var(--azure); color:var(--azure); background:rgba(0,68,145,0.1); }
+.decl-step.done .decl-step-circle{ border-color:var(--teal); background:var(--teal); color:#fff; }
+.decl-step-label{ font-size:12px; font-weight:600; color:var(--text-dim); white-space:nowrap; }
+.decl-step.active .decl-step-label{ color:var(--text); }
+.decl-step-line{ width:24px; height:2px; background:var(--card-border); flex:none; margin:0 6px; }
+.decl-step-line.done{ background:var(--teal); }
+.decl-card{ background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:20px; padding:32px; }
+.decl-card h2{ font-family:'Unbounded', sans-serif; font-size:17px; margin-bottom:8px; }
+.decl-sub{ color:var(--text-dim); font-size:13.5px; line-height:1.6; margin-bottom:20px; }
+.decl-doc-row, .decl-term-box{ padding:16px; border:1px solid var(--card-border); border-radius:13px; margin-bottom:12px; }
+.decl-doc-row{ display:flex; justify-content:space-between; align-items:center; gap:16px; }
+.decl-doc-row .t, .decl-term-box .t{ font-weight:700; font-size:13.5px; margin-bottom:4px; }
+.decl-doc-row .d, .decl-term-box .d{ color:var(--text-dim); font-size:12.5px; line-height:1.5; }
+.decl-doc-row a{ flex:none; color:var(--azure); font-weight:700; font-size:13px; text-decoration:none; }
+.decl-doc-row a:hover{ text-decoration:underline; }
+.decl-check-row{ display:flex; align-items:flex-start; gap:10px; padding-top:18px; margin-top:8px; border-top:1px solid var(--card-border); font-size:13.5px; line-height:1.5; }
+.decl-check-row input[type=checkbox]{ margin-top:2px; width:17px; height:17px; accent-color:var(--azure); flex:none; cursor:pointer; }
+.decl-check-row label{ cursor:pointer; }
+.decl-nav{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:26px; padding-top:22px; border-top:1px solid var(--card-border); flex-wrap:wrap; }
+.decl-nav-left, .decl-nav-right{ display:flex; gap:10px; }
+.decl-btn{ padding:12px 22px; border-radius:11px; font-weight:700; font-size:13.5px; cursor:pointer; border:none; font-family:'Inter'; transition:transform .15s ease, opacity .2s ease; }
+.decl-btn:hover{ transform:translateY(-2px); }
+.decl-btn.primary{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; }
+.decl-btn.primary:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+.decl-btn.outline{ background:var(--bg); box-shadow:var(--neu-out-sm); color:var(--text); }
+.decl-grid2{ display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }
+.decl-grid2 .field input[readonly]{ background:var(--bg-deep); color:var(--text-dim); cursor:default; }
+.decl-hrm-badge{ flex:none; display:inline-block; font-size:11px; font-weight:700; color:var(--azure); background:rgba(0,68,145,0.1); border:1px solid rgba(0,68,145,0.25); padding:5px 12px; border-radius:999px; white-space:nowrap; }
+.decl-notice{ background:rgba(0,68,145,0.08); border:1px solid rgba(0,68,145,0.2); border-radius:12px; padding:14px 16px; font-size:12.5px; color:var(--text-dim); line-height:1.5; margin-top:6px; }
+.decl-rel-row{ display:flex; align-items:center; gap:14px; padding:13px 15px; border:1px solid var(--card-border); border-radius:13px; margin-bottom:10px; }
+.decl-rel-icon{ width:36px; height:36px; border-radius:10px; background:var(--bg-deep); flex:none; }
+.decl-rel-info{ flex:1; min-width:0; }
+.decl-rel-info .n{ font-weight:700; font-size:14px; }
+.decl-rel-info .s{ font-size:12px; color:var(--text-dim); margin-top:2px; }
+.decl-rel-info .s.filled{ color:var(--teal); font-weight:600; }
+.decl-rel-fill-btn{ flex:none; padding:9px 16px; border:none; border-radius:9px; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; font-family:'Inter'; }
+.decl-rel-fill-btn.filled{ background:var(--bg-deep); color:var(--text); }
+.decl-rel-remove{ flex:none; width:26px; height:26px; border-radius:50%; border:none; background:transparent; color:var(--text-dim); cursor:pointer; font-size:17px; line-height:1; }
+.decl-rel-remove:hover{ color:var(--coral); }
+.decl-progress-note{ margin-bottom:18px; }
+.decl-add-wrap{ position:relative; }
+.decl-add-btn{ width:100%; padding:14px; border:1.5px dashed var(--input-border); border-radius:12px; background:var(--input-bg); color:var(--text-dim); font-weight:700; font-size:13px; cursor:pointer; font-family:'Inter'; }
+.decl-add-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.decl-add-menu{ position:absolute; left:0; right:0; top:calc(100% + 6px); background:var(--bg-deep); border:1px solid var(--card-border); border-radius:13px; box-shadow:0 20px 40px -15px rgba(0,0,0,0.35); padding:8px; z-index:10; display:none; max-height:280px; overflow-y:auto; }
+.decl-add-menu.show{ display:block; }
+.decl-add-menu-item{ padding:11px 14px; border-radius:9px; cursor:pointer; font-size:13.5px; font-weight:600; }
+.decl-add-menu-item:hover{ background:rgba(0,68,145,0.1); color:var(--azure); }
+@media (max-width:560px){ .decl-grid2{ grid-template-columns:1fr; } }
+
+/* ===== Deklaratsiya: qarindosh ma'lumotini kiritish modali ===== */
+.decl-modal{ max-width:680px; }
+.decl-modal .field label{ text-transform:none; letter-spacing:normal; }
+.decl-modal .field label .req{ color:var(--coral); margin-left:2px; }
+.decl-modal-select{ width:100%; padding:12px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:14px; outline:none; font-family:'Inter'; }
+.decl-modal-select:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,68,145,0.18); }
+.decl-radio-row{ display:flex; gap:10px; }
+.decl-radio-opt{ flex:1; display:flex; align-items:center; gap:9px; padding:12px 14px; border:1.5px solid var(--input-border); border-radius:10px; cursor:pointer; font-size:13.5px; font-weight:600; color:var(--text); background:var(--input-bg); transition:border-color .15s ease, background .15s ease; }
+.decl-radio-opt.selected{ border-color:var(--azure); background:rgba(0,68,145,0.08); color:var(--azure); }
+.decl-radio-opt-wide{ display:flex; align-items:flex-start; gap:9px; padding:12px 14px; border:1px solid var(--input-border); border-radius:10px; cursor:pointer; font-size:12.5px; font-weight:600; color:var(--text); background:var(--card); margin-bottom:8px; line-height:1.4; transition:border-color .15s ease, background .15s ease; }
+.decl-radio-opt-wide.selected{ border-color:var(--azure); background:rgba(0,68,145,0.08); color:var(--azure); }
+.decl-radio-opt-wide:last-child{ margin-bottom:0; }
+.decl-radio-dot{ flex:none; width:15px; height:15px; border-radius:50%; border:2px solid var(--input-border); margin-top:1px; position:relative; }
+.decl-radio-opt.selected .decl-radio-dot, .decl-radio-opt-wide.selected .decl-radio-dot{ border-color:var(--azure); }
+.decl-radio-opt.selected .decl-radio-dot::after, .decl-radio-opt-wide.selected .decl-radio-dot::after{ content:''; position:absolute; inset:2.5px; border-radius:50%; background:var(--azure); }
+.decl-subbox{ background:rgba(0,68,145,0.06); border-left:3px solid var(--azure); border-radius:10px; padding:14px 16px; margin-top:6px; margin-bottom:15px; }
+.decl-subbox .subbox-title{ font-weight:700; font-size:12.5px; margin-bottom:10px; }
+.decl-modal-footer{ display:flex; justify-content:flex-end; gap:10px; margin-top:22px; padding-top:18px; border-top:1px solid var(--card-border); }
+
+/* ===== Deklaratsiya: Savollar / Tasdiqlash / Ko'rib chiqish / E-IMZO ===== */
+.decl-q-num{ flex:none; width:30px; height:30px; border-radius:50%; background:var(--azure); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+.decl-textarea{ width:100%; padding:12px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; resize:vertical; }
+.decl-textarea:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,68,145,0.18); }
+.decl-textarea.error{ border-color:var(--coral); box-shadow:0 0 0 3px rgba(255,107,107,0.15); }
+.decl-field-error{ color:var(--coral); font-size:12px; margin-top:6px; }
+.decl-review-section{ margin-bottom:16px; border:1px solid var(--card-border); border-radius:13px; padding:16px 18px; }
+.decl-review-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:13.5px; }
+.decl-review-head a{ color:var(--azure); font-weight:700; font-size:12.5px; text-decoration:none; }
+.decl-review-head a:hover{ text-decoration:underline; }
+.decl-review-row{ display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--card-border); font-size:13px; }
+.decl-review-row:first-of-type{ border-top:none; }
+.decl-review-row span{ color:var(--text-dim); flex:none; }
+.decl-review-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+.decl-review-table th{ text-align:left; padding:8px 10px; color:var(--text-dim); font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; border-bottom:1px solid var(--card-border); }
+.decl-review-table td{ padding:9px 10px; border-bottom:1px solid var(--card-border); }
+.decl-review-table tr:last-child td{ border-bottom:none; }
+.decl-pill{ display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; white-space:nowrap; }
+.decl-pill.gray{ background:var(--bg-deep); color:var(--text-dim); }
+.decl-pill.teal{ background:rgba(29,111,191,0.15); color:var(--teal); }
+.decl-pill.coral{ background:rgba(255,107,107,0.15); color:var(--coral); }
+.decl-dash{ color:var(--text-dim); }
+
+/* ===== Deklaratsiya: E-IMZO (NAMUNA) modallari va yozuv sahifasi ===== */
+.decl-cert-opt{ display:flex; align-items:flex-start; gap:10px; padding:13px 15px; border:1.5px solid var(--input-border); border-radius:11px; margin-bottom:10px; cursor:default; }
+.decl-cert-opt.selected{ border-color:var(--azure); background:rgba(0,68,145,0.08); }
+.decl-cert-opt.selected .decl-radio-dot{ border-color:var(--azure); position:relative; }
+.decl-cert-opt.selected .decl-radio-dot::after{ content:''; position:absolute; inset:2.5px; border-radius:50%; background:var(--azure); }
+.decl-cert-opt.disabled{ opacity:.5; }
+.decl-success-icon{ width:56px; height:56px; border-radius:50%; background:rgba(29,111,191,0.15); color:var(--teal); display:flex; align-items:center; justify-content:center; margin:4px auto 18px; }
+.decl-record-eyebrow{ font-size:11.5px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--azure); margin-bottom:8px; }
+.decl-record-head{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
+.decl-record-q{ padding:12px 0; border-top:1px solid var(--card-border); }
+.decl-record-q:first-of-type{ border-top:none; padding-top:6px; }
+.decl-esign-block{ background:rgba(29,111,191,0.05); border-color:rgba(29,111,191,0.25); }
+.decl-esign-icon{ width:30px; height:30px; border-radius:9px; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex:none; }
+.decl-esign-row{ display:grid; grid-template-columns:180px 1fr; gap:10px; padding:9px 0; border-top:1px solid rgba(29,111,191,0.15); font-size:12.5px; align-items:baseline; }
+.decl-esign-row:first-child{ border-top:none; }
+.decl-esign-row span{ color:var(--text-dim); }
+.decl-esign-row b{ font-weight:700; }
+.decl-qr-box{ flex:none; display:flex; flex-direction:column; align-items:center; width:150px; padding-left:24px; border-left:1px solid rgba(29,111,191,0.15); }
+.decl-qr-placeholder{ width:110px; height:110px; border-radius:10px; background:var(--bg); border:1px solid var(--card-border); }
+@media (max-width:640px){
+  .decl-esign-row{ grid-template-columns:1fr; gap:2px; }
+  .decl-qr-box{ border-left:none; border-top:1px solid rgba(29,111,191,0.15); padding-left:0; padding-top:18px; width:100%; }
+}
+
+/* ===== Inson resurslari bo'limi ===== */
+.hr-wrap{ position:relative; z-index:5; max-width:760px; margin:0 auto; padding:0 24px 100px; }
+.hr-tabs{ display:flex; gap:8px; margin-bottom:20px; }
+.hr-tab{
+  flex:1; padding:12px 14px; border-radius:12px; border:1px solid var(--card-border); background:var(--card);
+  color:var(--text-dim); font-weight:700; font-size:13.5px; cursor:pointer; transition:all .2s ease;
+}
+.hr-tab.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; border-color:transparent; }
+.hr-panel-card{
+  background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:20px; padding:28px;
+  backdrop-filter:blur(16px); box-shadow:0 30px 60px -25px rgba(0,0,0,0.4); margin-bottom:20px;
+}
+.hr-panel-card h3{ font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:18px; }
+.file-btn{
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px;
+  border:1.5px dashed var(--input-border); border-radius:11px; background:var(--input-bg);
+  color:var(--text-dim); font-size:13.5px; font-weight:600; cursor:pointer; transition:border-color .2s ease, color .2s ease;
+}
+.file-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.hr-info-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+.hr-info-table td{ padding:12px 4px; border-top:1px solid var(--card-border); }
+.hr-info-table td:first-child{ color:var(--text-dim); font-weight:600; width:40%; }
+.hr-info-table tr:first-child td{ border-top:none; }
+.hr-badge{
+  max-width:320px; margin:0 auto; border-radius:18px; padding:24px 20px 20px;
+  background:linear-gradient(160deg, var(--navy-900), var(--navy-950));
+  border:1px solid var(--card-border); text-align:center; position:relative; overflow:hidden;
+  box-shadow:0 30px 60px -25px rgba(0,0,0,0.5);
+}
+.hr-badge::before{
+  content:""; position:absolute; top:-40%; right:-30%; width:70%; height:70%; border-radius:50%;
+  background:radial-gradient(circle, rgba(0,68,145,.25), transparent 70%);
+}
+.hr-badge-photo{
+  width:76px; height:76px; border-radius:50%; margin:0 auto 12px; overflow:hidden;
+  border:3px solid rgba(255,255,255,.18); position:relative; z-index:1;
+}
+.hr-badge-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+.hr-badge-name{ position:relative; z-index:1; font-family:'Unbounded', sans-serif; font-weight:700; font-size:15px; color:#fff; }
+.hr-badge-role{ position:relative; z-index:1; color:var(--teal); font-size:12px; font-weight:600; margin-top:4px; }
+.hr-badge-divider{ position:relative; z-index:1; height:1px; background:rgba(255,255,255,.14); margin:16px 0; }
+.hr-badge-company{ position:relative; z-index:1; color:rgba(255,255,255,.55); font-size:10.5px; text-transform:uppercase; letter-spacing:.6px; }
+.hr-badge-id{ position:relative; z-index:1; color:rgba(255,255,255,.85); font-size:11px; font-family:monospace; margin-top:4px; }
+.hr-table-wrap{
+  background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:16px;
+  max-height:560px; overflow:auto; -webkit-overflow-scrolling:touch;
+}
+.hr-table{ width:100%; border-collapse:collapse; font-size:13px; min-width:640px; }
+.hr-table thead th{ position:sticky; top:0; z-index:2; }
+.hr-table th{ text-align:left; padding:13px 14px; background:var(--bg-deep); color:var(--text-dim); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.3px; }
+.hr-table td{ padding:12px 14px; border-top:1px solid var(--card-border); }
+.hr-table .icon-btn{
+  width:30px; height:30px; border-radius:8px; border:1px solid var(--card-border); background:var(--input-bg);
+  color:var(--text-dim); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; margin-right:6px;
+}
+.hr-table .icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
+.hr-table .icon-btn.danger:hover{ border-color:var(--coral); color:var(--coral); }
 
 /* ===== Modal ===== */
 .modal-overlay{
@@ -156,7 +567,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 }
 .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
 .modal-head h3{ font-family:'Unbounded', sans-serif; font-size:17px; }
-.modal-close{ background:var(--card); border:1px solid var(--card-border); width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
+.modal-close{ background:var(--bg); box-shadow:var(--neu-out-sm); border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text); display:flex; align-items:center; justify-content:center; }
 
 .info-row{ display:flex; justify-content:space-between; padding:13px 0; border-bottom:1px solid var(--card-border); font-size:14px; }
 .notif-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:12px; padding:13px 14px; position:relative; }
@@ -185,7 +596,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .field{ margin-bottom:15px; }
 .field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:.2px; }
 .field input{ width:100%; padding:12px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:14px; outline:none; }
-.field input:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,163,224,0.18); }
+.field input:focus{ border-color:var(--azure); box-shadow:0 0 0 3px rgba(0,68,145,0.18); }
 .file-btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:12px 14px; border:1.5px dashed var(--input-border); border-radius:10px; background:var(--input-bg); color:var(--text-dim); font-size:13.5px; font-weight:600; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
 .file-btn:hover{ border-color:var(--azure); color:var(--azure); }
 .crop-frame{ width:190px; height:190px; border-radius:50%; overflow:hidden; position:relative; margin:0 auto 16px; background:#0009; border:1px solid var(--card-border); touch-action:none; cursor:grab; }
@@ -194,22 +605,21 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 .zoom-row{ display:flex; align-items:center; gap:10px; margin-bottom:16px; }
 .zoom-row svg{ flex:none; color:var(--text-dim); width:15px; height:15px; }
 .zoom-row input[type=range]{ flex:1; accent-color:var(--azure); }
-.modal-submit{ width:100%; margin-top:6px; padding:12px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:14px; }
+.modal-submit{ width:100%; margin-top:6px; padding:12px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#FFFFFF; font-weight:700; font-size:14px; }
 .modal-msg{ margin-top:12px; font-size:13px; display:none; padding:10px 12px; border-radius:9px; }
 .modal-msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); border:1px solid rgba(255,176,32,0.3); }
-.modal-msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); border:1px solid rgba(0,217,192,0.3); }
+.modal-msg.ok{ display:block; background:rgba(29,111,191,0.12); color:var(--teal); border:1px solid rgba(29,111,191,0.3); }
 
 @media (max-width:480px){
+  :root{ --topbar-h:58px; }
   .status-row{ flex-direction:column; }
   .chip-btn .name{ display:none; }
   .topbar{ padding:12px 10px; }
   .brand span{ font-size:12.5px; }
   .brand-logo{ height:16px; }
   .controls{ gap:5px; }
-  .lang-toggle{ padding:2px; }
-  .lang-toggle button{ padding:5px 8px; font-size:11px; }
-  .home-icon-btn, .theme-toggle{ width:28px; height:28px; }
-  .theme-toggle svg{ width:14px; height:14px; }
+  .home-icon-btn{ width:28px; height:28px; }
+  .theme-toggle:not(.theme-toggle-lg){ --tt-w:46px; --tt-h:24px; --tt-thumb:34px; --tt-off:-5px; }
   .home-icon-btn svg{ width:13px; height:13px; }
   .chip-btn{ padding:4px; gap:0; }
   .chip-btn .avatar{ width:26px; height:26px; }
@@ -217,27 +627,33 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
 }
 @media (max-width:360px){
   .controls{ gap:3px; }
-  .lang-toggle button{ padding:4px 6px; font-size:10px; }
-  .home-icon-btn, .theme-toggle{ width:26px; height:26px; }
+  .home-icon-btn{ width:26px; height:26px; }
+  .theme-toggle:not(.theme-toggle-lg){ --tt-w:42px; --tt-h:22px; --tt-thumb:30px; --tt-off:-4px; }
 }
 </style>
 </head>
-<body data-theme="dark">
-
-<canvas id="net"></canvas>
+<body data-theme="light">
 
 <div class="topbar">
   <div style="display:flex; align-items:center; gap:10px;">
     <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
   </div>
   <div class="controls">
-    <div class="lang-toggle">
-      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
-      <button id="lang-ru" onclick="setLang('ru')">RU</button>
-    </div>
-    <a id="adminMenuBtn" class="home-icon-btn" href="#" title="Boshqaruv" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-4-4L3 15.5"/></svg></a>
-    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"></button>
-    <button class="theme-toggle" id="notifBtn" onclick="openNotifPanel()" style="position:relative;" title="Xabarnomalar">
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema">
+      <span class="tt-track">
+        <span class="tt-glow"></span>
+        <span class="tt-label tt-label-left" data-i18n="themeDayLabel">Kun</span>
+        <span class="tt-label tt-label-right" data-i18n="themeNightLabel">Tun</span>
+      </span>
+      <span class="tt-thumb">
+        <span class="tt-icon tt-sun"></span>
+        <span class="tt-icon tt-moon"></span>
+      </span>
+    </button>
+    <button class="home-icon-btn" id="helpBtn" onclick="openModal('settingsModal'); showSettingsView('supportView');" title="Yordam">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
+    </button>
+    <button class="home-icon-btn" id="notifBtn" onclick="openNotifPanel()" title="Xabarnomalar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px; border-radius:9px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:10px; font-weight:700; line-height:13px; text-align:center;"></span>
     </button>
@@ -248,6 +664,17 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
         <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="dropdown" id="dropdown">
+        <div class="dropdown-lang">
+          <button id="lang-uz" class="lang-row active" onclick="setLang('uz')">
+            <span class="lang-row-text"><span class="lang-row-name">O'zbekcha</span><span class="lang-row-sub">Uzbek</span></span>
+            <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+          </button>
+          <button id="lang-ru" class="lang-row" onclick="setLang('ru')">
+            <span class="lang-row-text"><span class="lang-row-name">Русский</span><span class="lang-row-sub">Russian</span></span>
+            <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+          </button>
+        </div>
+        <div class="dropdown-divider"></div>
         <button onclick="openModal('settingsModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="menuSettings">Sozlamalar</span></button>
         <button onclick="openModal('infoModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span data-i18n="menuInfo">Mening ma'lumotlarim</span></button>
         <button onclick="logout()" style="color:var(--coral)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg> <span data-i18n="menuLogout">Chiqish</span></button>
@@ -256,39 +683,192 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   </div>
 </div>
 
-<div class="hero">
-  <h1 data-i18n="heroTitle">Korrupsiyaga qarshi kurashish</h1>
-  <p class="desc" data-i18n="heroDesc">Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.</p>
-  <div class="hero-actions">
-    <a href="docs.html" class="primary" data-i18n="docsBtn">Hujjatlar bilan tanishish</a>
-    <a href="test.html" class="secondary" data-i18n="testBtn">Testni topshirish</a>
-    <a href="survey.html" class="secondary" data-i18n="surveyBtn">Anonim so'rovnoma</a>
+<!-- ===== Chap tomondagi navigatsiya paneli (shisha uslubida) =====
+     Dizayn g'oyasi manbasi: github.com/Nazia-99/Glassmorphism-Settings-Sidebar-UI-using-HTML-CSS
+     — kod to'liq o'qib chiqilgan (faqat CSS shisha effekti + oddiy
+     ro'yxat, tashqi so'rov/skript yo'q — faqat Google Fonts va Font
+     Awesome CDN, ikkalasi ham ishlatilmadi), loyihaning o'z rang
+     palitrasi, shrifti va SVG belgilariga moslab qayta yozilgan. -->
+<div class="app-sidebar" id="appSidebar">
+  <button class="sidebar-toggle" onclick="toggleSidebar()" title="Menyu" aria-label="Menyu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+  </button>
+  <div class="sidebar-divider"></div>
+  <nav class="sidebar-nav">
+    <a class="sidebar-item active" id="navHome" href="#" onclick="return sidebarGoHome()">
+      <span class="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span>
+      <span class="si-label" data-i18n="navHome">Bosh sahifa</span>
+    </a>
+    <a class="sidebar-item" id="navAnticor" href="#" onclick="return sidebarShowSection('anticor')">
+      <span class="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+      <span class="si-label" data-i18n="navAnticor">Korrupsiyaga qarshi kurashish</span>
+    </a>
+    <a class="sidebar-item" id="navHR" href="#" onclick="return sidebarShowSection('hr')">
+      <span class="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="si-label" data-i18n="navHR">Inson resurslarini boshqarish xizmati</span>
+      <span class="si-soon" data-i18n="soonTag">Tez orada</span>
+    </a>
+    <a class="sidebar-item" id="navAdmin" href="#" onclick="return sidebarShowSection('admin')" style="display:none;">
+      <span class="si-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-4-4L3 15.5"/></svg></span>
+      <span class="si-label" data-i18n="navAdmin">Boshqaruv paneli</span>
+    </a>
+  </nav>
+</div>
+
+<!-- Bosh sahifa: shaxsiy salomlashuv + bo'limlarga tezkor o'tish -->
+<div id="sectionHome">
+  <div class="hero">
+    <h1 data-i18n="homeTitle">Bosh sahifa</h1>
+    <p class="desc" id="homeGreeting"></p>
+  </div>
+  <div class="home-tiles">
+    <a href="#" class="home-tile" onclick="return sidebarShowSection('anticor')">
+      <span class="home-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+      <span class="home-tile-title" data-i18n="navAnticor">Korrupsiyaga qarshi kurashish</span>
+      <span class="home-tile-desc" data-i18n="homeAnticorDesc">Hujjatlar, testlar va holatingizni shu yerdan kuzating</span>
+    </a>
+    <a href="#" class="home-tile" onclick="return sidebarShowSection('hr')">
+      <span class="home-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="home-tile-title" data-i18n="navHR">Inson resurslarini boshqarish xizmati</span>
+      <span class="home-tile-desc" data-i18n="homeHrDesc">Tez orada ishga tushiriladi</span>
+      <span class="home-tile-badge" data-i18n="soonTag">Tez orada</span>
+    </a>
+    <a href="#" class="home-tile" id="homeTileAdmin" style="display:none;" onclick="return sidebarShowSection('admin')">
+      <span class="home-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-4-4L3 15.5"/></svg></span>
+      <span class="home-tile-title" data-i18n="navAdmin">Boshqaruv paneli</span>
+      <span class="home-tile-desc" data-i18n="homeAdminDesc">Xodimlar, hisobotlar va tizim sozlamalari</span>
+    </a>
   </div>
 </div>
 
-<div class="status-section">
-  <div class="status-card">
-    <h2 data-i18n="statusTitle">Holatingizni tekshiring</h2>
-    <p class="sub" data-i18n="statusSub">Telefon raqamingizni kiriting</p>
-    <div class="status-row">
-      <div class="phone-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <input type="tel" id="phoneInput" data-i18n-ph="phonePh">
-      </div>
-      <button onclick="checkStatus()" data-i18n="checkBtn">Tekshirish</button>
+<div id="sectionAnticor" style="display:none;">
+  <div class="hero" id="anticorHero">
+    <h1 data-i18n="heroTitle">Korrupsiyaga qarshi kurashish</h1>
+    <p class="desc" data-i18n="heroDesc">Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.</p>
+    <div class="hero-actions">
+      <a href="docs.html" class="primary" data-i18n="docsBtn">Hujjatlar bilan tanishish</a>
+      <a href="test.html" class="secondary" data-i18n="testBtn">Testni topshirish</a>
+      <a href="survey.html" class="secondary" data-i18n="surveyBtn">Anonim so'rovnoma</a>
+      <a href="javascript:void(0)" class="secondary" onclick="return openDeclaration()"><span data-i18n="declarationBtn">Deklaratsiya to'ldirish</span></a>
     </div>
-    <div class="status-error" id="statusError" data-i18n="statusErrText">Bu raqam topilmadi</div>
-    <div class="status-result" id="statusResult">
-      <div class="status-item">
-        <span data-i18n="docLabel">Ichki normativ hujjatlar bilan tanishgan</span>
-        <span class="badge" id="docBadge">—</span>
+  </div>
+
+  <!-- Manfaatlar to'qnashuvi deklaratsiyasi — bosqichma-bosqich (wizard) -->
+  <div id="declarationView" style="display:none;">
+    <div class="decl-wrap">
+      <button class="settings-back" onclick="closeDeclaration()">&larr; <span id="declBackLabel">Ortga</span></button>
+      <div class="decl-header">
+        <div>
+          <div class="decl-eyebrow" id="declEyebrow">Ehtimoliy manfaatlar to'qnashuvi to'g'risida</div>
+          <h1 class="decl-title" id="declMainTitle">Deklaratsiya to'ldirish</h1>
+        </div>
+        <button class="decl-save-btn" onclick="declSaveDraft()" id="declSaveLaterBtn">Saqlash (keyin davom ettirish)</button>
       </div>
-      <div class="status-item">
-        <span data-i18n="testLabel">Testdan o'tgan</span>
-        <span class="badge" id="testBadge">—</span>
+      <div class="decl-stepper-wrap">
+        <button class="decl-step-arrow" onclick="declScrollStepper(-1)">&lsaquo;</button>
+        <div class="decl-stepper" id="declStepper"></div>
+        <button class="decl-step-arrow" onclick="declScrollStepper(1)">&rsaquo;</button>
+      </div>
+      <div class="decl-card" id="declCard"></div>
+    </div>
+  </div>
+
+  <!-- Imzolangan deklaratsiya yozuvi (NAMUNA — E-IMZO hali haqiqiy serverga ulanmagan) -->
+  <div id="declRecordView" style="display:none;">
+    <div class="decl-wrap">
+      <button class="settings-back" onclick="declBackToHomeFromRecord()">&larr; <span id="declBackHomeLabel">Bosh sahifaga qaytish</span></button>
+      <div id="declRecordBody"></div>
+    </div>
+  </div>
+
+  <div class="status-section" id="anticorStatusSection">
+    <div class="status-card">
+      <h2 data-i18n="statusTitle">Holatingizni tekshiring</h2>
+      <p class="sub" data-i18n="statusSub">Telefon raqamingizni kiriting</p>
+      <div class="status-row">
+        <div class="phone-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <input type="tel" id="phoneInput" data-i18n-ph="phonePh">
+        </div>
+        <button onclick="checkStatus()" data-i18n="checkBtn">Tekshirish</button>
+      </div>
+      <div class="status-error" id="statusError" data-i18n="statusErrText">Bu raqam topilmadi</div>
+      <div class="status-result" id="statusResult">
+        <div class="status-item">
+          <span data-i18n="docLabel">Ichki normativ hujjatlar bilan tanishgan</span>
+          <span class="badge" id="docBadge">—</span>
+        </div>
+        <div class="status-item">
+          <span data-i18n="testLabel">Test natijasi</span>
+          <span class="badge" id="testBadge">—</span>
+        </div>
+        <div class="status-item">
+          <span data-i18n="declLabel">Deklaratsiya to'ldirilgan</span>
+          <span class="badge" id="declBadge">—</span>
+        </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- Inson resurslarini boshqarish xizmati -->
+<div id="sectionHR" style="display:none;">
+  <div class="hero" style="padding-bottom:20px;">
+    <h1 data-i18n="hrTitle">Inson resurslarini boshqarish xizmati</h1>
+    <p class="desc" data-i18n="hrDesc2">Hujjat yuboring yoki shaxsiy ma'lumotlaringizni ko'ring.</p>
+  </div>
+
+  <div class="hr-wrap">
+    <div class="hr-tabs">
+      <button class="hr-tab active" id="hrTabUpload" onclick="showHrTab('upload')" data-i18n="hrTabUpload">Hujjat yuborish</button>
+      <button class="hr-tab" id="hrTabInfo" onclick="showHrTab('info')" data-i18n="hrTabInfo">Mening ma'lumotlarim</button>
+    </div>
+
+    <div id="hrUploadPanel">
+      <div class="hr-panel-card">
+        <h3 data-i18n="hrUploadTitle">Hujjat yuborish</h3>
+        <div class="field">
+          <label data-i18n="docFileLabel">PDF fayl</label>
+          <label class="file-btn" for="hrFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            <span id="hrFileBtnText" data-i18n="docFileChoose">PDF fayl tanlash</span>
+          </label>
+          <input type="file" id="hrFile" accept="application/pdf,.pdf" style="display:none;" onchange="onHrFileChange(event)">
+          <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="docFileHint">Faqat PDF, maksimal 25MB</div>
+        </div>
+        <button class="modal-submit" type="button" id="hrSubmitBtn" onclick="submitHrDocument()" data-i18n="hrSendBtn">Yuborish</button>
+        <div class="modal-msg" id="hrUploadMsg"></div>
+      </div>
+    </div>
+
+    <div id="hrInfoPanel" style="display:none;">
+      <div class="hr-panel-card">
+        <h3 data-i18n="menuInfo">Mening ma'lumotlarim</h3>
+        <table class="hr-info-table">
+          <tr><td data-i18n="fishLabel">F.I.Sh</td><td id="hrInfoFish">—</td></tr>
+          <tr><td data-i18n="thBirthDate">Tug'ilgan sana</td><td id="hrInfoBirth">—</td></tr>
+          <tr><td data-i18n="posLabel">Lavozim</td><td id="hrInfoPos">—</td></tr>
+          <tr><td data-i18n="deptLabel">Bo'linma</td><td id="hrInfoDept">—</td></tr>
+          <tr><td data-i18n="phoneLabel">Telefon</td><td id="hrInfoPhone">—</td></tr>
+        </table>
+      </div>
+      <div class="hr-badge" id="hrBadge">
+        <div class="hr-badge-photo"><img id="hrBadgeAvatar" src="" alt=""></div>
+        <div class="hr-badge-name" id="hrBadgeName">—</div>
+        <div class="hr-badge-role" id="hrBadgePos">—</div>
+        <div class="hr-badge-divider"></div>
+        <div class="hr-badge-company">«O'zbektelekom» AK</div>
+        <div class="hr-badge-id" id="hrBadgeId">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Boshqaruv paneli (admin/gl-admin) — admin.html shu yerda <iframe> orqali
+     "ichida" ochiladi (bir xil origin, sessiya sessionStorage/localStorage
+     orqali umumiy), sidebar orqali navigatsiya qilinadi. -->
+<div id="sectionAdmin" style="display:none;">
+  <iframe id="adminFrame" title="Boshqaruv paneli"></iframe>
 </div>
 
 <!-- Settings modal -->
@@ -300,6 +880,15 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
     </div>
 
     <div id="settingsMenu">
+      <!-- VAQTINCHALIK: kun/tun rejimi menyu bandi yashirilgan (sayt faqat
+           kunduzgi rejimda ishlaydi) — qayta yoqish uchun style="display:none;"ni olib tashlang. -->
+      <button class="settings-menu-item" style="display:none;" onclick="showSettingsView('themeView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>
+        <span data-i18n="themeMenu">Kun/tun rejimi</span>
+        <span class="chev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
       <button class="settings-menu-item" onclick="showSettingsView('photoView')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
         <span data-i18n="changePhotoMenu">Rasmni o'zgartirish</span>
@@ -314,13 +903,41 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
         </span>
       </button>
-      <button class="settings-menu-item" onclick="showSettingsView('supportView')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
-        <span data-i18n="helpMenu">Yordam</span>
+      <button class="settings-menu-item" onclick="showSettingsView('totpSettingsView'); loadTotpStatus();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span data-i18n="totpMenu">Ikki bosqichli tasdiqlash</span>
         <span class="chev">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
         </span>
       </button>
+      <button class="settings-menu-item" onclick="showSettingsView('sessionsView'); loadMySessions();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+        <span data-i18n="sessionsMenu">Faol sessiyalar</span>
+        <span class="chev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
+    </div>
+
+    <div id="themeView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:18px; padding:30px 0 10px;">
+        <button class="theme-toggle theme-toggle-lg" id="themeBtnLg" onclick="toggleTheme()" aria-label="Tema">
+          <span class="tt-track">
+            <span class="tt-glow"></span>
+            <span class="tt-label tt-label-left" data-i18n="themeDayLabel">Kun</span>
+            <span class="tt-label tt-label-right" data-i18n="themeNightLabel">Tun</span>
+          </span>
+          <span class="tt-thumb">
+            <span class="tt-icon tt-sun"></span>
+            <span class="tt-icon tt-moon"></span>
+          </span>
+        </button>
+        <div class="field-hint" style="font-size:12px; color:var(--text-dim); text-align:center;" data-i18n="themeHint">Ekran rejimini tanlang — sozlama shu qurilmada eslab qolinadi.</div>
+      </div>
     </div>
 
     <div id="supportView" style="display:none;">
@@ -335,6 +952,54 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
         <button class="modal-submit" type="submit" data-i18n="sendBtn">Yuborish</button>
         <div class="modal-msg" id="supportMsg"></div>
       </form>
+    </div>
+
+    <div id="totpSettingsView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <p class="loading-row" id="totpStatusLoading" data-i18n="loading">Yuklanmoqda...</p>
+
+      <div id="totpDisabledBox" style="display:none;">
+        <p class="field-hint" style="font-size:12.5px; color:var(--text-dim); margin-bottom:14px;" data-i18n="totpDisabledDesc">Hozircha o'chirilgan. Yoqish uchun tugmani bosing.</p>
+        <button class="modal-submit" type="button" onclick="startTotpSetup()" data-i18n="totpEnableBtn">Yoqish</button>
+      </div>
+
+      <div id="totpSetupBox" style="display:none;">
+        <p class="field-hint" style="font-size:12.5px; color:var(--text-dim); margin-bottom:10px;" data-i18n="totpSetupDesc">Avtentifikator ilovangizga (Google Authenticator, Authy va h.k.) "Kalitni qo'lda kiritish" orqali quyidagi kalitni kiriting:</p>
+        <div id="totpSecretDisplay" style="font-family:monospace; font-size:15px; letter-spacing:1px; padding:12px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; text-align:center; margin-bottom:14px; word-break:break-all;"></div>
+        <form onsubmit="return confirmTotpSetup(event)">
+          <div class="field">
+            <label data-i18n="totpCodeLabel">Tasdiqlash kodi</label>
+            <input type="text" id="totpSetupCodeInput" inputmode="numeric" maxlength="6" placeholder="000000" required>
+          </div>
+          <button class="modal-submit" type="submit" data-i18n="totpConfirmBtn">Tasdiqlash</button>
+          <div class="modal-msg" id="totpSetupMsg"></div>
+        </form>
+      </div>
+
+      <div id="totpEnabledBox" style="display:none;">
+        <p class="field-hint" style="font-size:12.5px; color:var(--teal); margin-bottom:14px;" data-i18n="totpEnabledDesc">✓ Ikki bosqichli tasdiqlash yoqilgan. O'chirish uchun joriy parolingizni kiriting.</p>
+        <form onsubmit="return disableTotp(event)">
+          <div class="field">
+            <label data-i18n="totpDisablePassLabel">Joriy parol</label>
+            <input type="password" id="totpDisablePassInput" required>
+          </div>
+          <button class="modal-submit" type="submit" style="background:var(--coral);" data-i18n="totpDisableBtn">O'chirish</button>
+          <div class="modal-msg" id="totpDisableMsg"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="sessionsView" style="display:none;">
+      <button class="settings-back" onclick="showSettingsView('settingsMenu')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12" style="vertical-align:-1px"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backLabel">Orqaga</span>
+      </button>
+      <div id="sessionsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;"></div>
+      <button class="settings-back" type="button" onclick="revokeOtherSessionsNow()" data-i18n="revokeOthersBtn">Boshqa barcha qurilmalardan chiqish</button>
+      <div class="modal-msg" id="sessionsMsg"></div>
     </div>
 
     <div id="photoView" style="display:none;">
@@ -378,7 +1043,7 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
       </button>
       <form onsubmit="return changePassword(event)">
         <div class="field"><label data-i18n="oldPassLabel">Eski parol</label><input type="password" id="oldPass" required></div>
-        <div class="field"><label data-i18n="newPassLabel">Yangi parol</label><input type="password" id="newPass" required></div>
+        <div class="field"><label data-i18n="newPassLabel">Yangi parol</label><input type="password" id="newPass" required minlength="8"><div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="passwordPolicyHint">Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)</div></div>
         <div class="field"><label data-i18n="confirmPassLabel">Yangi parolni tasdiqlash</label><input type="password" id="confirmPass" required></div>
         <button class="modal-submit" type="submit" data-i18n="saveBtn">Saqlash</button>
         <div class="modal-msg" id="passMsg"></div>
@@ -414,18 +1079,79 @@ canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
   </div>
 </div>
 
-<script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026"; // Apps Script kodidagi APP_SECRET bilan bir xil bo'lishi shart
+<!-- Deklaratsiya: qarindosh ma'lumotini kiritish modali -->
+<div class="modal-overlay" id="declFillModal">
+  <div class="modal decl-modal">
+    <div class="modal-head">
+      <h3 id="declModalTitle">Ma'lumot kiritish</h3>
+      <button class="modal-close" onclick="closeModal('declFillModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div id="declModalBody"></div>
+  </div>
+</div>
 
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
+<!-- Deklaratsiya: E-IMZO kalitni tanlash modali (NAMUNA — haqiqiy imzolash emas) -->
+<div class="modal-overlay" id="declSignModal">
+  <div class="modal decl-modal">
+    <div class="modal-head">
+      <h3 id="declSignModalTitle">E-IMZO — kalitni tanlang</h3>
+      <button class="modal-close" onclick="closeModal('declSignModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <p class="decl-sub" style="margin-bottom:14px;" id="declSignModalSub">Kompyuteringizda topilgan elektron imzo sertifikatlari:</p>
+    <div class="decl-cert-opt selected" id="declCertOptReal">
+      <span class="decl-radio-dot"></span>
+      <div>
+        <div style="font-weight:700; font-size:13.5px;" id="declCertName">—</div>
+        <div style="color:var(--text-dim); font-size:12px; margin-top:3px;" id="declCertValidUntil">Amal qilish: 31.12.2026 gacha</div>
+      </div>
+    </div>
+    <div class="decl-cert-opt disabled">
+      <span class="decl-radio-dot"></span>
+      <div>
+        <div style="font-weight:700; font-size:13.5px;" id="declCertNameOld">— (eski)</div>
+        <div style="color:var(--text-dim); font-size:12px; margin-top:3px;" id="declCertExpired">Sertifikat muddati tugagan — 31.12.2024</div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:16px;">
+      <label id="declKeyPasswordLabel">Kalit paroli <span class="req">*</span></label>
+      <input type="password" id="declSignPassword">
+    </div>
+    <div class="decl-modal-footer">
+      <button class="decl-btn outline" onclick="closeModal('declSignModal')" id="declSignCancelBtn">Bekor qilish</button>
+      <button class="decl-btn primary" onclick="declConfirmSign()" id="declSignActionBtn">Imzolash</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deklaratsiya: imzolandi (muvaffaqiyat) modali -->
+<div class="modal-overlay" id="declSignSuccessModal">
+  <div class="modal" style="max-width:400px; text-align:center;">
+    <div class="decl-success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <h3 style="font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:8px;" id="declSuccessTitle">Deklaratsiya E-IMZO bilan muvaffaqiyatli imzolandi!</h3>
+    <p style="color:var(--text-dim); font-size:13px; margin-bottom:16px;" id="declSuccessDept">Hujjat yuborildi.</p>
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:20px;">
+      <span style="font-size:12px; color:var(--text-dim);" id="declVerificationIdLabel">Verification ID:</span>
+      <span class="decl-pill gray" style="font-family:monospace;" id="declVerificationIdBadge">—</span>
+    </div>
+    <button class="decl-btn primary" style="width:100%;" onclick="declShowRecord()" id="declViewDeclarationBtn">Deklaratsiyani ko'rish</button>
+  </div>
+</div>
+
+<script>
+// PHP backend'ning ochiq API manzili (backend/public/index.php) — sahifa qayerdan
+// ochilgan bo'lsa (localhost, mahalliy tarmoq IP'si, ngrok, haqiqiy domen), o'sha
+// joyning o'ziga nisbatan avtomatik hisoblanadi, qo'lda o'zgartirish shart emas.
+const API_BASE_URL = new URL('backend/public/index.php', window.location.href).href;
+
+// Tarmoq beqarorligi tufayli vaqtincha muvaffaqiyatsiz bo'lgan so'rovni qayta urinadi.
 async function apiCall(payload){
   const body = JSON.stringify(payload);
   let lastErr;
   for(let attempt=0; attempt<3; attempt++){
     try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+      const res = await fetch(API_BASE_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body, credentials:'same-origin' });
       const text = await res.text();
       try{
         const parsed = JSON.parse(text);
@@ -458,20 +1184,47 @@ const dict = {
     heroDesc:"Xodimlar uchun ta'lim dasturi — normativ hujjatlar bilan tanishing va bilimingizni sinab ko'ring.",
     statusTitle:"Holatingizni tekshiring", statusSub:"Telefon raqamingizni kiriting",
     docsBtn:"Hujjatlar bilan tanishish", testBtn:"Testni topshirish", surveyBtn:"Anonim so'rovnoma",
+    declarationBtn:"Deklaratsiya to'ldirish", soonTag:"Tez orada", soonMsg:"Bu bo'lim tez orada ishga tushiriladi",
+    navHome:"Bosh sahifa", navAnticor:"Korrupsiyaga qarshi kurashish", navHR:"Inson resurslarini boshqarish xizmati", navAdmin:"Boshqaruv paneli",
+    hrTitle:"Inson resurslarini boshqarish xizmati", hrDesc:"Bu bo'lim tez orada ishga tushiriladi.",
+    homeTitle:"Bosh sahifa", homeGreeting:"Xush kelibsiz, {name}!",
+    homeAnticorDesc:"Hujjatlar, testlar va holatingizni shu yerdan kuzating",
+    homeHrDesc:"Tez orada ishga tushiriladi", homeAdminDesc:"Xodimlar, hisobotlar va tizim sozlamalari",
+    hrDesc2:"Hujjat yuboring yoki shaxsiy ma'lumotlaringizni ko'ring.",
+    hrTabUpload:"Hujjat yuborish", hrTabInfo:"Mening ma'lumotlarim", hrUploadTitle:"Hujjat yuborish",
+    hrSendBtn:"Yuborish", hrFileRequiredErr:"PDF fayl tanlang", hrSentOk:"Hujjat muvaffaqiyatli yuborildi ✓",
+    hrBadgeNoPos:"Lavozim ko'rsatilmagan", thBirthDate:"Tug'ilgan sana",
+    docFileChoose:"PDF fayl tanlash", docFileHint:"Faqat PDF, maksimal 25MB",
+    docFileTooLargeErr:"Fayl hajmi juda katta (maksimal 25MB)", docFileTypeErr:"Fayl formati noto'g'ri, faqat PDF qabul qilinadi",
     checkBtn:"Tekshirish", statusErrText:"Bu raqam topilmadi", notYourNumber:"Ushbu raqam sizga tegishli emas",
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
-    docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Testdan o'tgan",
+    docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Test natijasi",
+    declLabel:"Deklaratsiya to'ldirilgan",
     oldPassLabel:"Eski parol", newPassLabel:"Yangi parol", confirmPassLabel:"Yangi parolni tasdiqlash",
     saveBtn:"Saqlash", fishLabel:"F.I.Sh", posLabel:"Lavozim", deptLabel:"Bo'linma", phoneLabel:"Telefon",
     menuLogout:"Chiqish", changePassMenu:"Parolni almashtirish", backLabel:"Orqaga",
     yes:"Ha", no:"Yo'q", mismatchErr:"Yangi parollar mos kelmadi", oldWrongErr:"Eski parol noto'g'ri",
+    weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
+    pwnedPasswordErr:"Bu parol avval ma'lumotlar sizib chiqishlarida uchragan. Iltimos boshqa parol tanlang.",
+    passwordPolicyHint:"Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)",
     savedOk:"Parol muvaffaqiyatli o'zgartirildi", checking:"Tekshirilmoqda...",
     phonePh:"Telefon raqamingiz", pointsLabel:"ball",
     helpMenu:"Yordam", supportPh:"Iltimos, savolingiz yoki xatoni izohlab bering", sendBtn:"Yuborish",
     supportSentOk:"Murojaatingiz qabul qilindi, rahmat!", savingErr:"Xatolik yuz berdi, qayta urinib ko'ring",
     changePhotoMenu:"Rasmni o'zgartirish", photoUrlLabel:"Rasm tanlang",
     photoHint:"Qurilmangizdan rasm tanlang (JPG, PNG).",
-    photoSavedOk:"Rasm muvaffaqiyatli saqlandi", photoEmptyErr:"Rasm tanlang", photoReadErr:"Rasmni o'qib bo'lmadi, boshqa faylni tanlang"
+    photoSavedOk:"Rasm muvaffaqiyatli saqlandi", photoEmptyErr:"Rasm tanlang", photoReadErr:"Rasmni o'qib bo'lmadi, boshqa faylni tanlang",
+    totpMenu:"Ikki bosqichli tasdiqlash", totpEnableBtn:"Yoqish", totpConfirmBtn:"Tasdiqlash", totpDisableBtn:"O'chirish",
+    totpDisabledDesc:"Hozircha o'chirilgan. Yoqish uchun tugmani bosing.",
+    totpSetupDesc:"Avtentifikator ilovangizga (Google Authenticator, Authy va h.k.) \"Kalitni qo'lda kiritish\" orqali quyidagi kalitni kiriting:",
+    totpEnabledDesc:"✓ Ikki bosqichli tasdiqlash yoqilgan. O'chirish uchun joriy parolingizni kiriting.",
+    totpDisablePassLabel:"Joriy parol", totpCodeLabel:"Tasdiqlash kodi", totpInvalidErr:"Kod noto'g'ri, qaytadan urinib ko'ring",
+    themeMenu:"Kun/tun rejimi", themeDayLabel:"Kun", themeNightLabel:"Tun",
+    themeHint:"Ekran rejimini tanlang — sozlama shu qurilmada eslab qolinadi.",
+    sessionsMenu:"Faol sessiyalar", currentSessionLabel:"Joriy sessiya (bu qurilma)", sessionLabel:"Boshqa qurilma",
+    revokeBtn:"Chiqarish", revokeOthersBtn:"Boshqa barcha qurilmalardan chiqish",
+    totpEnabledOk:"Ikki bosqichli tasdiqlash yoqildi ✓", totpDisabledOk:"Ikki bosqichli tasdiqlash o'chirildi ✓",
+    sessionsRevokedOk:"Boshqa qurilmalardan muvaffaqiyatli chiqarildi ✓"
   },
   ru:{
     brandName:"АО «Узтелеком»",
@@ -481,20 +1234,47 @@ const dict = {
     heroDesc:"Образовательная программа для сотрудников — ознакомьтесь с нормативными документами и проверьте свои знания.",
     statusTitle:"Проверьте свой статус", statusSub:"Введите номер телефона",
     docsBtn:"Ознакомиться с документами", testBtn:"Пройти тест", surveyBtn:"Анонимный опрос",
+    declarationBtn:"Заполнить декларацию", soonTag:"Скоро", soonMsg:"Этот раздел скоро будет запущен",
+    navHome:"Главная", navAnticor:"Противодействие коррупции", navHR:"Служба управления персоналом", navAdmin:"Панель управления",
+    hrTitle:"Служба управления персоналом", hrDesc:"Этот раздел скоро будет запущен.",
+    homeTitle:"Главная", homeGreeting:"Добро пожаловать, {name}!",
+    homeAnticorDesc:"Следите за документами, тестами и своим статусом",
+    homeHrDesc:"Скоро будет запущено", homeAdminDesc:"Сотрудники, отчёты и настройки системы",
+    hrDesc2:"Отправьте документ или посмотрите свои личные данные.",
+    hrTabUpload:"Отправить документ", hrTabInfo:"Мои данные", hrUploadTitle:"Отправить документ",
+    hrSendBtn:"Отправить", hrFileRequiredErr:"Выберите PDF файл", hrSentOk:"Документ успешно отправлен ✓",
+    hrBadgeNoPos:"Должность не указана", thBirthDate:"Дата рождения",
+    docFileChoose:"Выбрать PDF файл", docFileHint:"Только PDF, максимум 25MB",
+    docFileTooLargeErr:"Размер файла слишком большой (максимум 25MB)", docFileTypeErr:"Неверный формат файла, принимается только PDF",
     checkBtn:"Проверить", statusErrText:"Номер не найден", notYourNumber:"Этот номер вам не принадлежит",
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
-    docLabel:"Ознакомлен с внутренними документами", testLabel:"Тест пройден",
+    docLabel:"Ознакомлен с внутренними документами", testLabel:"Результат теста",
+    declLabel:"Декларация заполнена",
     oldPassLabel:"Старый пароль", newPassLabel:"Новый пароль", confirmPassLabel:"Подтвердите новый пароль",
     saveBtn:"Сохранить", fishLabel:"ФИО", posLabel:"Должность", deptLabel:"Подразделение", phoneLabel:"Телефон",
     menuLogout:"Выйти", changePassMenu:"Изменить пароль", backLabel:"Назад",
     yes:"Да", no:"Нет", mismatchErr:"Новые пароли не совпадают", oldWrongErr:"Старый пароль неверен",
+    weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
+    pwnedPasswordErr:"Этот пароль ранее встречался в утечках данных. Пожалуйста, выберите другой пароль.",
+    passwordPolicyHint:"Минимум 8 символов: заглавная, строчная буква, цифра и спецсимвол (например !@#$%)",
     savedOk:"Пароль успешно изменён", checking:"Проверка...",
     phonePh:"Ваш номер телефона", pointsLabel:"баллов",
     helpMenu:"Помощь", supportPh:"Пожалуйста, поясните свой вопрос или опишите ошибку.", sendBtn:"Отправить",
     supportSentOk:"Ваше обращение принято, спасибо!", savingErr:"Произошла ошибка, попробуйте снова",
     changePhotoMenu:"Изменить фото", photoUrlLabel:"Выберите фото",
     photoHint:"Выберите фото с вашего устройства (JPG, PNG).",
-    photoSavedOk:"Фото успешно сохранено", photoEmptyErr:"Выберите фото", photoReadErr:"Не удалось прочитать фото, выберите другой файл"
+    photoSavedOk:"Фото успешно сохранено", photoEmptyErr:"Выберите фото", photoReadErr:"Не удалось прочитать фото, выберите другой файл",
+    totpMenu:"Двухфакторная аутентификация", totpEnableBtn:"Включить", totpConfirmBtn:"Подтвердить", totpDisableBtn:"Отключить",
+    totpDisabledDesc:"Пока отключено. Нажмите кнопку, чтобы включить.",
+    totpSetupDesc:"В приложении-аутентификаторе (Google Authenticator, Authy и т.д.) через \"Ввести код вручную\" введите этот ключ:",
+    totpEnabledDesc:"✓ Двухфакторная аутентификация включена. Для отключения введите текущий пароль.",
+    totpDisablePassLabel:"Текущий пароль", totpCodeLabel:"Код подтверждения", totpInvalidErr:"Неверный код, попробуйте снова",
+    themeMenu:"Режим дня/ночи", themeDayLabel:"День", themeNightLabel:"Ночь",
+    themeHint:"Выберите режим экрана — настройка запомнится на этом устройстве.",
+    sessionsMenu:"Активные сессии", currentSessionLabel:"Текущая сессия (это устройство)", sessionLabel:"Другое устройство",
+    revokeBtn:"Выйти", revokeOthersBtn:"Выйти со всех других устройств",
+    totpEnabledOk:"Двухфакторная аутентификация включена ✓", totpDisabledOk:"Двухфакторная аутентификация отключена ✓",
+    sessionsRevokedOk:"Успешно выполнен выход с других устройств ✓"
   }
 };
 let currentLang = localStorage.getItem('km_lang') || 'uz';
@@ -510,14 +1290,24 @@ function applyLang(){
   document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
   document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
 }
-function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderInfoLang(); }
+function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderInfoLang(); if(typeof currentUser !== 'undefined') renderHomeGreeting(currentUser); if(typeof declApplyLang === 'function') declApplyLang(); }
 applyLang();
 
 /* ---------- Theme ---------- */
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
-let theme = localStorage.getItem('km_theme') || 'dark';
-function applyTheme(){ document.body.setAttribute('data-theme', theme); document.getElementById('themeBtn').innerHTML = theme==='dark'?sunIcon:moonIcon; document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; }); }
+document.querySelectorAll('.tt-sun').forEach(function(el){ el.innerHTML = sunIcon; });
+document.querySelectorAll('.tt-moon').forEach(function(el){ el.innerHTML = moonIcon; });
+
+// VAQTINCHALIK: kunduzgi rejim majburiy qilingan (tugma yashirilgan).
+// Qayta yoqish uchun quyidagi qatorni qaytaring:
+// let theme = localStorage.getItem('km_theme') || 'dark';
+let theme = 'light';
+function applyTheme(){
+  document.body.setAttribute('data-theme', theme);
+  document.querySelectorAll('.theme-toggle').forEach(function(btn){ btn.classList.toggle('active', theme === 'dark'); });
+  document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; });
+}
 function toggleTheme(){ theme = theme==='dark'?'light':'dark'; localStorage.setItem('km_theme', theme); applyTheme(); }
 applyTheme();
 
@@ -533,24 +1323,40 @@ function loadUser(){
   document.getElementById('avatarImg').src = user.rasm || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(user.familiya+' '+user.ism) + '&backgroundColor=00A3E0';
   document.getElementById('infoFish').textContent = [user.familiya, user.ism, user.otasi].filter(Boolean).join(' ');
   document.getElementById('infoPhone').textContent = user.telefon || '—';
-  if(user.rol === 'gl-admin' || user.rol === 'admin'){
-    const adminBtn = document.getElementById('adminMenuBtn');
-    if(adminBtn){
-      adminBtn.style.display = 'flex';
-      adminBtn.href = 'admin.html';
-    }
+  // Boshqaruv paneliga kirish huquqi bor barcha rollar (oddiy "user"dan
+  // tashqari) — aniq ruxsatlarni admin.html'ning o'zi ichkarida tekshiradi,
+  // bu yerda faqat kirish nuqtasini ko'rsatish/yashirish kifoya.
+  if(user.rol !== 'user'){
+    const navAdmin = document.getElementById('navAdmin');
+    if(navAdmin) navAdmin.style.display = 'flex';
+    const homeTileAdmin = document.getElementById('homeTileAdmin');
+    if(homeTileAdmin) homeTileAdmin.style.display = 'flex';
   }
+  renderHomeGreeting(user);
   return user;
+}
+function renderHomeGreeting(user){
+  const el = document.getElementById('homeGreeting');
+  if(!el || !user) return;
+  el.textContent = dict[currentLang].homeGreeting.replace('{name}', user.ism || '');
 }
 let currentUser = loadUser();
 if(currentUser) renderInfoLang();
+
+// Boshqa sahifalardagi "Yordam" tugmasidan kelgan chuqur havola
+// (masalan main.html?openHelp=1) — Sozlamalar/Yordam bo'limini avtomatik ochadi.
+if(currentUser && new URLSearchParams(window.location.search).get('openHelp') === '1'){
+  openModal('settingsModal');
+  showSettingsView('supportView');
+  history.replaceState(null, '', window.location.pathname);
+}
 
 async function renderInfoLang(){
   if(!currentUser) return;
   if(currentLang === 'ru' && !currentUser.lavozimRu && !currentUser._ruFetched){
     currentUser._ruFetched = true; // qayta-qayta so'rov yubormaslik uchun
     try{
-      const data = await apiCall({ secret: APP_SECRET, action:'getProfileRu', token: currentUser.token });
+      const data = await apiCall({ action:'getProfileRu', token: currentUser.token });
       if(data.success){
         currentUser.lavozimRu = data.lavozim_ru;
         currentUser.bolinmaRu = data.bolinma_ru;
@@ -602,7 +1408,7 @@ function updateNotifBadge(){
 async function loadNotifBadge(){
   if(!currentUser) return;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getMyNotifications', token: currentUser.token });
+    const data = await apiCall({ action:'getMyNotifications', token: currentUser.token });
     if(data.success){
       notifCache = data.notifications;
       updateNotifBadge();
@@ -631,14 +1437,14 @@ async function openNotifPanel(){
     document.getElementById('notifList').innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].loading}</p>`;
   }
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getMyNotifications', token: currentUser.token });
+    const data = await apiCall({ action:'getMyNotifications', token: currentUser.token });
     if(data.success){
       notifCache = data.notifications;
       renderNotifList();
       // Ochilgan barcha o'qilmagan xabarnomalarni "o'qildi" deb belgilaymiz
       const unread = notifCache.filter(n => !n.read);
       for(const n of unread){
-        apiCall({ secret: APP_SECRET, action:'markNotificationRead', token: currentUser.token, notifId: n.id }).catch(()=>{});
+        apiCall({ action:'markNotificationRead', token: currentUser.token, notifId: n.id }).catch(()=>{});
         n.read = true;
       }
       updateNotifBadge();
@@ -650,9 +1456,12 @@ async function openNotifPanel(){
 
 function showSettingsView(viewId){
   document.getElementById('settingsMenu').style.display = viewId === 'settingsMenu' ? 'block' : 'none';
+  document.getElementById('themeView').style.display = viewId === 'themeView' ? 'block' : 'none';
   document.getElementById('photoView').style.display = viewId === 'photoView' ? 'block' : 'none';
   document.getElementById('passwordView').style.display = viewId === 'passwordView' ? 'block' : 'none';
   document.getElementById('supportView').style.display = viewId === 'supportView' ? 'block' : 'none';
+  document.getElementById('totpSettingsView').style.display = viewId === 'totpSettingsView' ? 'block' : 'none';
+  document.getElementById('sessionsView').style.display = viewId === 'sessionsView' ? 'block' : 'none';
   document.getElementById('passMsg').className = 'modal-msg';
   document.getElementById('supportMsg').className = 'modal-msg';
   document.getElementById('photoMsg').className = 'modal-msg';
@@ -668,15 +1477,243 @@ function showSettingsView(viewId){
   }
 }
 
+/* ---------- Chap navigatsiya paneli ---------- */
+function toggleSidebar(){
+  document.getElementById('appSidebar').classList.toggle('expanded');
+}
+
+function setActiveNav(id){
+  document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+}
+
+function sidebarGoHome(){
+  return sidebarShowSection('home');
+}
+
+function sidebarShowSection(name){
+  const sections = { home:'sectionHome', anticor:'sectionAnticor', hr:'sectionHR', admin:'sectionAdmin' };
+  const navIds = { home:'navHome', anticor:'navAnticor', hr:'navHR', admin:'navAdmin' };
+  if(!sections[name]) name = 'home';
+  Object.keys(sections).forEach(function(key){
+    document.getElementById(sections[key]).style.display = (key === name) ? 'block' : 'none';
+  });
+  setActiveNav(navIds[name]);
+  if(name === 'admin'){
+    const frame = document.getElementById('adminFrame');
+    if(frame && !frame.src){ frame.src = 'admin.html'; }
+  }
+  if(name === 'hr'){ renderHrInfo(); }
+  return false;
+}
+
+/* ---------- Inson resurslari: Hujjat yuborish + Mening ma'lumotlarim ---------- */
+function formatBirthDate(v){
+  if(!v) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : v;
+}
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('read-failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function showHrTab(tab){
+  document.getElementById('hrTabUpload').classList.toggle('active', tab === 'upload');
+  document.getElementById('hrTabInfo').classList.toggle('active', tab === 'info');
+  document.getElementById('hrUploadPanel').style.display = tab === 'upload' ? 'block' : 'none';
+  document.getElementById('hrInfoPanel').style.display = tab === 'info' ? 'block' : 'none';
+  if(tab === 'info') renderHrInfo();
+}
+
+const HR_FILE_MAX_BYTES = 25 * 1024 * 1024;
+let pendingHrFileDataUrl = null;
+let pendingHrFileName = '';
+
+async function onHrFileChange(e){
+  const file = e.target.files[0];
+  pendingHrFileDataUrl = null; pendingHrFileName = '';
+  if(!file) return;
+  const msg = document.getElementById('hrUploadMsg'); msg.className = 'modal-msg';
+  if(file.size > HR_FILE_MAX_BYTES){
+    msg.textContent = dict[currentLang].docFileTooLargeErr; msg.classList.add('err');
+    e.target.value = ''; document.getElementById('hrFileBtnText').textContent = dict[currentLang].docFileChoose;
+    return;
+  }
+  if(file.type !== 'application/pdf'){
+    msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    e.target.value = ''; document.getElementById('hrFileBtnText').textContent = dict[currentLang].docFileChoose;
+    return;
+  }
+  try{
+    pendingHrFileDataUrl = await readFileAsDataUrl(file);
+    pendingHrFileName = file.name;
+    document.getElementById('hrFileBtnText').textContent = file.name;
+  } catch(ex){
+    msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    e.target.value = ''; document.getElementById('hrFileBtnText').textContent = dict[currentLang].docFileChoose;
+  }
+}
+
+async function submitHrDocument(){
+  const msg = document.getElementById('hrUploadMsg'); msg.className = 'modal-msg';
+  if(!pendingHrFileDataUrl){
+    msg.textContent = dict[currentLang].hrFileRequiredErr; msg.classList.add('err');
+    return;
+  }
+  const btn = document.getElementById('hrSubmitBtn'); btn.disabled = true;
+  try{
+    const data = await apiCall({ action:'submitHrDocument', token: currentUser.token, file: pendingHrFileDataUrl, fileName: pendingHrFileName });
+    btn.disabled = false;
+    if(data.success){
+      msg.textContent = dict[currentLang].hrSentOk; msg.classList.add('ok');
+      pendingHrFileDataUrl = null; pendingHrFileName = '';
+      document.getElementById('hrFile').value = '';
+      document.getElementById('hrFileBtnText').textContent = dict[currentLang].docFileChoose;
+    } else if(data.code === 'FILE_TOO_LARGE'){
+      msg.textContent = dict[currentLang].docFileTooLargeErr; msg.classList.add('err');
+    } else if(data.code === 'INVALID_FILE'){
+      msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
+    } else {
+      msg.textContent = dict[currentLang].savingErr; msg.classList.add('err');
+    }
+  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+}
+
+function renderHrInfo(){
+  if(!currentUser) return;
+  document.getElementById('hrInfoFish').textContent = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || '—';
+  document.getElementById('hrInfoBirth').textContent = formatBirthDate(currentUser.tugilganSana) || '—';
+  document.getElementById('hrInfoPos').textContent = currentUser.lavozim || '—';
+  document.getElementById('hrInfoDept').textContent = currentUser.bolinma || '—';
+  document.getElementById('hrInfoPhone').textContent = currentUser.telefon || '—';
+
+  const fullName = [currentUser.familiya, currentUser.ism].filter(Boolean).join(' ') || currentUser.login;
+  document.getElementById('hrBadgeName').textContent = fullName;
+  document.getElementById('hrBadgePos').textContent = currentUser.lavozim || dict[currentLang].hrBadgeNoPos;
+  document.getElementById('hrBadgeId').textContent = 'ID-' + String(currentUser.id || '').padStart(5, '0');
+  document.getElementById('hrBadgeAvatar').src = currentUser.rasm || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(fullName) + '&backgroundColor=00A3E0';
+}
+
 function logout(){
   const token = currentUser && currentUser.token;
   try{ sessionStorage.removeItem('km_user'); }catch(e){}
   if(token){
     // Sessiyani serverda ham bekor qilishga urinamiz, lekin natijani kutmaymiz
     // (foydalanuvchi darhol login sahifasiga o'tishi kerak)
-    fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify({ secret: APP_SECRET, action:'logout', token }) }).catch(()=>{});
+    fetch(API_BASE_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{});
   }
   window.location.href = 'login.html';
+}
+
+/* ---------- Ikki bosqichli tasdiqlash (2FA) ---------- */
+let pendingTotpSecret = null;
+
+async function loadTotpStatus(){
+  document.getElementById('totpStatusLoading').style.display = 'block';
+  document.getElementById('totpDisabledBox').style.display = 'none';
+  document.getElementById('totpSetupBox').style.display = 'none';
+  document.getElementById('totpEnabledBox').style.display = 'none';
+  try{
+    const data = await apiCall({ action:'totpStatus', token: currentUser.token });
+    document.getElementById('totpStatusLoading').style.display = 'none';
+    if(data.success && data.enabled){
+      document.getElementById('totpEnabledBox').style.display = 'block';
+    } else {
+      document.getElementById('totpDisabledBox').style.display = 'block';
+    }
+  } catch(ex){
+    document.getElementById('totpStatusLoading').textContent = 'Xatolik: ' + ex.message;
+  }
+}
+
+async function startTotpSetup(){
+  try{
+    const data = await apiCall({ action:'totpSetupStart', token: currentUser.token });
+    if(!data.success) return;
+    pendingTotpSecret = data.secret;
+    document.getElementById('totpSecretDisplay').textContent = data.secret.match(/.{1,4}/g).join(' ');
+    document.getElementById('totpSetupCodeInput').value = '';
+    document.getElementById('totpDisabledBox').style.display = 'none';
+    document.getElementById('totpSetupBox').style.display = 'block';
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function confirmTotpSetup(e){
+  e.preventDefault();
+  const code = document.getElementById('totpSetupCodeInput').value.trim();
+  const msg = document.getElementById('totpSetupMsg'); msg.className = 'modal-msg';
+  try{
+    const data = await apiCall({ action:'totpSetupConfirm', token: currentUser.token, secret: pendingTotpSecret, code });
+    if(data.success){
+      msg.textContent = dict[currentLang].totpEnabledOk; msg.classList.add('ok');
+      setTimeout(loadTotpStatus, 700);
+    } else {
+      msg.textContent = dict[currentLang].totpInvalidErr; msg.classList.add('err');
+    }
+  } catch(ex){ msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+async function disableTotp(e){
+  e.preventDefault();
+  const parol = document.getElementById('totpDisablePassInput').value;
+  const msg = document.getElementById('totpDisableMsg'); msg.className = 'modal-msg';
+  try{
+    const data = await apiCall({ action:'totpDisable', token: currentUser.token, parol });
+    if(data.success){
+      document.getElementById('totpDisablePassInput').value = '';
+      msg.textContent = dict[currentLang].totpDisabledOk; msg.classList.add('ok');
+      setTimeout(loadTotpStatus, 700);
+    } else {
+      msg.textContent = dict[currentLang].oldWrongErr; msg.classList.add('err');
+    }
+  } catch(ex){ msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
+  return false;
+}
+
+/* ---------- Faol sessiyalar ---------- */
+async function loadMySessions(){
+  const box = document.getElementById('sessionsList');
+  box.innerHTML = `<p class="loading-row">${dict[currentLang].checking}</p>`;
+  try{
+    const data = await apiCall({ action:'getMySessions', token: currentUser.token });
+    if(!data.success || !data.sessions.length){ box.innerHTML = ''; return; }
+    box.innerHTML = data.sessions.map(s => `
+      <div class="notif-hist-item" style="cursor:default; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div>
+          <div class="h-meta"><span>${s.isCurrent ? dict[currentLang].currentSessionLabel : dict[currentLang].sessionLabel}</span></div>
+          <div class="h-text" style="font-size:12px;">${escapeHtml(s.createdAt)} — ${escapeHtml(s.expiresAt)}</div>
+        </div>
+        ${s.isCurrent ? '' : `<button type="button" class="icon-btn danger" title="${dict[currentLang].revokeBtn}" onclick="revokeSessionRow('${s.idHash}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`}
+      </div>
+    `).join('');
+  } catch(ex){
+    box.innerHTML = `<p class="loading-row">Xatolik: ${escapeHtml(ex.message)}</p>`;
+  }
+}
+async function revokeSessionRow(idHash){
+  try{
+    const data = await apiCall({ action:'revokeSession', token: currentUser.token, idHash });
+    if(data.success) loadMySessions();
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
+async function revokeOtherSessionsNow(){
+  const msg = document.getElementById('sessionsMsg'); msg.className = 'modal-msg';
+  try{
+    const data = await apiCall({ action:'revokeOtherSessions', token: currentUser.token });
+    if(data.success){
+      msg.textContent = dict[currentLang].sessionsRevokedOk; msg.classList.add('ok');
+      loadMySessions();
+    }
+  } catch(ex){ msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
 }
 
 /* ---------- Yordam / Support ---------- */
@@ -689,7 +1726,7 @@ async function submitSupport(e){
   if(!text) return false;
   btn.disabled = true;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'submitSupport', token: currentUser.token, murojaat: text });
+    const data = await apiCall({ action:'submitSupport', token: currentUser.token, murojaat: text });
     btn.disabled = false;
     if(data.success){
       msg.textContent = dict[currentLang].supportSentOk; msg.classList.add('ok');
@@ -823,7 +1860,7 @@ async function submitPhoto(e){
   const btn = document.getElementById('photoSubmitBtn');
   btn.disabled = true;
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'updateProfilePhoto', token: currentUser.token, rasm: pendingPhotoDataUrl });
+    const data = await apiCall({ action:'updateProfilePhoto', token: currentUser.token, rasm: pendingPhotoDataUrl });
     btn.disabled = false;
     if(data.success){
       msg.textContent = dict[currentLang].photoSavedOk; msg.classList.add('ok');
@@ -853,10 +1890,14 @@ async function changePassword(e){
   if(newP !== confP){ msg.textContent = dict[currentLang].mismatchErr; msg.classList.add('err'); return false; }
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'changePassword', token: currentUser.token, eskiParol: oldP, yangiParol: newP });
+    const data = await apiCall({ action:'changePassword', token: currentUser.token, eskiParol: oldP, yangiParol: newP });
     if(data.success){
       msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
       document.getElementById('oldPass').value = document.getElementById('newPass').value = document.getElementById('confirmPass').value = '';
+    } else if(data.code === 'WEAK_PASSWORD'){
+      msg.textContent = dict[currentLang].weakPasswordErr; msg.classList.add('err');
+    } else if(data.code === 'PWNED_PASSWORD'){
+      msg.textContent = dict[currentLang].pwnedPasswordErr; msg.classList.add('err');
     } else {
       msg.textContent = dict[currentLang].oldWrongErr; msg.classList.add('err');
     }
@@ -880,7 +1921,7 @@ async function checkStatus(){
   btn.textContent = dict[currentLang].checking;
 
   try{
-    const data = await apiCall({ secret: APP_SECRET, action:'checkStatus', token: currentUser.token, telefon: phone });
+    const data = await apiCall({ action:'checkStatus', token: currentUser.token, telefon: phone });
     btn.disabled = false; btn.textContent = prevText;
 
     if(data.success){
@@ -895,6 +1936,10 @@ async function checkStatus(){
       } else {
         testBadge.textContent = dict[currentLang].no; testBadge.className = 'badge no';
       }
+
+      const declBadge = document.getElementById('declBadge');
+      if(data.deklaratsiyaSana){ declBadge.textContent = data.deklaratsiyaSana; declBadge.className = 'badge ok'; }
+      else { declBadge.textContent = dict[currentLang].no; declBadge.className = 'badge no'; }
       result.classList.add('show');
     } else {
       errBox.textContent = data.code === 'NOT_YOUR_NUMBER' ? dict[currentLang].notYourNumber : dict[currentLang].statusErrText;
@@ -907,34 +1952,6 @@ async function checkStatus(){
   }
 }
 
-/* ---------- Network background (login sahifasidagi bilan bir xil) ---------- */
-const canvas = document.getElementById('net'); const ctx = canvas.getContext('2d');
-let W,H,nodes;
-function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
-window.addEventListener('resize', resize); resize();
-function initNodes(){
-  const count = Math.min(70, Math.floor((W*H)/22000));
-  nodes = Array.from({length:count}, ()=>({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*0.35, vy:(Math.random()-0.5)*0.35, r:Math.random()*1.6+0.6 }));
-}
-initNodes(); window.addEventListener('resize', initNodes);
-function isLight(){ return document.body.getAttribute('data-theme')==='light'; }
-function draw(){
-  ctx.clearRect(0,0,W,H);
-  const lineColor = isLight() ? 'rgba(11,37,69,' : 'rgba(0,217,192,';
-  const dotColor = isLight() ? 'rgba(0,163,224,0.55)' : 'rgba(0,217,192,0.75)';
-  for(let i=0;i<nodes.length;i++){
-    const n=nodes[i]; n.x+=n.vx; n.y+=n.vy;
-    if(n.x<0||n.x>W) n.vx*=-1; if(n.y<0||n.y>H) n.vy*=-1;
-    for(let j=i+1;j<nodes.length;j++){
-      const m=nodes[j]; const dx=n.x-m.x, dy=n.y-m.y; const dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<130){ ctx.strokeStyle=lineColor+(0.12*(1-dist/130))+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(n.x,n.y); ctx.lineTo(m.x,m.y); ctx.stroke(); }
-    }
-  }
-  for(const n of nodes){ ctx.fillStyle=dotColor; ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill(); }
-  requestAnimationFrame(draw);
-}
-draw();
-
 // XAVFSIZLIK: brauzer "Ortga" tugmasi orqali keshdagi (bfcache) sahifani qaytarganda
 // (masalan, Chiqish qilingandan keyin) sessiyani qayta tekshiradi — agar sessiya
 // endi mavjud bo'lmasa (chiqilgan bo'lsa), darhol login sahifasiga qaytaradi.
@@ -945,6 +1962,1338 @@ window.addEventListener('pageshow', function(event){
     if (!u || !u.token) { window.location.href = 'login.html'; }
   }
 });
+
+/* ================= Manfaatlar to'qnashuvi deklaratsiyasi (wizard) =================
+   Hozircha faqat 1-4-bosqichlar (Tanishish, Xodim ma'lumotlari, Atamalar,
+   Yaqin qarindoshlar) tayyor — qolgan bosqichlar (Savollar, Tasdiqlash,
+   Ko'rib chiqish, E-IMZO) keyingi bosqichda qo'shiladi. Qoralama hozircha
+   faqat mijoz brauzerida (localStorage) saqlanadi — barcha 8 bosqich
+   aniqlashgach, serverga (declarations jadvali) yozadigan qilinadi. */
+const DECL_T = {
+  uz: {
+    eyebrow: "Ehtimoliy manfaatlar to'qnashuvi to'g'risida",
+    title: "Deklaratsiya to'ldirish",
+    saveLaterBtn: "Saqlash (keyin davom ettirish)",
+    backBtn: "Ortga",
+    backHomeBtn: "Bosh sahifaga qaytish",
+    saveBtn: "Saqlash",
+    nextBtn: "Keyingisi",
+    prevBtn: "Oldingi",
+    prevQuestionBtn: "Oldingi savol",
+    prevStepBtn: "Oldingi bosqich",
+    stepLockedMsg: "Avval joriy bosqichni to'liq yakunlang.",
+    draftSavedMsg: "Qoralama saqlandi. Keyinroq shu yerdan davom ettirishingiz mumkin.",
+    submitErrorPrefix: "Xatolik: ",
+    submitFailedGeneric: "Deklaratsiyani yuborib bo'lmadi. Qaytadan urinib ko'ring.",
+
+    steps: ["Tanishish", "Xodim ma'lumotlari", "Atamalar", "Yaqin qarindoshlar", "Savollar", "Tasdiqlash", "Ko'rib chiqish", "E-IMZO"],
+
+    legalDocs: [
+      { t: "O'zbekiston Respublikasining 05.06.2024 yildagi «Manfaatlar to'qnashuvi to'g'risida»gi O'RQ-931-son Qonuni", d: "Deklaratsiyani to'ldirishning qonunchilik asosi" },
+      { t: "«O'zbektelekom» AKda manfaatlar to'qnashuvini boshqarish to'g'risidagi Nizom", d: "Kompaniya ichki tartib-qoidalari" },
+      { t: "O'zR Prezidentining 30.12.2025 yildagi PF-270-son Farmoni", d: "Korrupsiyaning oldini olish tizimini takomillashtirish to'g'risida" },
+      { t: "«O'zbektelekom» AKning 23.01.2026 yildagi 36-son Buyrug'i", d: "PF-270-son Farmon ijrosini ta'minlash to'g'risida" },
+    ],
+    step1Title: "Qonunchilik va Nizom talablari bilan tanishish",
+    step1Sub: "Deklaratsiyani to'ldirishdan avval quyidagi hujjatlar bilan tanishib chiqing va tanishganingizni tasdiqlang.",
+    openLink: "Ochish",
+    docComingSoonMsg: "Hujjat tez orada qo'shiladi",
+    check1Label: "Men yuqoridagi Qonun va «O'zbektelekom» AK Nizomi talablari bilan to'liq tanishdim va ularga rioya etish majburiyatini olaman.",
+
+    step2Title: "Xodim ma'lumotlari",
+    hrmBadge: "Ma'lumotlar tizimidan avtomatik to'ldirilgan",
+    fishLabel: "F.I.Sh. (to'liq)",
+    jshshirLabel: "JShShIR (ПИНФЛ)",
+    jshshirPh: "14 raqam",
+    bolinmaNomiLabel: "Tarkibiy bo'linma nomi",
+    lavozimLabel: "Lavozim",
+    sanaLabel: "To'ldirilgan sana",
+    bolinmaLabel: "Bo'linma",
+    step2Notice: "Ma'lumotlarda xatolik bo'lsa, Inson resurslarini boshqarish xizmatiga murojaat qiling — deklaratsiyada ular tahrirlanmaydi.",
+
+    terms: [
+      { t: "Yaqin qarindoshlar", d: "Ota-onalar, aka-ukalar, opa-singillar, o'g'illar, qizlar, er-xotinlar, shuningdek er-xotinlarning ota-onalari, aka-ukalari, opa-singillari va farzandlari." },
+      { t: "Aloqador shaxslar", d: "Xodimning yaqin qarindoshlari; xodim va (yoki) yaqin qarindoshlari ustav fondida ulush/aksiyaga ega bo'lgan yuridik shaxs; xodim yoxud yaqin qarindoshlari boshqaruv organi rahbari yoki a'zosi bo'lgan yuridik shaxs." },
+      { t: "Manfaatlar to'qnashuvi", d: "Xodimning shaxsiy (bevosita yoki bilvosita) manfaatdorligi lavozim majburiyatlarini lozim darajada bajarishiga ta'sir ko'rsatayotgan yoki ko'rsatishi mumkin bo'lgan, shaxsiy manfaatdorlik bilan fuqarolar, tashkilotlar, jamiyat yoki davlat huquqlari va qonuniy manfaatlari o'rtasida qarama-qarshilik yuzaga kelgan (mavjud) yoki kelishi mumkin bo'lgan (ehtimoliy) vaziyat." },
+      { t: "Xodimning shaxsiy manfaatdorligi", d: "Xodim yoxud u bilan aloqador shaxslar xodim tomonidan qaror qabul qilinishi yoki jarayonda boshqacha ishtirok etishi natijasida olishi mumkin bo'lgan har qanday naf yoki afzallik." },
+    ],
+    step3Title: "Asosiy atamalar",
+    step3Sub: "Deklaratsiyada qo'llaniladigan atamalar bilan tanishib chiqing — savollarga to'g'ri javob berish uchun muhim.",
+    check3Label: "Atamalar mazmuni bilan tanishdim.",
+
+    step4Title: "Yaqin qarindoshlar to'g'risida ma'lumot",
+    step4SubTpl: "Har bir yaqin qarindosh bo'yicha ma'lumot kiritish <b>majburiy</b>. Qarindosh vafot etgan, aloqa uzilgan yoki ma'lumotga ega bo'lmasangiz — tegishli variantni tanlaysiz. To'ldirilgan: {filled}/{total}",
+    notFilledStatus: "Ma'lumot kiritilmagan",
+    otaLabel: "Ota",
+    onaLabel: "Ona",
+    fillBtn: "To'ldirish",
+    editBtn: "Tahrirlash",
+    removeTitle: "O'chirish",
+    addRelativeBtn: "Yana qarindosh qo'shish (aka-uka, farzand va h.k.)",
+    relativeTypes: [
+      { key: 'aka-uka', label: "Aka-uka" },
+      { key: 'opa-singil', label: "Opa-singil" },
+      { key: 'ogil-qiz', label: "O'g'il-qiz" },
+      { key: 'turmush-ortogi', label: "Turmush o'rtog'i" },
+      { key: 'qaynota-ona', label: "Qaynota/qaynona" },
+      { key: 'qayn-akauka', label: "Qayn aka-uka" },
+      { key: 'qayn-opasingil', label: "Qayn opa-singil" },
+    ],
+    holatLabels: { info: "To'ldirildi", no_info: "Ma'lumotga ega emas", deceased: "Vafot etgan", no_contact: "Ajrashgan / aloqada emas" },
+    maLumotYoq: "ma'lumot yo'q",
+
+    modalTitleSuffix: " — ma'lumot kiritish",
+    holatFieldLabel: "Holat",
+    holatPlaceholder: "— Tanlang —",
+    holatInfo: "Ma'lumot kiritaman",
+    holatNoInfo: "Ma'lumotga ega emasman",
+    holatDeceased: "Vafot etgan",
+    holatNoContact: "Ajrashgan / aloqada emasman",
+    fishReqLabel: "F.I.Sh.",
+    jshshirShortLabel: "JShShIR",
+    addressLabel: "Yashash manzili",
+    workTypeLabel: "Ish joyi bo'yicha variant",
+    workTypeHead: "Rahbar yoki ta'sischi",
+    workTypeOther: "Boshqalar",
+    workplacePositionLabel: "Ish joyi va lavozimi",
+    workplacePositionPh: "Tashkilot nomi va lavozimi",
+    entrepreneurBoxTitle: "Yuridik shaxs (MChJ, XK, OK va h.k.) rahbari yoki ta'sischisi:",
+    legalEntityNameLabel: "Yuridik shaxs nomi",
+    stirLabel: "STIR (INN)",
+    stirPh: "9 raqam",
+    ownershipShareLabel: "Egalik ulushi (%)",
+    ownershipSharePh: "Masalan: 50%",
+    managementRoleLabel: "Boshqaruvdagi roli",
+    managementRolePh: "Direktor / ta'sischi",
+    cancelBtn: "Bekor qilish",
+    izohLabel: "Izohlar",
+    izohHintSuffix: " (tegishli tashkilotlar, lavozimlar, ulushlar...)",
+
+    alertHolatTanlang: "Holatni tanlang",
+    alertFishToldiring: "F.I.Sh. maydonini to'ldiring",
+    alertIshJoyiTanlang: "Ish joyi bo'yicha variantni tanlang",
+    alertIshJoyiKiriting: "Ish joyi va lavozimini kiriting",
+    alertYuridikShaxsKiriting: "Yuridik shaxs nomini kiriting",
+    alertStirKiriting: "STIR (INN) raqamini kiriting",
+    alertBoshqaruvRoliKiriting: "Boshqaruvdagi rolini kiriting",
+
+    questions: [
+      { type: 'yesno', q: "Siz boshqaruv organi (boshqaruv, Kuzatuv kengashi, direktorlar kengashi va hokazolar) xodimi, a'zosi, qandaydir tashkilot direktori (bosh buxgalteri, buxgalteri va hokazo) yoki vakilimisiz?", hint: "Tashkiliy-huquqiy shakli va kompensatsiya olishidan qat'i nazar, tijorat va notijorat tashkilotlaridagi barcha o'rningizni hisobga oling. «Ha» bo'lsa — izohda tashkilotlar nomi va lavozimingizni ko'rsating." },
+      { type: 'yesno', q: "Sizda / yaqin qarindoshlaringizda qandaydir tashkilotlarda moliyaviy manfaatdorlik bormi (ustav kapitalida ishtirok, aksiya va obligatsiyalarga egalik) yoki bunday tashkilotlar qarorlariga boshqa tarzda ta'sir ko'rsata olasizmi?", hint: "Ommaviy muomalada bo'lmagan aksiyalar/ulushlar yoki fond birjasida muomaladagi qimmatli qog'ozlarning 10% va undan ko'prog'iga egalik nazarda tutiladi. «Ha» bo'lsa — tashkilot nomi, manfaat turi va ulushni ko'rsating." },
+      { type: 'yesno', q: "Yaqin qarindoshlaringiz boshqaruv organlari (boshqaruv, kuzatuv kengashi, direktorlar kengashi va h.k.) xodimi, a'zosi, tashkilot direktori yoki vakilimi?", hint: "Tashkiliy-huquqiy shakli va kompensatsiya olishidan qat'i nazar hisobga oling. «Ha» bo'lsa — tashkilotlar nomi va qarindoshning lavozimini ko'rsating." },
+      { type: 'yesno', q: "Yaqin qarindoshlaringiz davlat organlarining mansabdor shaxsi hisoblanadimi?", hint: "«Ha» bo'lsa — qarindoshning F.I.Sh., lavozimi va tashkilot nomini ko'rsating." },
+      { type: 'yesno', q: "Shaxsiy manfaatlaringiz, yaqin qarindoshlaringiz yoki aloqador shaxslar manfaatlari yo'lida maxfiy hisoblangan, davlat organlari va tashkilotlarida ishlash davomida ma'lum bo'lgan axborotdan foydalanganmisiz?", hint: "Jumladan, qandaydir jismoniy shaxs yoki tashkilotga oshkor qilganmisiz? «Ha» bo'lsa — izohda batafsil yozing." },
+      { type: 'text', q: "Manfaatlar to'qnashuviga olib kelishi mumkin bo'lgan boshqa shart-sharoitlar mavjud bo'lsa, ularni ko'rsatib o'ting.", hint: "Masalan: boshqa tashkilotlarda o'rindoshlik, fuqarolik-huquqiy shartnoma yoki boshqa shartnomaviy asoslar bo'yicha bog'liqlik holatlari. Mavjud bo'lmasa, bo'sh qoldiring.", noteLabel: "Izohlar (mavjud bo'lsa)" },
+      { type: 'text', q: "Zarur topsangiz, har qanday qo'shimcha ma'lumotni ko'rsating.", hint: "Ixtiyoriy maydon.", noteLabel: "Izohlar (ixtiyoriy)" },
+    ],
+    step5Title: "Deklaratsiya savollari",
+    questionBadgeTpl: "Savol {n} / {total}",
+    izohRequiredError: "«Ha» javobida izoh kiritilishi shart",
+    haLabel: "Ha",
+    yoqLabel: "Yo'q",
+    answerRequiredAlert: "Savolga javob bering",
+
+    step6Title: "Yakuniy tasdiqlash",
+    step6Sub: "Deklaratsiyani imzolashdan oldin quyidagilarni tasdiqlang.",
+    conflictExistsTitle: "Menda manfaatlar to'qnashuviga olib keladigan holatlar MAVJUD",
+    conflictExistsSub: "Savollarda «Ha» deb belgilagan yoki jadvalda ko'rsatgan holatlaringiz bo'lsa, ushbu variantni tanlang.",
+    conflictNoneTitle: "Menda manfaatlar to'qnashuviga olib keladigan holatlar MAVJUD EMAS",
+    conflictNoneSub: "Hech qanday to'qnashuv holati bo'lmasa, ushbu variantni tanlang.",
+    ack1Label: "Ushbu deklaratsiyada aks ettirilgan ma'lumotlar <b>to'liqligi va haqqoniyligini tasdiqlayman</b> hamda ushbu ma'lumotlar tegishli huquq-tartibot organlari tomonidan tekshirilishiga rozilik bildiraman.",
+    ack2Label: "Nizom talablariga binoan, deklaratsiya haqqoniyligiga ta'sir qiladigan <b>yangi holatlar to'g'risida</b> Kompaniyaga darhol xabar berish majburiyatini zimmamga olaman.",
+    reviewBtn: "Ko'rib chiqish",
+
+    step7Title: "Ko'rib chiqish",
+    step7Sub: "Yuborishdan oldin barcha javoblaringizni tekshiring. Kerak bo'lsa, tegishli bo'limga qaytib tahrirlang.",
+    employeeSectionTitle: "Xodim ma'lumotlari",
+    viewLinkText: "Ko'rish",
+    fishJshshirLabel: "F.I.Sh. / JShShIR",
+    bolinmaLavozimLabel: "Bo'linma / lavozim",
+    relativesSectionTitleTpl: "Yaqin qarindoshlar ({n})",
+    editLinkText: "Tahrirlash",
+    tblDaraja: "Daraja",
+    tblFish: "F.I.Sh.",
+    tblIshJoyi: "Ish joyi",
+    tblJshshir: "JShShIR",
+    tblManzil: "Manzil",
+    questionsSectionTitle: "Savollar javoblari",
+    finalConfirmSectionTitle: "Yakuniy tasdiq",
+    notSelected: "Tanlanmagan",
+    conflictExistsBadge: "Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD",
+    conflictNoneBadge: "Manfaatlar to'qnashuviga olib keladigan holatlar — MAVJUD EMAS",
+    goToEsignBtn: "E-IMZO bosqichiga o'tish",
+
+    step8Title: "E-IMZO bilan imzolash",
+    step8SubHtml: "Deklaratsiya faqat elektron raqamli imzo qo'yilgandan so'ng yakunlangan hisoblanadi. Jarayon: To'ldirish &rarr; Ko'rib chiqish &rarr; Tasdiqlash &rarr; <b>E-IMZO</b> &rarr; Imzo tasdiqlanishi &rarr; Yakunlanishi.",
+    step8NoticeHtml: "Imzolash uchun E-IMZO kalitingiz (sertifikatingiz) tanlanadi. Imzolangandan so'ng har bir deklaratsiya uchun <b>unikal QR-kod va Verification ID</b> shakllantiriladi — ular orqali imzoni istalgan vaqtda tekshirish mumkin.",
+    signBtn: "E-IMZO bilan imzolash",
+
+    signModalTitle: "E-IMZO — kalitni tanlang",
+    signModalSub: "Kompyuteringizda topilgan elektron imzo sertifikatlari:",
+    certValidUntil: "Amal qilish: 31.12.2026 gacha",
+    certExpired: "Sertifikat muddati tugagan — 31.12.2024",
+    keyPasswordLabel: "Kalit paroli",
+    signActionBtn: "Imzolash",
+    signingInProgress: "Yuborilmoqda...",
+    signPasswordRequired: "Kalit parolini kiriting",
+    oldSuffix: " (eski)",
+
+    successTitle: "Deklaratsiya E-IMZO bilan muvaffaqiyatli imzolandi!",
+    successDeptTpl: "Hujjat {dept} bo'limiga yuborildi.",
+    tegishli: "tegishli",
+    verificationIdLabel: "Verification ID:",
+    viewDeclarationBtn: "Deklaratsiyani ko'rish",
+
+    recordEyebrowFallback: "DEK-2026",
+    recordTitle: "Deklaratsiya",
+    pdfPrintBtn: "PDF / Chop etish",
+    turiSababiLabel: "Turi / sababi",
+    yangiDeklaratsiya: "Yangi deklaratsiya",
+    statusLabel: "Status",
+    statusSent: "Yuborilgan",
+    relativesTitle: "Yaqin qarindoshlar",
+    questionsAnswersTitle: "Savollar va javoblar",
+    esignBlockTitle: "Elektron imzo (E-IMZO)",
+    signConfirmedBadge: "Imzo tasdiqlangan",
+    signerFishLabel: "Imzolovchi F.I.Sh.",
+    signerLavozimLabel: "Lavozimi",
+    signedAtLabel: "Imzolangan sana va vaqt",
+    certLabel: "E-IMZO sertifikati",
+    certValidUntilSuffix: "amal qilish: 31.12.2026 gacha",
+    signStatusLabel: "Imzo holati",
+    signValidText: "Haqiqiy, hujjat o'zgartirilmagan",
+    verificationIdRowLabel: "Verification ID",
+    qrCaption: "QR orqali imzoni tekshirish",
+    verifyBtn: "Tekshirish",
+    verifyStubMsg: "QR orqali imzoni tekshirish tizimi hali serverga ulanmagan — bu funksiya keyingi bosqichda qo'shiladi.",
+  },
+
+  ru: {
+    eyebrow: "О возможном конфликте интересов",
+    title: "Заполнение декларации",
+    saveLaterBtn: "Сохранить (продолжить позже)",
+    backBtn: "Назад",
+    backHomeBtn: "Вернуться на главную",
+    saveBtn: "Сохранить",
+    nextBtn: "Далее",
+    prevBtn: "Назад",
+    prevQuestionBtn: "Предыдущий вопрос",
+    prevStepBtn: "Предыдущий этап",
+    stepLockedMsg: "Сначала полностью завершите текущий этап.",
+    draftSavedMsg: "Черновик сохранён. Вы можете продолжить отсюда позже.",
+    submitErrorPrefix: "Ошибка: ",
+    submitFailedGeneric: "Не удалось отправить декларацию. Попробуйте ещё раз.",
+
+    steps: ["Ознакомление", "Данные работника", "Термины", "Близкие родственники", "Вопросы", "Подтверждение", "Проверка", "E-IMZO"],
+
+    legalDocs: [
+      { t: "Закон Республики Узбекистан от 05.06.2024 г. № ЗРУ-931 «О предотвращении конфликта интересов»", d: "Законодательная основа заполнения декларации" },
+      { t: "Положение АО «Uztelecom» об управлении конфликтом интересов", d: "Внутренние правила компании" },
+      { t: "Указ Президента Республики Узбекистан от 30.12.2025 г. № УП-270", d: "О совершенствовании системы противодействия коррупции" },
+      { t: "Приказ АО «Uztelecom» от 23.01.2026 г. № 36", d: "Об обеспечении исполнения Указа № УП-270" },
+    ],
+    step1Title: "Ознакомление с требованиями законодательства и Положения",
+    step1Sub: "Перед заполнением декларации ознакомьтесь со следующими документами и подтвердите ознакомление.",
+    openLink: "Открыть",
+    docComingSoonMsg: "Документ будет добавлен в ближайшее время",
+    check1Label: "Я полностью ознакомлен(а) с требованиями указанного выше Закона и Положения АО «Uztelecom» и принимаю на себя обязательство по их соблюдению.",
+
+    step2Title: "Данные работника",
+    hrmBadge: "Автоматически заполнено из системы данных",
+    fishLabel: "Ф.И.О. (полностью)",
+    jshshirLabel: "ПИНФЛ",
+    jshshirPh: "14 цифр",
+    bolinmaNomiLabel: "Наименование структурного подразделения",
+    lavozimLabel: "Должность",
+    sanaLabel: "Дата заполнения",
+    bolinmaLabel: "Подразделение",
+    step2Notice: "При наличии ошибок в данных обратитесь в Службу управления человеческими ресурсами — в декларации они не редактируются.",
+
+    terms: [
+      { t: "Близкие родственники", d: "Родители, братья и сёстры, сыновья, дочери, супруги, а также родители, братья, сёстры и дети супругов." },
+      { t: "Аффилированные лица", d: "Близкие родственники работника; юридическое лицо, в уставном фонде которого работник и (или) его близкие родственники имеют долю/акции; юридическое лицо, в органе управления которого работник либо его близкие родственники являются руководителем или членом." },
+      { t: "Конфликт интересов", d: "Ситуация, при которой личная (прямая или косвенная) заинтересованность работника влияет или может повлиять на надлежащее исполнение им должностных обязанностей, при которой возникает (имеется) или может возникнуть (вероятное) противоречие между личной заинтересованностью и правами и законными интересами граждан, организаций, общества или государства." },
+      { t: "Личная заинтересованность работника", d: "Любая выгода или преимущество, которые работник либо аффилированные с ним лица могут получить в результате принятия работником решения либо иного участия в процессе." },
+    ],
+    step3Title: "Основные термины",
+    step3Sub: "Ознакомьтесь с терминами, используемыми в декларации — это важно для правильных ответов на вопросы.",
+    check3Label: "Я ознакомлен(а) с содержанием терминов.",
+
+    step4Title: "Сведения о близких родственниках",
+    step4SubTpl: "Внесение сведений по каждому близкому родственнику <b>обязательно</b>. Если родственник умер, связь прервана или сведения отсутствуют — выберите соответствующий вариант. Заполнено: {filled}/{total}",
+    notFilledStatus: "Сведения не внесены",
+    otaLabel: "Отец",
+    onaLabel: "Мать",
+    fillBtn: "Заполнить",
+    editBtn: "Изменить",
+    removeTitle: "Удалить",
+    addRelativeBtn: "Добавить ещё родственника (братья, дети и т.д.)",
+    relativeTypes: [
+      { key: 'aka-uka', label: "Братья" },
+      { key: 'opa-singil', label: "Сёстры" },
+      { key: 'ogil-qiz', label: "Сын/дочь" },
+      { key: 'turmush-ortogi', label: "Супруг(а)" },
+      { key: 'qaynota-ona', label: "Тесть/тёща (свёкор/свекровь)" },
+      { key: 'qayn-akauka', label: "Братья супруга(и)" },
+      { key: 'qayn-opasingil', label: "Сёстры супруга(и)" },
+    ],
+    holatLabels: { info: "Заполнено", no_info: "Нет сведений", deceased: "Умер(ла)", no_contact: "В разводе / нет связи" },
+    maLumotYoq: "нет сведений",
+
+    modalTitleSuffix: " — внесение сведений",
+    holatFieldLabel: "Статус",
+    holatPlaceholder: "— Выберите —",
+    holatInfo: "Внесу сведения",
+    holatNoInfo: "Не располагаю сведениями",
+    holatDeceased: "Умер(ла)",
+    holatNoContact: "В разводе / нет связи",
+    fishReqLabel: "Ф.И.О.",
+    jshshirShortLabel: "ПИНФЛ",
+    addressLabel: "Адрес проживания",
+    workTypeLabel: "Вариант по месту работы",
+    workTypeHead: "Руководитель или учредитель",
+    workTypeOther: "Другое",
+    workplacePositionLabel: "Место работы и должность",
+    workplacePositionPh: "Наименование организации и должность",
+    entrepreneurBoxTitle: "Руководитель или учредитель юридического лица (ООО, АО, ЧП и т.п.):",
+    legalEntityNameLabel: "Наименование юридического лица",
+    stirLabel: "СТИР (ИНН)",
+    stirPh: "9 цифр",
+    ownershipShareLabel: "Доля владения (%)",
+    ownershipSharePh: "Например: 50%",
+    managementRoleLabel: "Роль в управлении",
+    managementRolePh: "Директор / учредитель",
+    cancelBtn: "Отмена",
+    izohLabel: "Комментарии",
+    izohHintSuffix: " (соответствующие организации, должности, доли...)",
+
+    alertHolatTanlang: "Выберите статус",
+    alertFishToldiring: "Заполните поле Ф.И.О.",
+    alertIshJoyiTanlang: "Выберите вариант по месту работы",
+    alertIshJoyiKiriting: "Укажите место работы и должность",
+    alertYuridikShaxsKiriting: "Укажите наименование юридического лица",
+    alertStirKiriting: "Укажите номер СТИР (ИНН)",
+    alertBoshqaruvRoliKiriting: "Укажите роль в управлении",
+
+    questions: [
+      { type: 'yesno', q: "Являетесь ли Вы работником, членом органа управления (правления, наблюдательного совета, совета директоров и т.п.), директором какой-либо организации (главным бухгалтером, бухгалтером и т.п.) либо её представителем?", hint: "Учитывайте все свои позиции в коммерческих и некоммерческих организациях, независимо от организационно-правовой формы и получения вознаграждения. При ответе «Да» — укажите в комментарии наименования организаций и занимаемую должность." },
+      { type: 'yesno', q: "Имеете ли Вы / Ваши близкие родственники финансовую заинтересованность в каких-либо организациях (участие в уставном капитале, владение акциями и облигациями) либо возможность иным образом влиять на решения таких организаций?", hint: "Имеется в виду владение не находящимися в открытом обращении акциями/долями либо 10% и более обращающихся на фондовой бирже ценных бумаг. При ответе «Да» — укажите наименование организации, вид заинтересованности и долю." },
+      { type: 'yesno', q: "Являются ли Ваши близкие родственники работниками, членами органов управления (правления, наблюдательного совета, совета директоров и т.п.), директорами организаций либо их представителями?", hint: "Учитывайте независимо от организационно-правовой формы и получения вознаграждения. При ответе «Да» — укажите наименования организаций и должность родственника." },
+      { type: 'yesno', q: "Являются ли Ваши близкие родственники должностными лицами государственных органов?", hint: "При ответе «Да» — укажите Ф.И.О., должность родственника и наименование организации." },
+      { type: 'yesno', q: "Использовали ли Вы в личных интересах, интересах близких родственников либо аффилированных лиц информацию, признанную конфиденциальной, ставшую известной Вам в ходе работы в государственных органах и организациях?", hint: "В том числе раскрывали ли Вы её какому-либо физическому лицу или организации? При ответе «Да» — подробно опишите в комментарии." },
+      { type: 'text', q: "Если имеются иные обстоятельства, которые могут привести к конфликту интересов, укажите их.", hint: "Например: совместительство в других организациях, гражданско-правовой договор или иные договорные основания связанности. Если отсутствуют — оставьте поле пустым.", noteLabel: "Комментарии (при наличии)" },
+      { type: 'text', q: "При необходимости укажите любую дополнительную информацию.", hint: "Необязательное поле.", noteLabel: "Комментарии (необязательно)" },
+    ],
+    step5Title: "Вопросы декларации",
+    questionBadgeTpl: "Вопрос {n} / {total}",
+    izohRequiredError: "При ответе «Да» комментарий обязателен",
+    haLabel: "Да",
+    yoqLabel: "Нет",
+    answerRequiredAlert: "Ответьте на вопрос",
+
+    step6Title: "Итоговое подтверждение",
+    step6Sub: "Перед подписанием декларации подтвердите следующее.",
+    conflictExistsTitle: "У меня ИМЕЮТСЯ обстоятельства, приводящие к конфликту интересов",
+    conflictExistsSub: "Выберите этот вариант, если Вы отметили «Да» в вопросах или указали соответствующие сведения в таблице.",
+    conflictNoneTitle: "У меня ОТСУТСТВУЮТ обстоятельства, приводящие к конфликту интересов",
+    conflictNoneSub: "Выберите этот вариант, если у Вас нет ситуаций конфликта интересов.",
+    ack1Label: "Подтверждаю <b>полноту и достоверность</b> сведений, отражённых в настоящей декларации, и выражаю согласие на их проверку соответствующими правоохранительными органами.",
+    ack2Label: "В соответствии с требованиями Положения принимаю на себя обязательство незамедлительно уведомлять Компанию о <b>новых обстоятельствах</b>, влияющих на достоверность декларации.",
+    reviewBtn: "Просмотреть",
+
+    step7Title: "Проверка",
+    step7Sub: "Перед отправкой проверьте все свои ответы. При необходимости вернитесь к нужному разделу для редактирования.",
+    employeeSectionTitle: "Данные работника",
+    viewLinkText: "Просмотреть",
+    fishJshshirLabel: "Ф.И.О. / ПИНФЛ",
+    bolinmaLavozimLabel: "Подразделение / должность",
+    relativesSectionTitleTpl: "Близкие родственники ({n})",
+    editLinkText: "Изменить",
+    tblDaraja: "Степень родства",
+    tblFish: "Ф.И.О.",
+    tblIshJoyi: "Место работы",
+    tblJshshir: "ПИНФЛ",
+    tblManzil: "Адрес",
+    questionsSectionTitle: "Ответы на вопросы",
+    finalConfirmSectionTitle: "Итоговое подтверждение",
+    notSelected: "Не выбрано",
+    conflictExistsBadge: "Обстоятельства, приводящие к конфликту интересов, — ИМЕЮТСЯ",
+    conflictNoneBadge: "Обстоятельства, приводящие к конфликту интересов, — ОТСУТСТВУЮТ",
+    goToEsignBtn: "Перейти к этапу E-IMZO",
+
+    step8Title: "Подписание через E-IMZO",
+    step8SubHtml: "Декларация считается завершённой только после проставления электронной цифровой подписи. Процесс: Заполнение &rarr; Проверка &rarr; Подтверждение &rarr; <b>E-IMZO</b> &rarr; Подтверждение подписи &rarr; Завершение.",
+    step8NoticeHtml: "Для подписания выбирается Ваш ключ (сертификат) E-IMZO. После подписания для каждой декларации формируется <b>уникальный QR-код и Verification ID</b> — с их помощью подпись можно проверить в любое время.",
+    signBtn: "Подписать через E-IMZO",
+
+    signModalTitle: "E-IMZO — выберите ключ",
+    signModalSub: "Сертификаты электронной подписи, найденные на Вашем компьютере:",
+    certValidUntil: "Действителен до: 31.12.2026",
+    certExpired: "Срок действия сертификата истёк — 31.12.2024",
+    keyPasswordLabel: "Пароль ключа",
+    signActionBtn: "Подписать",
+    signingInProgress: "Отправка...",
+    signPasswordRequired: "Введите пароль ключа",
+    oldSuffix: " (старый)",
+
+    successTitle: "Декларация успешно подписана через E-IMZO!",
+    successDeptTpl: "Документ отправлен в подразделение {dept}.",
+    tegishli: "соответствующее",
+    verificationIdLabel: "Verification ID:",
+    viewDeclarationBtn: "Просмотреть декларацию",
+
+    recordEyebrowFallback: "DEK-2026",
+    recordTitle: "Декларация",
+    pdfPrintBtn: "PDF / Печать",
+    turiSababiLabel: "Тип / причина",
+    yangiDeklaratsiya: "Новая декларация",
+    statusLabel: "Статус",
+    statusSent: "Отправлена",
+    relativesTitle: "Близкие родственники",
+    questionsAnswersTitle: "Вопросы и ответы",
+    esignBlockTitle: "Электронная подпись (E-IMZO)",
+    signConfirmedBadge: "Подпись подтверждена",
+    signerFishLabel: "Ф.И.О. подписавшего",
+    signerLavozimLabel: "Должность",
+    signedAtLabel: "Дата и время подписания",
+    certLabel: "Сертификат E-IMZO",
+    certValidUntilSuffix: "действителен до: 31.12.2026",
+    signStatusLabel: "Статус подписи",
+    signValidText: "Действительна, документ не изменён",
+    verificationIdRowLabel: "Verification ID",
+    qrCaption: "Проверить подпись через QR",
+    verifyBtn: "Проверить",
+    verifyStubMsg: "Система проверки подписи через QR ещё не подключена к серверу — эта функция будет добавлена на следующем этапе.",
+  },
+};
+
+function dt(key){
+  const lang = (typeof currentLang !== 'undefined' && DECL_T[currentLang]) ? currentLang : 'uz';
+  const v = DECL_T[lang][key];
+  return v !== undefined ? v : DECL_T.uz[key];
+}
+const DECL_MAX_REACHABLE = 7;
+
+let declCurrentStep = 0;
+let declFurthestStep = 0;
+let declTerms1Checked = false;
+let declTerms3Checked = false;
+let declRelSeq = 0;
+let declRelatives = [
+  { id:'ota', typeKey:null, suffixNum:null, fixed:true, filled:false },
+  { id:'ona', typeKey:null, suffixNum:null, fixed:true, filled:false },
+];
+
+/* Qator nomi ("Ota"/"Ona" yoki foydalanuvchi qo'shgan tur) doim JORIY til
+   asosida, chaqirilgan paytda hisoblanadi — natija saqlab qo'yilmaydi.
+   Shu bilan til almashtirilganda (declApplyLang -> qayta render) qator
+   nomi ham darhol yangi tilda ko'rinadi, avval qo'shilgan bo'lsa ham. */
+function declRelativeLabel(r){
+  if(r.id === 'ota') return dt('otaLabel');
+  if(r.id === 'ona') return dt('onaLabel');
+  const type = dt('relativeTypes').find(t => t.key === r.typeKey);
+  const base = type ? type.label : '';
+  return r.suffixNum ? `${base} ${r.suffixNum}` : base;
+}
+let declQuestionIndex = 0;
+let declQuestionError = false;
+let declAnswers = dt('questions').map(() => ({ choice:null, note:'' }));
+let declConfirm = { hasConflict:null, ack1:false, ack2:false };
+let declEmployeeJshshir = '';
+
+function declStorageKey(){
+  return 'km_decl_draft_' + (currentUser.login || 'anon');
+}
+
+function declLoadDraft(){
+  try{
+    const raw = localStorage.getItem(declStorageKey());
+    if(!raw) return;
+    const draft = JSON.parse(raw);
+    if(Array.isArray(draft.relatives) && draft.relatives.length){
+      declRelatives = draft.relatives;
+      declRelSeq = declRelatives.reduce((max, r) => {
+        const m = /^rel(\d+)$/.exec(r.id);
+        return m ? Math.max(max, parseInt(m[1], 10)) : max;
+      }, 0);
+    }
+    if(typeof draft.terms1 === 'boolean') declTerms1Checked = draft.terms1;
+    if(typeof draft.terms3 === 'boolean') declTerms3Checked = draft.terms3;
+    if(Array.isArray(draft.answers) && draft.answers.length === dt('questions').length) declAnswers = draft.answers;
+    if(draft.confirm && typeof draft.confirm === 'object') declConfirm = draft.confirm;
+    if(typeof draft.jshshir === 'string') declEmployeeJshshir = draft.jshshir;
+    if(typeof draft.furthestStep === 'number') declFurthestStep = draft.furthestStep;
+    if(typeof draft.currentStep === 'number') declCurrentStep = draft.currentStep;
+    if(typeof draft.questionIndex === 'number') declQuestionIndex = draft.questionIndex;
+  }catch(e){}
+}
+declLoadDraft();
+
+/* Har bir o'zgarishda jim (alert'siz) saqlaydi — shunda foydalanuvchi
+   "Saqlash" tugmasini bosmasdan boshqa sahifaga o'tib qaytsa ham,
+   to'ldirgan ma'lumotlari yo'qolmaydi. */
+function declPersist(){
+  try{
+    localStorage.setItem(declStorageKey(), JSON.stringify({
+      relatives: declRelatives, terms1: declTerms1Checked, terms3: declTerms3Checked,
+      answers: declAnswers, confirm: declConfirm, jshshir: declEmployeeJshshir,
+      furthestStep: declFurthestStep, currentStep: declCurrentStep, questionIndex: declQuestionIndex,
+    }));
+  }catch(e){}
+}
+
+function declSaveDraft(){
+  declPersist();
+  alert(dt('draftSavedMsg'));
+}
+
+const DECL_STEP_KEYS = ['intro', 'employee', 'terms', 'relatives', 'questions', 'confirm', 'review', 'esign'];
+declApplyLang();
+
+function declTodayFormatted(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+}
+
+function openDeclaration(){
+  document.getElementById('anticorHero').style.display = 'none';
+  document.getElementById('anticorStatusSection').style.display = 'none';
+  document.getElementById('declarationView').style.display = 'block';
+  declGoToStep(declCurrentStep || 0);
+  window.scrollTo(0, 0);
+  return false;
+}
+
+function closeDeclaration(){
+  document.getElementById('declarationView').style.display = 'none';
+  document.getElementById('anticorHero').style.display = 'block';
+  document.getElementById('anticorStatusSection').style.display = 'block';
+}
+
+/* Til almashtirilganda (setLang) deklaratsiya bo'limining statik (JS orqali
+   qayta chizilmaydigan) matnlari hamda, agar ochiq bo'lsa, joriy bosqich
+   yoki yozuv (record) qayta render qilinadi — shu bilan sayt tili
+   o'zgarganda deklaratsiya darhol yangi tilda ko'rinadi. */
+function declApplyLang(){
+  document.getElementById('declBackLabel').textContent = dt('backBtn');
+  document.getElementById('declEyebrow').textContent = dt('eyebrow');
+  document.getElementById('declMainTitle').textContent = dt('title');
+  document.getElementById('declSaveLaterBtn').textContent = dt('saveLaterBtn');
+  document.getElementById('declBackHomeLabel').textContent = dt('backHomeBtn');
+
+  const declView = document.getElementById('declarationView');
+  if(declView && declView.style.display !== 'none'){
+    declRenderStepper();
+    declRenderCard();
+  }
+  const recordView = document.getElementById('declRecordView');
+  if(recordView && recordView.style.display !== 'none'){
+    declRenderRecord();
+  }
+  declApplySignModalLang();
+  declApplySuccessModalLang();
+}
+
+/* Qadamlar ketma-ket bajarilishi shart — bosqichni faqat oldingi
+   bosqich(lar) muvaffaqiyatli yakunlangandan keyingina (validatsiyadan
+   o'tib "Keyingisi" bosilganda) "ochiq" deb belgilaymiz. declGoToStep
+   o'zi hech qachon declFurthestStep'dan oshib ketolmaydi — faqat
+   declAdvanceTo orqali, validatsiyadan keyin, chegara kengaytiriladi. */
+function declAdvanceTo(idx){
+  declFurthestStep = Math.max(declFurthestStep, idx);
+  declGoToStep(idx);
+}
+
+function declStepLocked(){
+  alert(dt('stepLockedMsg'));
+}
+
+function declGoToStep(idx){
+  if(idx < 0) idx = 0;
+  if(idx > DECL_MAX_REACHABLE || idx > declFurthestStep){
+    declStepLocked();
+    return;
+  }
+  if(idx === 4 && declCurrentStep !== 4){ declQuestionIndex = 0; declQuestionError = false; }
+  declCurrentStep = idx;
+  declRenderStepper();
+  declRenderCard();
+  declPersist();
+  const card = document.getElementById('declCard');
+  if(card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function declRenderStepper(){
+  const wrap = document.getElementById('declStepper');
+  const labels = dt('steps');
+  wrap.innerHTML = labels.map((label, i) => {
+    const state = i < declCurrentStep ? 'done' : (i === declCurrentStep ? 'active' : '');
+    const reachable = i <= declFurthestStep;
+    const circleContent = i < declCurrentStep ? '&check;' : (i + 1);
+    const clickAttr = reachable ? `declGoToStep(${i})` : `declStepLocked()`;
+    const line = i < labels.length - 1 ? `<div class="decl-step-line ${i < declCurrentStep ? 'done' : ''}"></div>` : '';
+    return `<div class="decl-step ${state} ${reachable ? 'reachable' : ''}" onclick="${clickAttr}">
+      <div class="decl-step-circle">${circleContent}</div>
+      <div class="decl-step-label">${escapeHtml(label)}</div>
+    </div>${line}`;
+  }).join('');
+}
+
+function declScrollStepper(dir){
+  document.getElementById('declStepper').scrollBy({ left: dir * 160, behavior:'smooth' });
+}
+
+function declNavHtml(showPrev, nextEnabled){
+  const prevBtn = showPrev ? `<button class="decl-btn outline" onclick="declGoToStep(${declCurrentStep - 1})">${escapeHtml(dt('prevBtn'))}</button>` : '<span></span>';
+  return `
+    <div class="decl-nav">
+      <div class="decl-nav-left">${prevBtn}</div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
+        <button class="decl-btn primary" ${nextEnabled ? '' : 'disabled'} onclick="declAdvanceTo(${declCurrentStep + 1})">${escapeHtml(dt('nextBtn'))}</button>
+      </div>
+    </div>
+  `;
+}
+
+function declRenderCard(){
+  const card = document.getElementById('declCard');
+  const key = DECL_STEP_KEYS[declCurrentStep];
+  if(key === 'intro') card.innerHTML = declStepIntroHtml();
+  else if(key === 'employee') card.innerHTML = declStepEmployeeHtml();
+  else if(key === 'terms') card.innerHTML = declStepTermsHtml();
+  else if(key === 'relatives') card.innerHTML = declStepRelativesHtml();
+  else if(key === 'questions') card.innerHTML = declStepQuestionsHtml();
+  else if(key === 'confirm') card.innerHTML = declStepConfirmHtml();
+  else if(key === 'review') card.innerHTML = declStepReviewHtml();
+  else if(key === 'esign') card.innerHTML = declStepEsignHtml();
+}
+
+function declStepIntroHtml(){
+  const docsHtml = dt('legalDocs').map(doc => `
+    <div class="decl-doc-row">
+      <div>
+        <div class="t">${escapeHtml(doc.t)}</div>
+        <div class="d">${escapeHtml(doc.d)}</div>
+      </div>
+      <a href="javascript:void(0)" onclick="declDocComingSoon()">${escapeHtml(dt('openLink'))}</a>
+    </div>`).join('');
+  return `
+    <h2>${escapeHtml(dt('step1Title'))}</h2>
+    <p class="decl-sub">${escapeHtml(dt('step1Sub'))}</p>
+    ${docsHtml}
+    <div class="decl-check-row">
+      <input type="checkbox" id="declCheck1" ${declTerms1Checked ? 'checked' : ''} onchange="declTerms1Checked = this.checked; declRenderCard(); declPersist();">
+      <label for="declCheck1">${escapeHtml(dt('check1Label'))}</label>
+    </div>
+    ${declNavHtml(false, declTerms1Checked)}
+  `;
+}
+
+function declDocComingSoon(){
+  alert(dt('docComingSoonMsg'));
+}
+
+function declStepEmployeeHtml(){
+  const fullName = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || '—';
+  const bolinma = currentUser.bolinma || '—';
+  const lavozim = currentUser.lavozim || '—';
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+      <h2 style="margin-bottom:0;">${escapeHtml(dt('step2Title'))}</h2>
+      <span class="decl-hrm-badge">${escapeHtml(dt('hrmBadge'))}</span>
+    </div>
+    <div class="decl-grid2">
+      <div class="field"><label>${escapeHtml(dt('fishLabel'))}</label><input type="text" value="${escapeHtml(fullName)}" readonly></div>
+      <div class="field"><label>${escapeHtml(dt('jshshirLabel'))}</label><input type="text" maxlength="14" placeholder="${escapeHtml(dt('jshshirPh'))}" value="${escapeHtml(declEmployeeJshshir)}" oninput="declEmployeeJshshir=this.value; declPersist();"></div>
+      <div class="field"><label>${escapeHtml(dt('bolinmaNomiLabel'))}</label><input type="text" value="${escapeHtml(bolinma)}" readonly></div>
+      <div class="field"><label>${escapeHtml(dt('lavozimLabel'))}</label><input type="text" value="${escapeHtml(lavozim)}" readonly></div>
+      <div class="field"><label>${escapeHtml(dt('sanaLabel'))}</label><input type="text" value="${declTodayFormatted()}" readonly></div>
+      <div class="field"><label>${escapeHtml(dt('bolinmaLabel'))}</label><input type="text" value="${escapeHtml(bolinma)}" readonly></div>
+    </div>
+    <div class="decl-notice">${escapeHtml(dt('step2Notice'))}</div>
+    ${declNavHtml(true, true)}
+  `;
+}
+
+function declStepTermsHtml(){
+  const termsHtml = dt('terms').map(term => `
+    <div class="decl-term-box">
+      <div class="t">${escapeHtml(term.t)}</div>
+      <div class="d">${escapeHtml(term.d)}</div>
+    </div>`).join('');
+  return `
+    <h2>${escapeHtml(dt('step3Title'))}</h2>
+    <p class="decl-sub">${escapeHtml(dt('step3Sub'))}</p>
+    ${termsHtml}
+    <div class="decl-check-row">
+      <input type="checkbox" id="declCheck3" ${declTerms3Checked ? 'checked' : ''} onchange="declTerms3Checked = this.checked; declRenderCard(); declPersist();">
+      <label for="declCheck3">${escapeHtml(dt('check3Label'))}</label>
+    </div>
+    ${declNavHtml(true, declTerms3Checked)}
+  `;
+}
+
+function declFilledCount(){
+  return declRelatives.filter(r => r.filled).length;
+}
+
+function declStepRelativesHtml(){
+  const holatLabels = dt('holatLabels');
+  const rowsHtml = declRelatives.map(r => `
+    <div class="decl-rel-row">
+      <div class="decl-rel-icon"></div>
+      <div class="decl-rel-info">
+        <div class="n">${escapeHtml(declRelativeLabel(r))}</div>
+        <div class="s ${r.filled ? 'filled' : ''}">${r.filled ? escapeHtml(holatLabels[r.data && r.data.holat] || holatLabels.info) : escapeHtml(dt('notFilledStatus'))}</div>
+      </div>
+      <button class="decl-rel-fill-btn ${r.filled ? 'filled' : ''}" onclick="declOpenFillModal('${r.id}')">${r.filled ? escapeHtml(dt('editBtn')) : escapeHtml(dt('fillBtn'))}</button>
+      ${r.fixed ? '' : `<button class="decl-rel-remove" title="${escapeHtml(dt('removeTitle'))}" onclick="declRemoveRelative('${r.id}')">&times;</button>`}
+    </div>`).join('');
+  const menuHtml = dt('relativeTypes').map(t => `<div class="decl-add-menu-item" onclick="declAddRelative('${t.key}')">${escapeHtml(t.label)}</div>`).join('');
+  const allFilled = declRelatives.length > 0 && declRelatives.every(r => r.filled);
+  const subHtml = dt('step4SubTpl').replace('{filled}', declFilledCount()).replace('{total}', declRelatives.length);
+  return `
+    <h2>${escapeHtml(dt('step4Title'))}</h2>
+    <p class="decl-sub decl-progress-note">${subHtml}</p>
+    ${rowsHtml}
+    <div class="decl-add-wrap">
+      <button class="decl-add-btn" onclick="declToggleAddMenu(event)">${escapeHtml(dt('addRelativeBtn'))}</button>
+      <div class="decl-add-menu" id="declAddMenu">${menuHtml}</div>
+    </div>
+    ${declNavHtml(true, allFilled)}
+  `;
+}
+
+function declToggleAddMenu(e){
+  if(e) e.stopPropagation();
+  document.getElementById('declAddMenu').classList.toggle('show');
+}
+
+document.addEventListener('click', function(e){
+  const menu = document.getElementById('declAddMenu');
+  if(!menu || !menu.classList.contains('show')) return;
+  if(!e.target.closest('.decl-add-wrap')) menu.classList.remove('show');
+});
+
+function declAddRelative(typeKey){
+  const type = dt('relativeTypes').find(t => t.key === typeKey);
+  if(!type) return;
+  declRelSeq++;
+  const sameTypeCount = declRelatives.filter(r => r.typeKey === typeKey).length;
+  const suffixNum = sameTypeCount > 0 ? sameTypeCount + 1 : null;
+  declRelatives.push({ id:'rel' + declRelSeq, typeKey, suffixNum, fixed:false, filled:false });
+  declRenderCard();
+  declPersist();
+}
+
+function declRemoveRelative(id){
+  declRelatives = declRelatives.filter(r => r.id !== id);
+  declRenderCard();
+  declPersist();
+}
+
+/* ---------- Qarindosh ma'lumotini kiritish modali ---------- */
+let declModalRelId = null;
+let declModalData = {};
+
+function declOpenFillModal(relId){
+  const r = declRelatives.find(x => x.id === relId);
+  if(!r) return;
+  declModalRelId = relId;
+  declModalData = r.data ? JSON.parse(JSON.stringify(r.data)) : { holat:'' };
+  document.getElementById('declModalTitle').textContent = declRelativeLabel(r) + dt('modalTitleSuffix');
+  declRenderModalBody();
+  openModal('declFillModal');
+}
+
+function declModalSetField(key, value){
+  declModalData[key] = value;
+  declRenderModalBody();
+}
+
+function declRenderModalBody(){
+  document.getElementById('declModalBody').innerHTML = declModalFieldsHtml();
+}
+
+function declModalFieldsHtml(){
+  const d = declModalData;
+  let html = `
+    <div class="field">
+      <label>${escapeHtml(dt('holatFieldLabel'))} <span class="req">*</span></label>
+      <select class="decl-modal-select" onchange="declModalSetField('holat', this.value)">
+        <option value="" ${!d.holat ? 'selected' : ''}>${escapeHtml(dt('holatPlaceholder'))}</option>
+        <option value="info" ${d.holat === 'info' ? 'selected' : ''}>${escapeHtml(dt('holatInfo'))}</option>
+        <option value="no_info" ${d.holat === 'no_info' ? 'selected' : ''}>${escapeHtml(dt('holatNoInfo'))}</option>
+        <option value="deceased" ${d.holat === 'deceased' ? 'selected' : ''}>${escapeHtml(dt('holatDeceased'))}</option>
+        <option value="no_contact" ${d.holat === 'no_contact' ? 'selected' : ''}>${escapeHtml(dt('holatNoContact'))}</option>
+      </select>
+    </div>`;
+
+  if(d.holat === 'info'){
+    html += `
+      <div class="decl-grid2">
+        <div class="field"><label>${escapeHtml(dt('fishReqLabel'))} <span class="req">*</span></label><input type="text" value="${escapeHtml(d.fullName || '')}" oninput="declModalData.fullName=this.value; declPersist();"></div>
+        <div class="field"><label>${escapeHtml(dt('jshshirShortLabel'))}</label><input type="text" maxlength="14" placeholder="${escapeHtml(dt('jshshirPh'))}" value="${escapeHtml(d.jshshir || '')}" oninput="declModalData.jshshir=this.value; declPersist();"></div>
+      </div>
+      <div class="field"><label>${escapeHtml(dt('addressLabel'))}</label><input type="text" value="${escapeHtml(d.address || '')}" oninput="declModalData.address=this.value; declPersist();"></div>
+      <div class="field">
+        <label>${escapeHtml(dt('workTypeLabel'))} <span class="req">*</span></label>
+        <div class="decl-radio-row">
+          <div class="decl-radio-opt ${d.workType === 'entrepreneur' ? 'selected' : ''}" onclick="declModalSetField('workType','entrepreneur')"><span class="decl-radio-dot"></span>${escapeHtml(dt('workTypeHead'))}</div>
+          <div class="decl-radio-opt ${d.workType === 'other' ? 'selected' : ''}" onclick="declModalSetField('workType','other')"><span class="decl-radio-dot"></span>${escapeHtml(dt('workTypeOther'))}</div>
+        </div>
+      </div>`;
+
+    if(d.workType === 'other'){
+      html += `<div class="field"><label>${escapeHtml(dt('workplacePositionLabel'))} <span class="req">*</span></label><input type="text" placeholder="${escapeHtml(dt('workplacePositionPh'))}" value="${escapeHtml(d.workplacePosition || '')}" oninput="declModalData.workplacePosition=this.value; declPersist();"></div>`;
+    }
+
+    if(d.workType === 'entrepreneur'){
+      html += `
+        <div class="decl-subbox">
+          <div class="subbox-title">${escapeHtml(dt('entrepreneurBoxTitle'))}</div>
+          <div class="decl-grid2">
+            <div class="field"><label>${escapeHtml(dt('legalEntityNameLabel'))} <span class="req">*</span></label><input type="text" value="${escapeHtml(d.legalEntityName || '')}" oninput="declModalData.legalEntityName=this.value; declPersist();"></div>
+            <div class="field"><label>${escapeHtml(dt('stirLabel'))} <span class="req">*</span></label><input type="text" maxlength="9" placeholder="${escapeHtml(dt('stirPh'))}" value="${escapeHtml(d.stir || '')}" oninput="declModalData.stir=this.value; declPersist();"></div>
+          </div>
+          <div class="decl-grid2">
+            <div class="field"><label>${escapeHtml(dt('ownershipShareLabel'))}</label><input type="text" placeholder="${escapeHtml(dt('ownershipSharePh'))}" value="${escapeHtml(d.ownershipShare || '')}" oninput="declModalData.ownershipShare=this.value; declPersist();"></div>
+            <div class="field"><label>${escapeHtml(dt('managementRoleLabel'))} <span class="req">*</span></label><input type="text" placeholder="${escapeHtml(dt('managementRolePh'))}" value="${escapeHtml(d.managementRole || '')}" oninput="declModalData.managementRole=this.value; declPersist();"></div>
+          </div>
+        </div>`;
+    }
+  }
+
+  html += `
+    <div class="decl-modal-footer">
+      <button class="decl-btn outline" onclick="closeModal('declFillModal')">${escapeHtml(dt('cancelBtn'))}</button>
+      <button class="decl-btn primary" onclick="declSaveModal()">${escapeHtml(dt('saveBtn'))}</button>
+    </div>`;
+  return html;
+}
+
+function declSaveModal(){
+  const d = declModalData;
+  if(!d.holat){ alert(dt('alertHolatTanlang')); return; }
+  if(d.holat === 'info'){
+    if(!d.fullName || !d.fullName.trim()){ alert(dt('alertFishToldiring')); return; }
+    if(!d.workType){ alert(dt('alertIshJoyiTanlang')); return; }
+    if(d.workType === 'other' && (!d.workplacePosition || !d.workplacePosition.trim())){ alert(dt('alertIshJoyiKiriting')); return; }
+    if(d.workType === 'entrepreneur'){
+      if(!d.legalEntityName || !d.legalEntityName.trim()){ alert(dt('alertYuridikShaxsKiriting')); return; }
+      if(!d.stir || !d.stir.trim()){ alert(dt('alertStirKiriting')); return; }
+      if(!d.managementRole || !d.managementRole.trim()){ alert(dt('alertBoshqaruvRoliKiriting')); return; }
+    }
+  }
+  const r = declRelatives.find(x => x.id === declModalRelId);
+  if(r){
+    r.data = d;
+    r.filled = true;
+  }
+  closeModal('declFillModal');
+  declRenderCard();
+  declPersist();
+}
+
+/* ---------- 5-bosqich: Savollar ---------- */
+function declStepQuestionsHtml(){
+  const idx = declQuestionIndex;
+  const questions = dt('questions');
+  const meta = questions[idx];
+  const a = declAnswers[idx];
+  let body;
+
+  if(meta.type === 'yesno'){
+    const showIzoh = a.choice === 'ha';
+    body = `
+      <div class="decl-radio-row" style="max-width:260px;">
+        <div class="decl-radio-opt ${a.choice === 'ha' ? 'selected' : ''}" onclick="declSetAnswerChoice(${idx}, 'ha')"><span class="decl-radio-dot"></span>${escapeHtml(dt('haLabel'))}</div>
+        <div class="decl-radio-opt ${a.choice === 'yoq' ? 'selected' : ''}" onclick="declSetAnswerChoice(${idx}, 'yoq')"><span class="decl-radio-dot"></span>${escapeHtml(dt('yoqLabel'))}</div>
+      </div>
+      ${showIzoh ? `
+      <div class="decl-subbox" style="margin-top:16px;">
+        <label style="display:block; font-weight:700; font-size:12.5px; margin-bottom:8px;">${escapeHtml(dt('izohLabel'))} <span class="req">*</span>${escapeHtml(dt('izohHintSuffix'))}</label>
+        <textarea class="decl-textarea ${declQuestionError ? 'error' : ''}" rows="4" oninput="declAnswers[${idx}].note=this.value; declQuestionError=false; declPersist();">${escapeHtml(a.note || '')}</textarea>
+        ${declQuestionError ? `<div class="decl-field-error">${escapeHtml(dt('izohRequiredError'))}</div>` : ''}
+      </div>` : ''}`;
+  } else {
+    body = `
+      <div class="field">
+        <label>${escapeHtml(meta.noteLabel)}</label>
+        <textarea class="decl-textarea" rows="4" oninput="declAnswers[${idx}].note=this.value; declPersist();">${escapeHtml(a.note || '')}</textarea>
+      </div>`;
+  }
+
+  const prevLabel = idx > 0 ? dt('prevQuestionBtn') : dt('prevStepBtn');
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="margin-bottom:0;">${escapeHtml(dt('step5Title'))}</h2>
+      <span class="decl-hrm-badge">${escapeHtml(dt('questionBadgeTpl').replace('{n}', idx + 1).replace('{total}', questions.length))}</span>
+    </div>
+    <div style="display:flex; gap:12px; align-items:flex-start; margin-top:20px; margin-bottom:20px;">
+      <div class="decl-q-num">${idx + 1}</div>
+      <div>
+        <div style="font-weight:700; font-size:14.5px; line-height:1.5;">${escapeHtml(meta.q)}</div>
+        <div style="font-style:italic; color:var(--text-dim); font-size:12.5px; margin-top:6px; line-height:1.5;">${escapeHtml(meta.hint)}</div>
+      </div>
+    </div>
+    ${body}
+    <div class="decl-nav">
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declQuestionPrev()">${escapeHtml(prevLabel)}</button></div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
+        <button class="decl-btn primary" onclick="declQuestionNext()">${escapeHtml(dt('nextBtn'))}</button>
+      </div>
+    </div>
+  `;
+}
+
+function declSetAnswerChoice(qIdx, choice){
+  declAnswers[qIdx].choice = choice;
+  declQuestionError = false;
+  declRenderCard();
+  declPersist();
+}
+
+function declQuestionPrev(){
+  if(declQuestionIndex > 0){
+    declQuestionIndex--;
+    declQuestionError = false;
+    declRenderCard();
+  } else {
+    declGoToStep(3);
+  }
+}
+
+function declQuestionNext(){
+  const idx = declQuestionIndex;
+  const questions = dt('questions');
+  const meta = questions[idx];
+  const a = declAnswers[idx];
+  if(meta.type === 'yesno'){
+    if(!a.choice){ alert(dt('answerRequiredAlert')); return; }
+    if(a.choice === 'ha' && (!a.note || !a.note.trim())){ declQuestionError = true; declRenderCard(); return; }
+  }
+  if(idx < questions.length - 1){
+    declQuestionIndex++;
+    declQuestionError = false;
+    declRenderCard();
+    declPersist();
+  } else {
+    declAdvanceTo(5);
+  }
+}
+
+/* ---------- 6-bosqich: Tasdiqlash ---------- */
+function declStepConfirmHtml(){
+  const c = declConfirm;
+  return `
+    <h2>${escapeHtml(dt('step6Title'))}</h2>
+    <p class="decl-sub">${escapeHtml(dt('step6Sub'))}</p>
+    <div class="decl-radio-opt-wide ${c.hasConflict === true ? 'selected' : ''}" style="margin-bottom:10px;" onclick="declSetConflict(true)">
+      <span class="decl-radio-dot"></span>
+      <div>
+        <div style="font-weight:700; font-size:13.5px;">${escapeHtml(dt('conflictExistsTitle'))}</div>
+        <div style="font-weight:400; color:var(--text-dim); font-size:12px; margin-top:3px;">${escapeHtml(dt('conflictExistsSub'))}</div>
+      </div>
+    </div>
+    <div class="decl-radio-opt-wide ${c.hasConflict === false ? 'selected' : ''}" onclick="declSetConflict(false)">
+      <span class="decl-radio-dot"></span>
+      <div>
+        <div style="font-weight:700; font-size:13.5px;">${escapeHtml(dt('conflictNoneTitle'))}</div>
+        <div style="font-weight:400; color:var(--text-dim); font-size:12px; margin-top:3px;">${escapeHtml(dt('conflictNoneSub'))}</div>
+      </div>
+    </div>
+    <div class="decl-check-row">
+      <input type="checkbox" id="declAck1" ${c.ack1 ? 'checked' : ''} onchange="declConfirm.ack1=this.checked; declRenderCard(); declPersist();">
+      <label for="declAck1">${dt('ack1Label')}</label>
+    </div>
+    <div class="decl-check-row">
+      <input type="checkbox" id="declAck2" ${c.ack2 ? 'checked' : ''} onchange="declConfirm.ack2=this.checked; declRenderCard(); declPersist();">
+      <label for="declAck2">${dt('ack2Label')}</label>
+    </div>
+    <div class="decl-nav">
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(4)">${escapeHtml(dt('prevBtn'))}</button></div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
+        <button class="decl-btn primary" ${(c.hasConflict !== null && c.ack1 && c.ack2) ? '' : 'disabled'} onclick="declAdvanceTo(6)">${escapeHtml(dt('reviewBtn'))}</button>
+      </div>
+    </div>
+  `;
+}
+
+function declSetConflict(val){
+  declConfirm.hasConflict = val;
+  declRenderCard();
+  declPersist();
+}
+
+/* ---------- 7-bosqich: Ko'rib chiqish ---------- */
+function declWorkplaceText(d){
+  if(!d || d.holat !== 'info') return '—';
+  if(d.workType === 'other') return d.workplacePosition || '—';
+  if(d.workType === 'entrepreneur') return d.legalEntityName || '—';
+  return '—';
+}
+
+function declStepReviewHtml(){
+  const fullName = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || '—';
+  const bolinma = currentUser.bolinma || '—';
+  const lavozim = currentUser.lavozim || '—';
+  const holatLabels = dt('holatLabels');
+
+  const relRows = declRelatives.map(r => {
+    const d = r.data;
+    const nameCell = (d && d.holat === 'info' && d.fullName)
+      ? escapeHtml(d.fullName)
+      : `— <span class="decl-pill gray">${escapeHtml((d && holatLabels[d.holat]) || dt('maLumotYoq'))}</span>`;
+    return `<tr><td><b>${escapeHtml(declRelativeLabel(r))}</b></td><td>${nameCell}</td><td>${escapeHtml(declWorkplaceText(d))}</td></tr>`;
+  }).join('');
+
+  const qRows = dt('questions').map((meta, i) => {
+    const a = declAnswers[i];
+    const short = meta.q.length > 78 ? meta.q.slice(0, 78) + '…' : meta.q;
+    let badge = '<span class="decl-dash">—</span>';
+    if(meta.type === 'yesno' && a.choice){
+      badge = `<span class="decl-pill ${a.choice === 'ha' ? 'coral' : 'teal'}">${a.choice === 'ha' ? escapeHtml(dt('haLabel')).toUpperCase() : escapeHtml(dt('yoqLabel')).toUpperCase()}</span>`;
+    }
+    return `<tr><td>${i + 1}. ${escapeHtml(short)}</td><td style="text-align:right;">${badge}</td></tr>`;
+  }).join('');
+
+  const conflictBadge = declConfirm.hasConflict === true
+    ? `<span class="decl-pill coral">${escapeHtml(dt('conflictExistsBadge'))}</span>`
+    : declConfirm.hasConflict === false
+      ? `<span class="decl-pill teal">${escapeHtml(dt('conflictNoneBadge'))}</span>`
+      : `<span class="decl-pill gray">${escapeHtml(dt('notSelected'))}</span>`;
+
+  return `
+    <h2>${escapeHtml(dt('step7Title'))}</h2>
+    <p class="decl-sub">${escapeHtml(dt('step7Sub'))}</p>
+
+    <div class="decl-review-section">
+      <div class="decl-review-head"><b>${escapeHtml(dt('employeeSectionTitle'))}</b><a href="javascript:void(0)" onclick="declGoToStep(1)">${escapeHtml(dt('viewLinkText'))}</a></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('fishJshshirLabel'))}</span><b>${escapeHtml(fullName)} · ${escapeHtml(declEmployeeJshshir || '—')}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('bolinmaLavozimLabel'))}</span><b>${escapeHtml(bolinma)} · ${escapeHtml(lavozim)}</b></div>
+    </div>
+
+    <div class="decl-review-section">
+      <div class="decl-review-head"><b>${escapeHtml(dt('relativesSectionTitleTpl').replace('{n}', declRelatives.length))}</b><a href="javascript:void(0)" onclick="declGoToStep(3)">${escapeHtml(dt('editLinkText'))}</a></div>
+      <div style="overflow-x:auto;">
+        <table class="decl-review-table">
+          <thead><tr><th>${escapeHtml(dt('tblDaraja'))}</th><th>${escapeHtml(dt('tblFish'))}</th><th>${escapeHtml(dt('tblIshJoyi'))}</th></tr></thead>
+          <tbody>${relRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="decl-review-section">
+      <div class="decl-review-head"><b>${escapeHtml(dt('questionsSectionTitle'))}</b><a href="javascript:void(0)" onclick="declGoToStep(4)">${escapeHtml(dt('editLinkText'))}</a></div>
+      <table class="decl-review-table"><tbody>${qRows}</tbody></table>
+    </div>
+
+    <div class="decl-review-section">
+      <div class="decl-review-head"><b>${escapeHtml(dt('finalConfirmSectionTitle'))}</b><a href="javascript:void(0)" onclick="declGoToStep(5)">${escapeHtml(dt('editLinkText'))}</a></div>
+      ${conflictBadge}
+    </div>
+
+    <div class="decl-nav">
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(5)">${escapeHtml(dt('prevBtn'))}</button></div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
+        <button class="decl-btn primary" onclick="declAdvanceTo(7)">${escapeHtml(dt('goToEsignBtn'))}</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- 8-bosqich: E-IMZO ---------- */
+function declStepEsignHtml(){
+  return `
+    <h2>${escapeHtml(dt('step8Title'))}</h2>
+    <p class="decl-sub">${dt('step8SubHtml')}</p>
+    <div class="decl-notice">${dt('step8NoticeHtml')}</div>
+    <div style="text-align:center; padding:30px 0;">
+      <button class="decl-btn primary" style="padding:14px 32px; font-size:14px;" onclick="declOpenSignModal()">${escapeHtml(dt('signBtn'))}</button>
+    </div>
+    <div class="decl-nav">
+      <div class="decl-nav-left"><button class="decl-btn outline" onclick="declGoToStep(6)">${escapeHtml(dt('prevBtn'))}</button></div>
+      <div class="decl-nav-right">
+        <button class="decl-btn outline" onclick="declSaveDraft()">${escapeHtml(dt('saveBtn'))}</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- E-IMZO bilan imzolash (NAMUNA) ----------
+   DIQQAT: bu haqiqiy elektron raqamli imzo emas — E-IMZO tizimi hali
+   serverga ulanmagan. Sertifikat ro'yxati, parol tekshiruvi, Verification
+   ID va QR-kod barchasi faqat dizayn/UX namunasi (frontend'da to'qilgan),
+   haqiqiy kriptografik operatsiya bajarilmaydi va hech qanday tashqi
+   E-IMZO xizmatiga so'rov yuborilmaydi. */
+let declSignature = null;
+
+function declOpenSignModal(){
+  const fullName = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || currentUser.login;
+  document.getElementById('declCertName').textContent = fullName;
+  document.getElementById('declCertNameOld').textContent = fullName + dt('oldSuffix');
+  document.getElementById('declSignPassword').value = '';
+  declApplySignModalLang();
+  openModal('declSignModal');
+}
+
+function declApplySignModalLang(){
+  document.getElementById('declSignModalTitle').textContent = dt('signModalTitle');
+  document.getElementById('declSignModalSub').textContent = dt('signModalSub');
+  document.getElementById('declCertValidUntil').textContent = dt('certValidUntil');
+  document.getElementById('declCertExpired').textContent = dt('certExpired');
+  document.getElementById('declKeyPasswordLabel').textContent = dt('keyPasswordLabel');
+  document.getElementById('declSignCancelBtn').textContent = dt('cancelBtn');
+  document.getElementById('declSignActionBtn').textContent = dt('signActionBtn');
+}
+
+/* declRelatives'da qator nomi endi statik matn emas (typeKey/suffixNum
+   orqali har render'da hisoblanadi — declRelativeLabel), shuning uchun
+   serverga yuboriladigan (doimiy saqlanadigan) nusxaga joriy tildagi
+   tayyor "label" matnini alohida qo'shib qo'yamiz — aks holda admin
+   panelida qarindosh turi bo'sh ko'rinib qolardi. */
+function declBuildPayload(){
+  return {
+    relatives: declRelatives.map(r => ({ ...r, label: declRelativeLabel(r) })),
+    answers: declAnswers,
+    confirm: declConfirm,
+    employeeJshshir: declEmployeeJshshir,
+  };
+}
+
+async function declConfirmSign(){
+  const pwd = document.getElementById('declSignPassword').value;
+  if(!pwd){ alert(dt('signPasswordRequired')); return; }
+  const rand = () => Math.random().toString(36).slice(2, 10).toUpperCase();
+  const now = new Date();
+  const signature = {
+    verificationId: 'UT-EIMZO-' + rand(),
+    refId: 'DEK-' + now.getFullYear() + '-' + rand().slice(0, 6),
+    signedAt: now,
+    certName: "DS E-1042-2026 · «O'zbektelekom» AK UC",
+  };
+
+  const signBtn = document.getElementById('declSignActionBtn');
+  if(signBtn){ signBtn.disabled = true; signBtn.textContent = dt('signingInProgress'); }
+
+  let data;
+  try{
+    data = await apiCall({
+      action: 'submitDeclaration', token: currentUser.token,
+      refId: signature.refId, verificationId: signature.verificationId,
+      hasConflict: declConfirm.hasConflict === true,
+      payload: JSON.stringify(declBuildPayload()),
+    });
+  }catch(ex){
+    data = { success:false, message: ex.message };
+  }
+
+  if(signBtn){ signBtn.disabled = false; signBtn.textContent = dt('signActionBtn'); }
+
+  if(!data.success){
+    alert(dt('submitErrorPrefix') + (data.message || dt('submitFailedGeneric')));
+    return;
+  }
+
+  declSignature = signature;
+  closeModal('declSignModal');
+  document.getElementById('declSignPassword').value = '';
+  document.getElementById('declVerificationIdBadge').textContent = declSignature.verificationId;
+  document.getElementById('declSuccessDept').textContent = dt('successDeptTpl').replace('{dept}', currentUser.bolinma || dt('tegishli'));
+  declApplySuccessModalLang();
+  openModal('declSignSuccessModal');
+}
+
+function declApplySuccessModalLang(){
+  document.getElementById('declSuccessTitle').textContent = dt('successTitle');
+  document.getElementById('declVerificationIdLabel').textContent = dt('verificationIdLabel');
+  document.getElementById('declViewDeclarationBtn').textContent = dt('viewDeclarationBtn');
+}
+
+function declShowRecord(){
+  closeModal('declSignSuccessModal');
+  document.getElementById('declarationView').style.display = 'none';
+  document.getElementById('declRecordView').style.display = 'block';
+  declRenderRecord();
+  window.scrollTo(0, 0);
+}
+
+function declBackToHomeFromRecord(){
+  document.getElementById('declRecordView').style.display = 'none';
+  document.getElementById('anticorHero').style.display = 'block';
+  document.getElementById('anticorStatusSection').style.display = 'block';
+  sidebarShowSection('home');
+}
+
+function declVerifyStub(){
+  alert(dt('verifyStubMsg'));
+}
+
+function declPrintRecord(){
+  window.print();
+}
+
+function declFormatDateTime(d){
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const DECL_QR_PLACEHOLDER_SVG = `<svg viewBox="0 0 100 100" width="100" height="100">
+  <rect width="100" height="100" fill="none"/>
+  <rect x="6" y="6" width="22" height="22" fill="none" stroke="var(--azure)" stroke-width="6"/>
+  <rect x="13" y="13" width="8" height="8" fill="var(--azure)"/>
+  <rect x="72" y="6" width="22" height="22" fill="none" stroke="var(--azure)" stroke-width="6"/>
+  <rect x="79" y="13" width="8" height="8" fill="var(--azure)"/>
+  <rect x="6" y="72" width="22" height="22" fill="none" stroke="var(--azure)" stroke-width="6"/>
+  <rect x="13" y="79" width="8" height="8" fill="var(--azure)"/>
+  <rect x="40" y="10" width="7" height="7" fill="var(--azure)"/>
+  <rect x="52" y="18" width="7" height="7" fill="var(--azure)"/>
+  <rect x="40" y="28" width="7" height="7" fill="var(--azure)"/>
+  <rect x="60" y="40" width="7" height="7" fill="var(--azure)"/>
+  <rect x="44" y="48" width="7" height="7" fill="var(--azure)"/>
+  <rect x="72" y="48" width="7" height="7" fill="var(--azure)"/>
+  <rect x="10" y="44" width="7" height="7" fill="var(--azure)"/>
+  <rect x="80" y="64" width="7" height="7" fill="var(--azure)"/>
+  <rect x="40" y="72" width="7" height="7" fill="var(--azure)"/>
+  <rect x="56" y="80" width="7" height="7" fill="var(--azure)"/>
+  <rect x="72" y="80" width="7" height="7" fill="var(--azure)"/>
+</svg>`;
+
+function declRenderRecord(){
+  const fullName = [currentUser.familiya, currentUser.ism, currentUser.otasi].filter(Boolean).join(' ') || '—';
+  const bolinma = currentUser.bolinma || '—';
+  const lavozim = currentUser.lavozim || '—';
+  const sig = declSignature || {};
+  const signedAtStr = sig.signedAt ? declFormatDateTime(sig.signedAt) : '—';
+  const holatLabels = dt('holatLabels');
+
+  const relRows = declRelatives.map(r => {
+    const d = r.data;
+    const nameCell = (d && d.holat === 'info' && d.fullName)
+      ? escapeHtml(d.fullName)
+      : `<span class="decl-pill gray">${escapeHtml((d && holatLabels[d.holat]) || dt('maLumotYoq'))}</span>`;
+    const jshCell = (d && d.holat === 'info' && d.jshshir) ? escapeHtml(d.jshshir) : '—';
+    const addrCell = (d && d.holat === 'info' && d.address) ? escapeHtml(d.address) : '—';
+    return `<tr><td><b>${escapeHtml(declRelativeLabel(r))}</b></td><td>${nameCell}</td><td>${jshCell}</td><td>${escapeHtml(declWorkplaceText(d))}</td><td>${addrCell}</td></tr>`;
+  }).join('');
+
+  const qBlocks = dt('questions').map((meta, i) => {
+    const a = declAnswers[i];
+    let badge = '';
+    if(meta.type === 'yesno' && a.choice){
+      badge = `<div style="margin-top:6px;"><span class="decl-pill ${a.choice === 'ha' ? 'coral' : 'teal'}">${a.choice === 'ha' ? escapeHtml(dt('haLabel')).toUpperCase() : escapeHtml(dt('yoqLabel')).toUpperCase()}</span></div>`;
+    }
+    const noteHtml = a.note ? `<div style="color:var(--text-dim); font-size:12px; margin-top:6px; line-height:1.5;">${escapeHtml(a.note)}</div>` : '';
+    return `<div class="decl-record-q">
+      <div style="display:flex; gap:10px; align-items:flex-start;">
+        <div class="decl-q-num" style="width:24px; height:24px; font-size:11px;">${i + 1}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px; line-height:1.5;">${escapeHtml(meta.q)}</div>
+          ${badge}${noteHtml}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const conflictBadge = declConfirm.hasConflict === true
+    ? `<span class="decl-pill coral">${escapeHtml(dt('conflictExistsBadge'))}</span>`
+    : `<span class="decl-pill teal">${escapeHtml(dt('conflictNoneBadge'))}</span>`;
+
+  document.getElementById('declRecordBody').innerHTML = `
+    <div class="decl-record-eyebrow">${escapeHtml(sig.refId || dt('recordEyebrowFallback'))}</div>
+    <div class="decl-record-head">
+      <h1 class="decl-title" style="margin:0;">${escapeHtml(dt('recordTitle'))}</h1>
+      <button class="decl-btn primary" onclick="declPrintRecord()">${escapeHtml(dt('pdfPrintBtn'))}</button>
+    </div>
+    <div class="decl-card" style="margin-top:20px;">
+      <div class="decl-review-row"><span>${escapeHtml(dt('fishReqLabel'))}</span><b>${escapeHtml(fullName)}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('jshshirShortLabel'))}</span><b>${escapeHtml(declEmployeeJshshir || '—')}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('bolinmaNomiLabel'))}</span><b>${escapeHtml(bolinma)}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('lavozimLabel'))}</span><b>${escapeHtml(lavozim)}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('turiSababiLabel'))}</span><b>${escapeHtml(dt('yangiDeklaratsiya'))}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('sanaLabel'))}</span><b>${declTodayFormatted()}</b></div>
+      <div class="decl-review-row"><span>${escapeHtml(dt('statusLabel'))}</span><span class="decl-pill teal">${escapeHtml(dt('statusSent'))}</span></div>
+    </div>
+
+    <div class="decl-card" style="margin-top:16px;">
+      <h2 style="margin-bottom:14px;">${escapeHtml(dt('relativesTitle'))}</h2>
+      <div style="overflow-x:auto;">
+        <table class="decl-review-table">
+          <thead><tr><th>${escapeHtml(dt('tblDaraja'))}</th><th>${escapeHtml(dt('tblFish'))}</th><th>${escapeHtml(dt('tblJshshir'))}</th><th>${escapeHtml(dt('tblIshJoyi'))}</th><th>${escapeHtml(dt('tblManzil'))}</th></tr></thead>
+          <tbody>${relRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="decl-card" style="margin-top:16px;">
+      <h2 style="margin-bottom:6px;">${escapeHtml(dt('questionsAnswersTitle'))}</h2>
+      ${qBlocks}
+      <div style="margin-top:14px;">${conflictBadge}</div>
+    </div>
+
+    <div class="decl-card decl-esign-block" style="margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="decl-esign-icon">&check;</div>
+          <h2 style="margin-bottom:0;">${escapeHtml(dt('esignBlockTitle'))}</h2>
+        </div>
+        <span class="decl-pill teal">${escapeHtml(dt('signConfirmedBadge'))}</span>
+      </div>
+      <div style="display:flex; gap:24px; margin-top:18px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:260px;">
+          <div class="decl-esign-row"><span>${escapeHtml(dt('signerFishLabel'))}</span><b>${escapeHtml(fullName)}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('signerLavozimLabel'))}</span><b>${escapeHtml(lavozim)}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('signedAtLabel'))}</span><b>${signedAtStr}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('certLabel'))}</span><b>${escapeHtml(sig.certName || '—')}<br>${escapeHtml(dt('certValidUntilSuffix'))}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('signStatusLabel'))}</span><b style="color:var(--teal);">&check; ${escapeHtml(dt('signValidText'))}</b></div>
+          <div class="decl-esign-row"><span>${escapeHtml(dt('verificationIdRowLabel'))}</span><span class="decl-pill gray" style="font-family:monospace;">${escapeHtml(sig.verificationId || '—')}</span></div>
+        </div>
+        <div class="decl-qr-box">
+          <div class="decl-qr-placeholder">${DECL_QR_PLACEHOLDER_SVG}</div>
+          <div style="font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px;">${escapeHtml(dt('qrCaption'))}</div>
+          <button class="decl-btn outline" style="width:100%; margin-top:8px;" onclick="declVerifyStub()">${escapeHtml(dt('verifyBtn'))}</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// XAVFSIZLIK: 10 daqiqa harakatsizlikdan so'ng avtomat chiqish (server ham
+// mustaqil ravishda shu muddatdan so'ng sessiyani tugatadi — bu shunchaki
+// foydalanuvchini darhol login sahifasiga qaytarish uchun mijoz tomonidagi qulaylik).
+(function initIdleLogout(){
+  if(!currentUser || !currentUser.token) return;
+  const IDLE_LIMIT_MS = 10 * 60 * 1000;
+  let idleTimer = null;
+  function doIdleLogout(){
+    const token = currentUser && currentUser.token;
+    try{ sessionStorage.removeItem('km_user'); }catch(e){}
+    if(token){ fetch(API_BASE_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ action:'logout', token }), credentials:'same-origin' }).catch(()=>{}); }
+    window.location.href = 'login.html';
+  }
+  function resetIdleTimer(){
+    if(idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(doIdleLogout, IDLE_LIMIT_MS);
+  }
+  ['mousedown','mousemove','keydown','wheel','touchstart','click'].forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive:true });
+  });
+  // Ichki (embedded) boshqaruv paneli <iframe>'i o'z hodisalarini alohida
+  // hujjat sifatida oladi (parentga "bubble" bo'lib chiqmaydi) — shu bois u
+  // harakat bo'lganda shu yerga postMessage orqali xabar beradi, aks holda
+  // foydalanuvchi boshqaruv panelida faol ishlab turgan holda ham 10 daqiqadan
+  // so'ng chiqarib yuborilishi mumkin edi.
+  window.addEventListener('message', function(e){
+    if(e.origin === window.location.origin && e.data && e.data.type === 'km-activity'){ resetIdleTimer(); }
+  });
+  resetIdleTimer();
+})();
 </script>
 </body>
 </html>

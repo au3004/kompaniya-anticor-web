@@ -19,13 +19,16 @@ CREATE TABLE users (
   familiya          VARCHAR(150) NOT NULL,
   ism               VARCHAR(150) NOT NULL,
   otasining_ismi    VARCHAR(150),
+  tugilgan_sana     DATE,
   lavozim           VARCHAR(200),
   lavozim_ru        VARCHAR(200),
   bolinma           VARCHAR(200),
   bolinma_ru        VARCHAR(200),
   telefon           VARCHAR(20),
   rasm_url          VARCHAR(500),        -- endi base64 emas, haqiqiy fayl yo'li (masalan /uploads/photos/12.jpg)
-  rol               ENUM('user','admin','gl-admin') NOT NULL DEFAULT 'user',
+  rol               ENUM('user','anticor-admin','anticor','hr-admin','hr','super-admin','rahbariyat','xarid') NOT NULL DEFAULT 'user',
+  totp_secret       VARCHAR(64) NULL,    -- ikki bosqichli tasdiqlash (2FA) kaliti, ixtiyoriy
+  totp_enabled      TINYINT(1) NOT NULL DEFAULT 0,
   created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_telefon (telefon)
@@ -47,6 +50,15 @@ CREATE TABLE login_attempts (
   login         VARCHAR(100) PRIMARY KEY,
   fail_count    INT NOT NULL DEFAULT 0,
   locked_until  DATETIME NULL
+) ENGINE=InnoDB;
+
+-- Parol to'g'ri, lekin 2FA yoqilgan bo'lsa — haqiqiy sessiya yaratilmasdan oldin
+-- 6 xonali kod tasdiqlanishini kutayotgan vaqtinchalik (5 daqiqalik) holat.
+CREATE TABLE totp_pending (
+  token       CHAR(64) PRIMARY KEY,
+  user_id     INT NOT NULL,
+  expires_at  DATETIME NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -177,9 +189,22 @@ CREATE TABLE support_requests (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   user_id     INT NOT NULL,
   murojaat    TEXT NOT NULL,
-  izoh        TEXT,
+  izoh        TEXT,      -- eskirgan (endi ishlatilmaydi) — o'rniga support_comments jadvali
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Bitta murojaatga bir nechta xodim (gl-admin/admin) izoh qoldirishi mumkin —
+-- har bir izoh kim yozgani va qachonligi bilan alohida qator sifatida saqlanadi.
+CREATE TABLE support_comments (
+  id                  INT AUTO_INCREMENT PRIMARY KEY,
+  support_request_id  INT NOT NULL,
+  user_id             INT NOT NULL,
+  izoh                TEXT NOT NULL,
+  created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (support_request_id) REFERENCES support_requests(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_request (support_request_id)
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -194,3 +219,73 @@ CREATE TABLE app_settings (
 INSERT INTO app_settings (setting_key, setting_value) VALUES
   ('test_active', 'true'),
   ('survey_active', 'true');
+
+-- ---------------------------------------------------------------------
+-- 10) TIZIM JURNALI (server tomonida ushlangan xatoliklar) — gl-admin
+-- serverning fayl tizimiga kirmasdan admin panelidan ko'rishi uchun.
+-- ---------------------------------------------------------------------
+CREATE TABLE error_log (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  action      VARCHAR(100),
+  message     TEXT NOT NULL,
+  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_created (created_at)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 11) XODIM KELISHUV (APPROVAL) SO'ROVLARI — hr-admin xodimga "user"dan
+-- boshqa rol berayotganda (yangi qo'shishda yoki tahrirlashda), o'zgarish
+-- darhol saqlanmaydi: to'liq so'rov shu yerda "pending" holatda kutadi,
+-- rahbariyat VA anticor-admin (ikkalasi ham) tasdiqlagach qo'llaniladi;
+-- super-admin yakka o'zi zaxira huquq sifatida darhol yakuniy qaror beradi.
+-- ---------------------------------------------------------------------
+CREATE TABLE employee_pending_requests (
+  id              INT AUTO_INCREMENT PRIMARY KEY,
+  request_type    ENUM('add','edit') NOT NULL,
+  target_user_id  INT NULL,
+  requested_by    INT NOT NULL,
+  payload         TEXT NOT NULL,
+  status          ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+  decided_at      DATETIME NULL,
+  FOREIGN KEY (requested_by) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (target_user_id) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX idx_status (status)
+) ENGINE=InnoDB;
+
+CREATE TABLE employee_pending_approvals (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  request_id    INT NOT NULL,
+  approver_id   INT NOT NULL,
+  approver_rol  VARCHAR(20) NOT NULL,
+  decision      ENUM('approved','rejected') NOT NULL,
+  izoh          TEXT NULL,
+  decided_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (request_id) REFERENCES employee_pending_requests(id) ON DELETE CASCADE,
+  FOREIGN KEY (approver_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY uniq_request_approver (request_id, approver_id)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 12) XARIDLAR REYESTRI — "xarid" roli (+ anticor-admin/super-admin
+-- faqat ko'rish uchun) tomonidan kiritiladigan shartnoma yozuvlari.
+-- Shartnoma fayli backend/purchase_contracts/ papkasida (public/ papkadan
+-- tashqarida, hr_documents kabi) saqlanadi.
+-- ---------------------------------------------------------------------
+CREATE TABLE purchases (
+  id                  INT AUTO_INCREMENT PRIMARY KEY,
+  shartnoma_sana      DATE NOT NULL,
+  shartnoma_raqami    VARCHAR(100) NOT NULL,
+  kontragent          VARCHAR(255) NOT NULL,
+  shartnoma_predmeti  VARCHAR(500) NOT NULL,
+  shartnoma_summasi   DECIMAL(18,2) NOT NULL,
+  xarid_turi          VARCHAR(150) NOT NULL,
+  izoh                TEXT NULL,
+  file_name           VARCHAR(255) NOT NULL,
+  original_name       VARCHAR(255) NULL,
+  created_by          INT NOT NULL,
+  created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_shartnoma_raqami (shartnoma_raqami),
+  INDEX idx_kontragent (kontragent)
+) ENGINE=InnoDB;
