@@ -255,29 +255,31 @@ final class Auth
     {
         $db = Database::connection();
         $lockMinutes = Config::int('LOGIN_LOCK_MINUTES', 15);
+        $lockedUntilValue = date('Y-m-d H:i:s', time() + $lockMinutes * 60);
 
-        $stmt = $db->prepare('SELECT fail_count FROM login_attempts WHERE login = :login LIMIT 1');
-        $stmt->execute(['login' => $login]);
-        $row = $stmt->fetch();
-
-        $failCount = ($row['fail_count'] ?? 0) + 1;
-        $lockedUntil = null;
-        if ($failCount >= $maxAttempts) {
-            $lockedUntil = date('Y-m-d H:i:s', time() + $lockMinutes * 60);
-            $failCount = 0;
-        }
-
+        // Yagona atomik UPSERT: hisoblash va bloklash qarori MySQL'ning
+        // o'zida, shu qator uchun olingan lock ostida bajariladi. Avvalgi
+        // SELECT (o'qish) va keyin alohida INSERT/UPDATE (yozish) ikki
+        // bosqichli yondashuv parallel so'rovlar o'rtasida poyga holatiga
+        // (race condition) yo'l qo'yardi — masalan, bir xil loginga bir
+        // vaqtda kelgan bir nechta noto'g'ri urinish fail_count'ni
+        // bir-birining ustidan yozib, hisobni yo'qotishi va bloklashni
+        // chetlab o'tishga imkon berishi mumkin edi.
+        $isFirstAttemptLock = 1 >= $maxAttempts;
         $upsert = $db->prepare(
             'INSERT INTO login_attempts (login, fail_count, locked_until)
-             VALUES (:login, :fail_count, :locked_until)
-             ON DUPLICATE KEY UPDATE fail_count = :fail_count2, locked_until = :locked_until2'
+             VALUES (:login, :init_fail_count, :init_locked_until)
+             ON DUPLICATE KEY UPDATE
+                 locked_until = IF(fail_count + 1 >= :max1, :locked_until, locked_until),
+                 fail_count = IF(fail_count + 1 >= :max2, 0, fail_count + 1)'
         );
         $upsert->execute([
             'login' => $login,
-            'fail_count' => $failCount,
-            'locked_until' => $lockedUntil,
-            'fail_count2' => $failCount,
-            'locked_until2' => $lockedUntil,
+            'init_fail_count' => $isFirstAttemptLock ? 0 : 1,
+            'init_locked_until' => $isFirstAttemptLock ? $lockedUntilValue : null,
+            'max1' => $maxAttempts,
+            'max2' => $maxAttempts,
+            'locked_until' => $lockedUntilValue,
         ]);
     }
 
