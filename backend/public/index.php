@@ -99,6 +99,7 @@ if (!in_array($action, $fileCarryingActions, true) && strlen($raw) > MAX_BODY_BY
 $routes = [
     'login' => [AuthController::class, 'login'],
     'mobileLogin' => [AuthController::class, 'mobileLogin'],
+    'me' => [AuthController::class, 'me'],
     'loginViaRememberToken' => [AuthController::class, 'loginViaRememberToken'],
     'requestPasswordReset' => [AuthController::class, 'requestPasswordReset'],
     'logout' => [AuthController::class, 'logout'],

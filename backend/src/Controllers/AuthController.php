@@ -179,6 +179,19 @@ final class AuthController
     }
 
     /**
+     * Joriy sessiyaga tegishli foydalanuvchi profilini qaytaradi (login()
+     * javobi bilan bir xil shakl). Asosan mobil ilova ilova qayta
+     * ochilganda (saqlangan tokenni tekshirish/profilni yangilash uchun)
+     * ishlatishi mo'ljallangan — hech qanday yozish amalini bajarmaydi,
+     * faqat Auth::requireUser() orqali sessiya haqiqiyligini tasdiqlaydi.
+     */
+    public static function me(array $input): void
+    {
+        $user = Auth::requireUser($input);
+        Response::success(self::userProfileFields($user));
+    }
+
+    /**
      * Parolni tiklash so'rovi — hali tizimga kira olmaydigan (sessiyasi yo'q)
      * foydalanuvchi uchun. Haqiqiy avtomatik parol tiklash emas: login
      * bazada borligini tekshiradi va topilsa, mavjud "Yordam so'rovlari"
