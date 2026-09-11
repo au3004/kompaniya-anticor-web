@@ -3813,7 +3813,8 @@ function init(){
   const canSurvey = canAnticor; // Anonim so'rovnoma — ichki huquqlar canAnticorManage'ga qarab farqlanadi (openSurveyEntry)
   const canNotifSend = NOTIFY_SEND.includes(rol);
   const canSupport = canAnticor;
-  const canReports = canAnticor; // Hisobotlar/Tizim jurnali — faqat ko'rish, shu bois anticor ham kiradi
+  const canReports = canAnticor; // Hisobotlar — faqat ko'rish, shu bois anticor ham kiradi
+  const canErrorLog = canAnticorManage; // Tizim jurnali — xom xatolik matnlarini o'z ichiga oladi, shu bois faqat boshqaruv darajasi (backend: ANTICOR_MANAGE)
   const canBackup = canAnticorManage; // Zaxira nusxada barcha xodimlarning parol hash'lari bor — qat'iyroq daraja
   const canApprovals = HR_MANAGE.includes(rol) || REQUEST_APPROVE.includes(rol); // hr-admin (o'z so'rovlari) + rahbariyat/anticor-admin/super-admin (tasdiqlash)
   const canPurchaseView = PURCHASE_VIEW.includes(rol);
@@ -3842,7 +3843,7 @@ function init(){
   document.getElementById('supportCard').style.display = canSupport ? 'block' : 'none';
   document.getElementById('reportsCard').style.display = canReports ? 'block' : 'none';
   document.getElementById('backupCard').style.display = canBackup ? 'block' : 'none';
-  document.getElementById('errorLogCard').style.display = canReports ? 'block' : 'none';
+  document.getElementById('errorLogCard').style.display = canErrorLog ? 'block' : 'none';
 
   currentUserForKpi = user;
   if(canAnticor) loadStats(user);

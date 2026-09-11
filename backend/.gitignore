@@ -7,3 +7,5 @@ documents/*
 !documents/.gitkeep
 hr_documents/*
 !hr_documents/.gitkeep
+purchase_contracts/*
+!purchase_contracts/.gitkeep

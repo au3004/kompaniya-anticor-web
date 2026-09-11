@@ -140,7 +140,7 @@ final class TotpController
         $del->execute(['token' => $pendingToken]);
 
         $token = Auth::generateToken();
-        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 30);
+        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 10);
         $expiresAt = date('Y-m-d H:i:s', time() + $idleMinutes * 60);
         $ins = $db->prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)');
         $ins->execute(['token' => $token, 'user_id' => $row['user_id'], 'expires_at' => $expiresAt]);

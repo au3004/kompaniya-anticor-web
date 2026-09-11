@@ -885,7 +885,10 @@ final class AdminController
      */
     public static function getErrorLog(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_VIEW);
+        // Xom (server ichki) xatolik matnlarini o'z ichiga olgani uchun
+        // ANTICOR_VIEW ("anticor" — faqat ko'rish/operatsion rol ham kiradi)
+        // emas, faqat boshqaruv darajasidagi ANTICOR_MANAGE ko'ra oladi.
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
         $db = Database::connection();
         Util::ensureSchema($db, "CREATE TABLE IF NOT EXISTS error_log (

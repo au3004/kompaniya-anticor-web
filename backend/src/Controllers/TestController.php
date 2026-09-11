@@ -7,6 +7,7 @@ use App\Auth;
 use App\Roles;
 use App\Config;
 use App\Database;
+use App\RateLimit;
 use App\Response;
 use App\Validate;
 
@@ -51,6 +52,10 @@ final class TestController
     public static function submit(array $input): void
     {
         $user = Auth::requireUser($input);
+        // Javobda qaysi savolga noto'g'ri javob berilgani (wrongIds) qaytariladi —
+        // reyt-limitsiz bu ketma-ket avtomatlashtirilgan urinish orqali to'g'ri
+        // javoblarni asta-sekin "sinab topish" imkonini berardi.
+        RateLimit::enforce('submitTest', 20, 3600);
 
         if (!self::isActive()) {
             Response::error('Test hozircha faol emas', 'TEST_INACTIVE');

@@ -13,6 +13,10 @@ final class Response
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: DENY');
         header('Referrer-Policy: no-referrer');
+        // Bu javob doim faqat JSON — hech qanday skript/uslub/rasm yuklamaydi,
+        // shuning uchun eng qattiq CSP xavfsiz (brauzer bu javobni HTML sifatida
+        // render qilishga urinib qolgan taqdirda ham qo'shimcha himoya qatlami).
+        header("Content-Security-Policy: default-src 'none'");
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }

@@ -27,12 +27,27 @@ final class Logger
             $db = Database::connection();
             Util::ensureSchema($db, self::DDL);
             $stmt = $db->prepare('INSERT INTO error_log (action, message) VALUES (:action, :message)');
-            $stmt->execute(['action' => mb_substr($action, 0, 100), 'message' => mb_substr($message, 0, 4000)]);
+            $stmt->execute(['action' => mb_substr($action, 0, 100), 'message' => mb_substr(self::maskSensitive($message), 0, 4000)]);
 
             // Jurnal cheksiz o'sib ketmasligi uchun 90 kundan eski yozuvlarni tozalaymiz.
             $db->exec('DELETE FROM error_log WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY)');
         } catch (\Throwable $e) {
             // indamaymiz — jurnalga yoza olmaslik o'zi yana bir xatolik hosil qilmasligi kerak.
         }
+    }
+
+    /**
+     * MySQL'ning UNIQUE cheklov xatoligi (masalan takroriy login) haqiqiy
+     * qiymatni o'z ichiga oladi — "Duplicate entry 'ahmadjonov_a' for key
+     * 'login'" kabi. Bu yerda saqlanishidan oldin qiymat maskalanadi, chunki
+     * bu jurnal (Tizim jurnali) nisbatan keng doiraga (ANTICOR_VIEW) ochiq.
+     */
+    private static function maskSensitive(string $message): string
+    {
+        return (string) preg_replace(
+            "/Duplicate entry '.*?' for key/",
+            "Duplicate entry '[MASKED]' for key",
+            $message
+        );
     }
 }

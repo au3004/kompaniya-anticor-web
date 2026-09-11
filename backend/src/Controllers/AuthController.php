@@ -137,7 +137,7 @@ final class AuthController
         $telefon = Validate::requiredStr($input, 'telefon', 20);
 
         $db = Database::connection();
-        $stmt = $db->prepare('SELECT id FROM users WHERE login = :login LIMIT 1');
+        $stmt = $db->prepare('SELECT id, telefon FROM users WHERE login = :login LIMIT 1');
         $stmt->execute(['login' => $login]);
         $user = $stmt->fetch();
 
@@ -149,7 +149,19 @@ final class AuthController
             );
         }
 
-        $murojaat = "Parolni tiklash so'rovi. Ko'rsatilgan aloqa uchun telefon raqami: {$telefon}";
+        // Kiritilgan telefon raqami hisobdagisiga mos kelmasa ham so'rovni rad
+        // etmaymiz (bu login mavjudligini "ha/yo'q" javob orqali bilib olish
+        // uchun yangi kanal ochib qo'yardi) — buning o'rniga Yordam navbatini
+        // ko'rib chiquvchi xodimga bu ziddiyatni aniq ko'rsatib qo'yamiz, shu
+        // bilan murojaat qiluvchi shaxsni qo'shimcha tekshirmasdan ishonib
+        // qolmaydi (qarang: ProfileController::checkStatus'dagi bir xil
+        // normalizatsiya usuli).
+        $normalize = static fn (string $v): string => preg_replace('/\D+/', '', $v) ?? '';
+        $phoneMatches = $normalize($telefon) !== '' && $normalize($telefon) === $normalize((string) ($user['telefon'] ?? ''));
+
+        $murojaat = $phoneMatches
+            ? "Parolni tiklash so'rovi. Ko'rsatilgan aloqa uchun telefon raqami: {$telefon}"
+            : "Parolni tiklash so'rovi. DIQQAT: ko'rsatilgan telefon raqami ({$telefon}) tizimdagi hisobga bog'langan telefon bilan mos kelmadi — murojaat qiluvchi shaxsni boshqa yo'l bilan tasdiqlang.";
         $ins = $db->prepare('INSERT INTO support_requests (user_id, murojaat) VALUES (:user_id, :murojaat)');
         $ins->execute(['user_id' => $user['id'], 'murojaat' => $murojaat]);
 
