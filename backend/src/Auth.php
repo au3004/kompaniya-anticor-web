@@ -20,14 +20,36 @@ final class Auth
     ) ENGINE=InnoDB';
 
     /**
-     * Sessiya tokeni endi javob tanasida (JSON) qaytarilmaydi va JS'dan
-     * o'qilmaydi — faqat HttpOnly cookie orqali saqlanadi, shu bilan XSS
-     * orqali token o'g'irlanishining oldi olinadi. $input parametri endi
-     * ishlatilmaydi (eski frontend chaqiruvlari bilan moslik uchun saqlangan).
+     * Veb frontend uchun sessiya tokeni javob tanasida (JSON) qaytarilmaydi
+     * va JS'dan o'qilmaydi — faqat HttpOnly cookie orqali saqlanadi, shu
+     * bilan XSS orqali token o'g'irlanishining oldi olinadi. $input
+     * parametri endi ishlatilmaydi (eski frontend chaqiruvlari bilan
+     * moslik uchun saqlangan).
      */
     private static function tokenFromCookie(): string
     {
         return trim((string) ($_COOKIE[self::COOKIE_NAME] ?? ''));
+    }
+
+    /**
+     * Mobil ilovalar (Swift/Flutter) cookie'ni tabiiy tarzda saqlamaydi —
+     * ular uchun "Authorization: Bearer <token>" sarlavhasi orqali
+     * tasdiqlash qo'llab-quvvatlanadi (token AuthController::mobileLogin /
+     * TotpController::mobileVerifyLogin javobida beriladi va mobil tomonda
+     * Keychain/Keystore'da saqlanadi — hech qachon veb JS'ga chiqarilmaydi,
+     * shu bilan cookie'dagi xuddi shu XSS himoyasi buzilmaydi). Veb
+     * frontend hech qachon bu sarlavhani yubormaydi, shuning uchun bu
+     * qo'shimcha yo'l uning xavfsizlik modeliga ta'sir qilmaydi — ikkala
+     * transport ham bir xil `sessions` jadvaliga, bir xil muddat/tekshiruv
+     * qoidalari bilan tushadi.
+     */
+    public static function tokenFromRequest(): string
+    {
+        $header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+        if ($header !== '' && preg_match('/^Bearer\s+(.+)$/i', trim($header), $m)) {
+            return trim($m[1]);
+        }
+        return self::tokenFromCookie();
     }
 
     public static function setSessionCookie(string $token): void
@@ -101,12 +123,13 @@ final class Auth
     }
 
     /**
-     * Requires a valid, non-expired session — token HttpOnly cookie'dan olinadi.
+     * Requires a valid, non-expired session — token HttpOnly cookie'dan
+     * (veb) yoki "Authorization: Bearer" sarlavhasidan (mobil) olinadi.
      * Returns the joined user row. Exits with SESSION_EXPIRED on failure.
      */
     public static function requireUser(array $input): array
     {
-        $token = self::tokenFromCookie();
+        $token = self::tokenFromRequest();
         if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
             Response::error('Sessiya topilmadi', 'SESSION_EXPIRED', 401);
         }
@@ -167,7 +190,7 @@ final class Auth
      */
     public static function optionalUser(array $input): ?array
     {
-        $token = self::tokenFromCookie();
+        $token = self::tokenFromRequest();
         if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
             return null;
         }

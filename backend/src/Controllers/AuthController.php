@@ -34,7 +34,15 @@ final class AuthController
         INDEX idx_user (user_id)
     ) ENGINE=InnoDB';
 
-    public static function login(array $input): void
+    /**
+     * login/parol'ni tekshiradi (bloklash, timing-oraliq himoyasi bilan) va
+     * mos foydalanuvchi qatorini qaytaradi. login() (veb, cookie) va
+     * mobileLogin() (Bearer token) ikkalasi ham shu bitta yo'lni ishlatadi —
+     * shu bilan kelajakda bu yerga kiritiladigan har qanday tuzatish
+     * (masalan yana bir enumeration kanali topilsa) ikkala oqimga ham bir
+     * vaqtda tegishli bo'ladi.
+     */
+    private static function authenticateWithCredentials(array $input): array
     {
         $login = Validate::requiredStr($input, 'login', 100);
         $parol = Validate::requiredStr($input, 'parol', 255);
@@ -71,22 +79,53 @@ final class AuthController
 
         Auth::resetAttempts($login);
 
-        // 2FA yoqilgan bo'lsa, hali haqiqiy sessiya yaratilmaydi — foydalanuvchi
-        // avtentifikator ilovasidagi 6 xonali kodni tasdiqlashi kerak
-        // (TotpController::verifyLogin, "pendingToken" orqali).
-        if (!empty($user['totp_enabled'])) {
-            Util::ensureSchema($db, self::TOTP_PENDING_DDL);
-            $pendingToken = Auth::generateToken();
-            $ins = $db->prepare(
-                'INSERT INTO totp_pending (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)'
-            );
-            $ins->execute([
-                'token' => $pendingToken,
-                'user_id' => $user['id'],
-                'expires_at' => date('Y-m-d H:i:s', time() + 300),
-            ]);
-            Response::success(['needsTotp' => true, 'pendingToken' => $pendingToken]);
+        return $user;
+    }
+
+    /**
+     * 2FA yoqilgan bo'lsa, hali haqiqiy sessiya yaratilmaydi — pendingToken
+     * qaytariladi va javob true bilan tugaydi (chaqiruvchi shu yerda to'xtaydi).
+     * 2FA yo'q bo'lsa, hech narsa qaytarmaydi — chaqiruvchi sessiya yaratishda davom etadi.
+     */
+    private static function maybeRequireTotp(\PDO $db, array $user): void
+    {
+        if (empty($user['totp_enabled'])) {
+            return;
         }
+        Util::ensureSchema($db, self::TOTP_PENDING_DDL);
+        $pendingToken = Auth::generateToken();
+        $ins = $db->prepare(
+            'INSERT INTO totp_pending (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)'
+        );
+        $ins->execute([
+            'token' => $pendingToken,
+            'user_id' => $user['id'],
+            'expires_at' => date('Y-m-d H:i:s', time() + 300),
+        ]);
+        Response::success(['needsTotp' => true, 'pendingToken' => $pendingToken]);
+    }
+
+    private static function userProfileFields(array $user): array
+    {
+        return [
+            'id' => (int) $user['id'],
+            'familiya' => $user['familiya'],
+            'ism' => $user['ism'],
+            'otasi' => $user['otasining_ismi'],
+            'tugilganSana' => $user['tugilgan_sana'] ?? null,
+            'lavozim' => $user['lavozim'],
+            'bolinma' => $user['bolinma'],
+            'telefon' => $user['telefon'],
+            'rasm' => Util::photoUrl($user['rasm_url']),
+            'rol' => $user['rol'],
+        ];
+    }
+
+    public static function login(array $input): void
+    {
+        $user = self::authenticateWithCredentials($input);
+        $db = Database::connection();
+        self::maybeRequireTotp($db, $user);
 
         $token = Auth::generateToken();
         $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 10);
@@ -107,19 +146,36 @@ final class AuthController
             Auth::issueRememberToken($db, (int) $user['id']);
         }
 
-        Response::success([
-            'token' => true,
-            'id' => (int) $user['id'],
-            'familiya' => $user['familiya'],
-            'ism' => $user['ism'],
-            'otasi' => $user['otasining_ismi'],
-            'tugilganSana' => $user['tugilgan_sana'] ?? null,
-            'lavozim' => $user['lavozim'],
-            'bolinma' => $user['bolinma'],
-            'telefon' => $user['telefon'],
-            'rasm' => Util::photoUrl($user['rasm_url']),
-            'rol' => $user['rol'],
-        ]);
+        Response::success(array_merge(['token' => true], self::userProfileFields($user)));
+    }
+
+    /**
+     * Swift/Flutter (native) ilovalar uchun — cookie o'rniga haqiqiy
+     * sessiya tokenini to'g'ridan-to'g'ri javob tanasida qaytaradi. Mobil
+     * ilova buni Keychain (iOS) / Keystore orqali xavfsiz saqlashi va har
+     * bir keyingi so'rovda "Authorization: Bearer <token>" sarlavhasi
+     * sifatida yuborishi kerak. Veb frontend bu amalni HECH QACHON
+     * chaqirmaydi — shuning uchun login.html/admin.html/main.html kodida
+     * bu tokenni JS orqali o'qish imkoniyati umuman yo'q (XSS himoyasi
+     * shu tarzda saqlanib qoladi, faqat native ilova kontekstida token
+     * brauzer DOM/JS'dan butunlay tashqarida — Keychain/Keystore'da yotadi).
+     */
+    public static function mobileLogin(array $input): void
+    {
+        $user = self::authenticateWithCredentials($input);
+        $db = Database::connection();
+        self::maybeRequireTotp($db, $user);
+
+        $token = Auth::generateToken();
+        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 10);
+        $expiresAt = date('Y-m-d H:i:s', time() + $idleMinutes * 60);
+
+        $ins = $db->prepare(
+            'INSERT INTO sessions (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)'
+        );
+        $ins->execute(['token' => $token, 'user_id' => $user['id'], 'expires_at' => $expiresAt]);
+
+        Response::success(array_merge(['sessionToken' => $token], self::userProfileFields($user)));
     }
 
     /**
@@ -171,7 +227,10 @@ final class AuthController
 
     public static function logout(array $input): void
     {
-        $token = trim((string) ($_COOKIE[Auth::COOKIE_NAME] ?? ''));
+        // Auth::tokenFromRequest() veb (cookie) va mobil (Authorization: Bearer)
+        // ikkala transportni ham qamrab oladi — shu bilan mobil ilova ham
+        // shu bitta amal orqali chiqish qila oladi.
+        $token = Auth::tokenFromRequest();
         if ($token !== '' && preg_match('/^[a-f0-9]{64}$/', $token)) {
             $db = Database::connection();
             $stmt = $db->prepare('DELETE FROM sessions WHERE token = :token');

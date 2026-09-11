@@ -98,6 +98,7 @@ if (!in_array($action, $fileCarryingActions, true) && strlen($raw) > MAX_BODY_BY
 /** @var array<string, array{0: class-string, 1: string}> $routes */
 $routes = [
     'login' => [AuthController::class, 'login'],
+    'mobileLogin' => [AuthController::class, 'mobileLogin'],
     'loginViaRememberToken' => [AuthController::class, 'loginViaRememberToken'],
     'requestPasswordReset' => [AuthController::class, 'requestPasswordReset'],
     'logout' => [AuthController::class, 'logout'],
@@ -187,6 +188,7 @@ $routes = [
     'totpSetupConfirm' => [TotpController::class, 'setupConfirm'],
     'totpDisable' => [TotpController::class, 'disable'],
     'verifyTotpLogin' => [TotpController::class, 'verifyLogin'],
+    'mobileVerifyTotpLogin' => [TotpController::class, 'mobileVerifyLogin'],
 ];
 
 if (!isset($routes[$action])) {

@@ -28,7 +28,10 @@ final class Cors
         }
 
         header('Access-Control-Allow-Methods: POST, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type');
+        // "Authorization" — mobil (Flutter web target va h.k.) Bearer token
+        // orqali so'rov yuborganda kerak bo'ladi; native iOS/Android
+        // ilovalarga bu umuman taalluqli emas (CORS faqat brauzerga tegishli).
+        header('Access-Control-Allow-Headers: Content-Type, Authorization');
         header('Access-Control-Max-Age: 86400');
 
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {

@@ -103,11 +103,12 @@ final class TotpController
     }
 
     /**
-     * Login qadam 2: parol to'g'ri bo'lgach (AuthController::login) va
-     * totp_enabled bo'lsa, shu yerga keladigan pendingToken + 6 xonali kod
-     * tekshiriladi, to'g'ri bo'lsa haqiqiy sessiya (cookie) yaratiladi.
+     * pendingToken + 6 xonali kodni tekshiradi va (tasdiqlansa) totp_pending
+     * yozuvini o'chiradi. verifyLogin() (veb) va mobileVerifyLogin() (Bearer
+     * token) ikkalasi ham shu bitta yo'lni ishlatadi. Tasdiqlangan foydalanuvchi
+     * qatorini qaytaradi — sessiya yaratish (cookie yoki token) chaqiruvchida.
      */
-    public static function verifyLogin(array $input): void
+    private static function verifyPendingCode(array $input): array
     {
         // IP asosidagi qo'shimcha cheklov — parolni to'g'ri bilgan (shu bois
         // registerFailedAttempt/isLocked mexanizmini har safar login()dagi
@@ -164,6 +165,35 @@ final class TotpController
         $del = $db->prepare('DELETE FROM totp_pending WHERE token = :token');
         $del->execute(['token' => $pendingToken]);
 
+        return $row;
+    }
+
+    private static function userProfileFields(array $row): array
+    {
+        return [
+            'id' => (int) $row['user_id'],
+            'familiya' => $row['familiya'],
+            'ism' => $row['ism'],
+            'otasi' => $row['otasining_ismi'],
+            'tugilganSana' => $row['tugilgan_sana'] ?? null,
+            'lavozim' => $row['lavozim'],
+            'bolinma' => $row['bolinma'],
+            'telefon' => $row['telefon'],
+            'rasm' => Util::photoUrl($row['rasm_url']),
+            'rol' => $row['rol'],
+        ];
+    }
+
+    /**
+     * Login qadam 2 (veb): parol to'g'ri bo'lgach (AuthController::login) va
+     * totp_enabled bo'lsa, shu yerga keladigan pendingToken + 6 xonali kod
+     * tekshiriladi, to'g'ri bo'lsa haqiqiy sessiya (cookie) yaratiladi.
+     */
+    public static function verifyLogin(array $input): void
+    {
+        $row = self::verifyPendingCode($input);
+        $db = Database::connection();
+
         $token = Auth::generateToken();
         $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 10);
         $expiresAt = date('Y-m-d H:i:s', time() + $idleMinutes * 60);
@@ -176,18 +206,24 @@ final class TotpController
             Auth::issueRememberToken($db, (int) $row['user_id']);
         }
 
-        Response::success([
-            'token' => true,
-            'id' => (int) $row['user_id'],
-            'familiya' => $row['familiya'],
-            'ism' => $row['ism'],
-            'otasi' => $row['otasining_ismi'],
-            'tugilganSana' => $row['tugilgan_sana'] ?? null,
-            'lavozim' => $row['lavozim'],
-            'bolinma' => $row['bolinma'],
-            'telefon' => $row['telefon'],
-            'rasm' => Util::photoUrl($row['rasm_url']),
-            'rol' => $row['rol'],
-        ]);
+        Response::success(array_merge(['token' => true], self::userProfileFields($row)));
+    }
+
+    /**
+     * Login qadam 2 (mobil): AuthController::mobileLogin() bilan bir xil —
+     * cookie o'rniga haqiqiy sessiya tokenini javob tanasida qaytaradi.
+     */
+    public static function mobileVerifyLogin(array $input): void
+    {
+        $row = self::verifyPendingCode($input);
+        $db = Database::connection();
+
+        $token = Auth::generateToken();
+        $idleMinutes = Config::int('SESSION_IDLE_MINUTES', 10);
+        $expiresAt = date('Y-m-d H:i:s', time() + $idleMinutes * 60);
+        $ins = $db->prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)');
+        $ins->execute(['token' => $token, 'user_id' => $row['user_id'], 'expires_at' => $expiresAt]);
+
+        Response::success(array_merge(['sessionToken' => $token], self::userProfileFields($row)));
     }
 }

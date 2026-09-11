@@ -19,3 +19,15 @@
     php_value upload_max_filesize 40M
     php_value memory_limit 192M
 </IfModule>
+
+# Apache o'zi "Authorization" sarlavhasini odatiy holda PHP'ga
+# ($_SERVER['HTTP_AUTHORIZATION']) uzatmaydi (o'zining autorizatsiya
+# ishlovi uchun "yutib" qo'yadi) — mobil ilovalar "Authorization: Bearer
+# <token>" orqali kirganda buni majburan qayta uzatamiz
+# (Auth::tokenFromRequest()). PHP-FPM/nginx orqali ishlaganda bu odatda
+# server blokining o'zida (fastcgi_param HTTP_AUTHORIZATION) sozlanadi.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
