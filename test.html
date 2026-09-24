@@ -258,6 +258,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   transition:transform .15s ease;
 }
 .result-card a:hover{ transform:translateY(-2px); }
+.result-card .actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
 #quizForm.hidden{ display:none; }
 .inactive-card{ display:none; text-align:center; background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:20px; padding:40px 30px; }
 .inactive-card.show{ display:block; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both; }
@@ -376,7 +377,10 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
       <div class="wrong-header" id="wrongHeader"></div>
       <ul class="wrong-list" id="wrongList"></ul>
     </div>
-    <a href="main.html" data-i18n="backHome">Asosiy sahifaga qaytish</a>
+    <div class="actions">
+      <a id="certLink" href="#" target="_blank" rel="noopener" style="display:none;" data-i18n="certDownload">Sertifikatni yuklab olish</a>
+      <a href="main.html" data-i18n="backHome">Asosiy sahifaga qaytish</a>
+    </div>
   </div>
 
   <div class="inactive-card" id="inactiveCard">
@@ -428,12 +432,14 @@ const dict = {
     passVerdict:"Tabriklaymiz, test muvaffaqiyatli topshirildi! 🎉", failVerdict:"Afsuski, o'tish balliga yetmadingiz",
     passSub:"Natijangiz saqlandi", failSub:"Hujjatlarni qayta ko'rib chiqib, testni qayta urinib ko'ring", savingErr:"Natijani saqlashda xatolik",
     pointsLabel:"ball", wrongHeader:"Xato javob berilgan savollar:", inactiveMsg:"Test yakunlangan",
+    certDownload:"Sertifikatni yuklab olish",
     loading:"Yuklanmoqda...", notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q" },
   ru:{ brandName:"АО «Узтелеком»", backBtn:"Назад", eyebrow:"Проверьте свои знания", pageTitle:"Тест по темам противодействия коррупции",
     submitBtn:"Завершить тест", backHome:"Вернуться на главную", noQuestions:"Вопросы не найдены",
     passVerdict:"Поздравляем, тест успешно пройден! 🎉", failVerdict:"К сожалению, вы не набрали проходной балл",
     passSub:"Результат сохранён", failSub:"Пересмотрите документы и попробуйте снова", savingErr:"Ошибка при сохранении результата",
     pointsLabel:"баллов", wrongHeader:"Вопросы с неверным ответом:", inactiveMsg:"Тест завершён",
+    certDownload:"Скачать сертификат",
     loading:"Загрузка...", notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений" }
 };
 
@@ -618,6 +624,12 @@ async function submitTest(){
     scoreEl.className = 'score ' + (data.passed ? 'pass' : 'fail');
     document.getElementById('resultSub').textContent = data.passed ? dict[currentLang].passSub : dict[currentLang].failSub;
     document.getElementById('resultPoints').textContent = `${data.points}/${data.maxPoints} ${dict[currentLang].pointsLabel}`;
+
+    if(data.certificate){
+      const certLink = document.getElementById('certLink');
+      certLink.href = API_BASE_URL.replace('backend/public/index.php', 'backend/public/certificate-download.php');
+      certLink.style.display = 'inline-block';
+    }
 
     if(data.wrongIds && data.wrongIds.length > 0){
       const wrongBlock = document.getElementById('wrongBlock');

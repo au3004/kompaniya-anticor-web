@@ -803,6 +803,10 @@ body{
           <span class="badge" id="testBadge">—</span>
         </div>
         <div class="status-item">
+          <span data-i18n="certLabel">Sertifikat</span>
+          <span class="badge" id="certBadge">—</span>
+        </div>
+        <div class="status-item">
           <span data-i18n="declLabel">Deklaratsiya to'ldirilgan</span>
           <span class="badge" id="declBadge">—</span>
         </div>
@@ -1202,6 +1206,7 @@ const dict = {
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
     docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Test natijasi",
     declLabel:"Deklaratsiya to'ldirilgan",
+    certLabel:"Sertifikat", certDownload:"Yuklab olish",
     oldPassLabel:"Eski parol", newPassLabel:"Yangi parol", confirmPassLabel:"Yangi parolni tasdiqlash",
     saveBtn:"Saqlash", fishLabel:"F.I.Sh", posLabel:"Lavozim", deptLabel:"Bo'linma", filialLbl:"Filial", phoneLabel:"Telefon",
     filial_ijroiya_apparati:"Ijroiya apparati",
@@ -1261,6 +1266,7 @@ const dict = {
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
     docLabel:"Ознакомлен с внутренними документами", testLabel:"Результат теста",
     declLabel:"Декларация заполнена",
+    certLabel:"Сертификат", certDownload:"Скачать",
     oldPassLabel:"Старый пароль", newPassLabel:"Новый пароль", confirmPassLabel:"Подтвердите новый пароль",
     saveBtn:"Сохранить", fishLabel:"ФИО", posLabel:"Должность", deptLabel:"Подразделение", filialLbl:"Филиал", phoneLabel:"Телефон",
     filial_ijroiya_apparati:"Исполнительный аппарат",
@@ -1961,6 +1967,15 @@ async function checkStatus(){
         testBadge.className = 'badge ' + (data.passed ? 'ok' : 'no');
       } else {
         testBadge.textContent = dict[currentLang].no; testBadge.className = 'badge no';
+      }
+
+      const certBadge = document.getElementById('certBadge');
+      if(data.certificate){
+        const certUrl = API_BASE_URL.replace('backend/public/index.php', 'backend/public/certificate-download.php');
+        certBadge.innerHTML = `<a href="${certUrl}" target="_blank" rel="noopener" style="color:inherit;">${escapeHtml(dict[currentLang].certDownload)}</a>`;
+        certBadge.className = 'badge ok';
+      } else {
+        certBadge.textContent = dict[currentLang].no; certBadge.className = 'badge no';
       }
 
       const declBadge = document.getElementById('declBadge');

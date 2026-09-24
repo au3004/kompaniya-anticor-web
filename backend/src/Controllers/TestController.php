@@ -7,6 +7,7 @@ use App\Auth;
 use App\Roles;
 use App\Config;
 use App\Database;
+use App\Logger;
 use App\RateLimit;
 use App\Response;
 use App\Validate;
@@ -110,11 +111,22 @@ final class TestController
             'passed' => $passed ? 1 : 0,
         ]);
 
+        if ($passed) {
+            // Sertifikat yaratilmasa ham test natijasi saqlanadi — yuklab olishda
+            // (certificate-download.php) qayta urinib ko'riladi.
+            try {
+                CertificateController::ensureForUser($db, $user);
+            } catch (\Throwable $e) {
+                Logger::error('certificate', $e->getMessage());
+            }
+        }
+
         Response::success([
             'points' => $points,
             'maxPoints' => $totalQuestions,
             'percent' => $percent,
             'passed' => $passed,
+            'certificate' => $passed,
             'wrongIds' => $wrongIds,
         ]);
     }

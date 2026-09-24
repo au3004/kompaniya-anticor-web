@@ -469,10 +469,14 @@ final class AdminController
             'SELECT * FROM test_attempts ORDER BY user_id ASC, attempted_at DESC'
         )->fetchAll();
         $latestAttempt = [];
+        $everPassed = [];
         foreach ($attemptRows as $a) {
             $uid = (int) $a['user_id'];
             if (!isset($latestAttempt[$uid])) {
                 $latestAttempt[$uid] = $a;
+            }
+            if ((bool) $a['passed']) {
+                $everPassed[$uid] = true;
             }
         }
 
@@ -499,6 +503,7 @@ final class AdminController
             }
 
             $employees[] = [
+                'id' => $uid,
                 'fish' => Util::fullName($u),
                 'lavozim' => $u['lavozim'],
                 'bolinma' => $u['bolinma'],
@@ -508,6 +513,9 @@ final class AdminController
                 'testPoints' => $testTaken ? (int) $attempt['points'] : null,
                 'testPercent' => $testTaken ? (int) $attempt['percent'] : null,
                 'passed' => $testTaken ? (bool) $attempt['passed'] : false,
+                // Oxirgi urinish muvaffaqiyatsiz bo'lsa ham, avvalgi muvaffaqiyatli
+                // urinish uchun berilgan sertifikat amalda qoladi.
+                'hasCertificate' => isset($everPassed[$uid]),
             ];
         }
 

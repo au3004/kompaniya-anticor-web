@@ -64,6 +64,13 @@ Kunlik avtomatik zaxira uchun `backend/scripts/backup.php` skriptini rejalashtir
 
 Nusxalar `backend/backups/` papkasida saqlanadi (web orqali to'g'ridan-to'g'ri ochilmaydi), `BACKUP_KEEP_DAYS` (standart 30 kun)dan eskilari avtomatik o'chiriladi.
 
+## Sertifikat
+
+Testdan o'tish balini qo'lga kiritgan xodimga avtomatik PDF sertifikat (F.I.Sh + filial) yaratiladi: test natijasi sahifasidan va "Holatingizni tekshiring" kartasidan yuklab olinadi, admin esa Korrupsiyaga qarshi kurashish statistikasi jadvalidan istalgan xodimnikini ochadi. Har bir xodimda faqat bitta amaldagi sertifikat bo'ladi (eng so'nggi muvaffaqiyatli urinish).
+
+- PDF'lar `backend/certificates/` papkasida saqlanadi — bu papka PHP uchun yoziladigan bo'lishi shart. Fayl yo'qolsa, keyingi yuklab olishda avtomatik qayta yaratiladi.
+- Kirill/lotin harflari uchun tFPDF (`backend/src/Vendor/tfpdf/`, LGPL) va DejaVu shriftlari (`backend/fonts/unifont/`) ishlatiladi. `backend/fonts/unifont/` yoziladigan bo'lsa, shrift o'lchamlari keshlanib, generatsiya tezlashadi (majburiy emas).
+
 ## Tizim jurnali
 
 Server tomonida yuzaga kelgan kutilmagan xatoliklar `error_log` jadvaliga yoziladi — gl-admin serverning fayl tizimiga kirmasdan, admin panelidan **Tizim jurnali** bo'limida so'nggi 200 ta xatolikni ko'rishi mumkin. 90 kundan eski yozuvlar avtomatik tozalanadi.

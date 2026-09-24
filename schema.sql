@@ -256,3 +256,20 @@ CREATE TABLE purchases (
   INDEX idx_shartnoma_raqami (shartnoma_raqami),
   INDEX idx_kontragent (kontragent)
 ) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 12) SERTIFIKATLAR — testdan o'tgan xodimga avtomatik beriladi. Har bir
+-- xodimda faqat bitta amaldagi sertifikat (eng so'nggi muvaffaqiyatli
+-- urinishga tegishli); PDF fayli backend/certificates/ papkasida
+-- (public/ papkadan tashqarida) saqlanadi.
+-- ---------------------------------------------------------------------
+CREATE TABLE certificates (
+  id               INT AUTO_INCREMENT PRIMARY KEY,
+  user_id          INT NOT NULL UNIQUE,
+  test_attempt_id  INT NOT NULL,
+  fish             VARCHAR(500) NOT NULL,
+  filial           VARCHAR(50) NULL,
+  file_name        VARCHAR(64) NOT NULL,
+  issued_at        DATETIME NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;

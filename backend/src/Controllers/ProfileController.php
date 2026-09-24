@@ -63,6 +63,7 @@ final class ProfileController
             'testPoints' => $testRow ? (int) $testRow['points'] : null,
             'testPercent' => $testRow ? (int) $testRow['percent'] : null,
             'passed' => $testRow ? (bool) $testRow['passed'] : null,
+            'certificate' => CertificateController::hasPassed($db, (int) $user['id']),
             'deklaratsiyaSana' => $deklaratsiyaSana,
         ]);
     }

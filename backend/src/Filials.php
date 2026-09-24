@@ -5,8 +5,9 @@ namespace App;
 
 /**
  * Xodim biriktirilishi mumkin bo'lgan filiallar ro'yxati (belgilangan,
- * yopiq to'plam — erkin matn emas, tanlov orqali belgilanadi). Ko'rsatish
- * uchun uz/ru nomlar admin.html'dagi `filial_*` i18n kalitlarida.
+ * yopiq to'plam — erkin matn emas, tanlov orqali belgilanadi). Veb
+ * sahifalardagi uz/ru nomlar admin.html/main.html'dagi `filial_*` i18n
+ * kalitlarida; LABELS_UZ — server tomonida (sertifikat PDF) chiqariladigan nom.
  */
 final class Filials
 {
@@ -32,8 +33,25 @@ final class Filials
         self::TMS_HUB,
     ];
 
+    public const LABELS_UZ = [
+        self::IJROIYA_APPARATI => 'Ijroiya apparati',
+        self::MARKAZIY => 'Markaziy filial',
+        self::SHIMOLIY => 'Shimoliy filial',
+        self::SHARQIY => 'Sharqiy filial',
+        self::JANUBIY => 'Janubiy filial',
+        self::GARBIY => "G'arbiy filial",
+        self::JANUBI_GARBIY => "Janubi-G'arbiy filial",
+        self::TEXNIK => 'Ixtisoslashtirilgan texnik filial',
+        self::TMS_HUB => '"TMS Hub" filiali',
+    ];
+
     public static function isValid(string $filial): bool
     {
         return in_array($filial, self::ALL, true);
+    }
+
+    public static function labelUz(?string $filial): ?string
+    {
+        return $filial !== null && $filial !== '' ? (self::LABELS_UZ[$filial] ?? $filial) : null;
     }
 }
