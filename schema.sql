@@ -24,6 +24,7 @@ CREATE TABLE users (
   lavozim_ru        VARCHAR(200),
   bolinma           VARCHAR(200),
   bolinma_ru        VARCHAR(200),
+  filial            VARCHAR(50),          -- belgilangan ro'yxatdan tanlanadi (qarang: backend/src/Filials.php)
   telefon           VARCHAR(20),
   rasm_url          VARCHAR(500),        -- endi base64 emas, haqiqiy fayl yo'li (masalan /uploads/photos/12.jpg)
   rol               ENUM('user','anticor-admin','anticor','super-admin') NOT NULL DEFAULT 'user',

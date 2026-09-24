@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Auth;
 use App\Database;
+use App\Filials;
 use App\PwnedPasswords;
 use App\Response;
 use App\Roles;
@@ -15,6 +16,7 @@ use PDOException;
 final class AdminController
 {
     private const TUGILGAN_SANA_DDL = "ALTER TABLE users ADD COLUMN IF NOT EXISTS tugilgan_sana DATE AFTER otasining_ismi";
+    private const FILIAL_DDL = "ALTER TABLE users ADD COLUMN IF NOT EXISTS filial VARCHAR(50) AFTER bolinma_ru";
 
     public static function addEmployee(array $input): void
     {
@@ -30,9 +32,13 @@ final class AdminController
         $lavozimRu = Validate::str($input, 'lavozimRu', 200);
         $bolinma = Validate::str($input, 'bolinma', 200);
         $bolinmaRu = Validate::str($input, 'bolinmaRu', 200);
+        $filial = Validate::str($input, 'filial', 50);
         $telefon = Validate::str($input, 'telefon', 20);
         $rol = Validate::str($input, 'rol', 20);
 
+        if ($filial !== '' && !Filials::isValid($filial)) {
+            Response::error("Noto'g'ri filial tanlandi", 'VALIDATION_ERROR', 422);
+        }
         if (!Validate::isStrongPassword($parol)) {
             Response::error(Validate::WEAK_PASSWORD_MESSAGE, 'WEAK_PASSWORD', 422);
         }
@@ -47,6 +53,7 @@ final class AdminController
         $db = Database::connection();
         $rol = self::sanitizeAssignedRole($db, $me, $rol, null);
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
+        Util::ensureSchema($db, self::FILIAL_DDL);
         self::assertLoginAvailable($db, $login);
 
         $payload = [
@@ -60,6 +67,7 @@ final class AdminController
             'lavozim_ru' => $lavozimRu !== '' ? $lavozimRu : null,
             'bolinma' => $bolinma !== '' ? $bolinma : null,
             'bolinma_ru' => $bolinmaRu !== '' ? $bolinmaRu : null,
+            'filial' => $filial !== '' ? $filial : null,
             'telefon' => $telefon !== '' ? $telefon : null,
             'rol' => $rol,
         ];
@@ -78,9 +86,10 @@ final class AdminController
 
         $db = Database::connection();
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
+        Util::ensureSchema($db, self::FILIAL_DDL);
         $stmt = $db->prepare(
             'SELECT u.id, u.login, u.familiya, u.ism, u.otasining_ismi, u.tugilgan_sana, u.lavozim, u.lavozim_ru,
-                    u.bolinma, u.bolinma_ru, u.telefon, u.rol, la.locked_until
+                    u.bolinma, u.bolinma_ru, u.filial, u.telefon, u.rol, la.locked_until
              FROM users u
              LEFT JOIN login_attempts la ON la.login = u.login
              WHERE u.rol != :superAdmin
@@ -105,6 +114,7 @@ final class AdminController
                 'lavozimRu' => $r['lavozim_ru'],
                 'bolinma' => $r['bolinma'],
                 'bolinmaRu' => $r['bolinma_ru'],
+                'filial' => $r['filial'],
                 'telefon' => $r['telefon'],
                 'rol' => $r['rol'],
                 'locked' => $locked,
@@ -132,10 +142,14 @@ final class AdminController
         $lavozimRu = Validate::str($input, 'lavozimRu', 200);
         $bolinma = Validate::str($input, 'bolinma', 200);
         $bolinmaRu = Validate::str($input, 'bolinmaRu', 200);
+        $filial = Validate::str($input, 'filial', 50);
         $telefon = Validate::str($input, 'telefon', 20);
         $rol = Validate::str($input, 'rol', 20);
         $parol = Validate::str($input, 'parol', 255);
 
+        if ($filial !== '' && !Filials::isValid($filial)) {
+            Response::error("Noto'g'ri filial tanlandi", 'VALIDATION_ERROR', 422);
+        }
         if ($parol !== '' && !Validate::isStrongPassword($parol)) {
             Response::error(Validate::WEAK_PASSWORD_MESSAGE, 'WEAK_PASSWORD', 422);
         }
@@ -149,6 +163,7 @@ final class AdminController
 
         $db = Database::connection();
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
+        Util::ensureSchema($db, self::FILIAL_DDL);
 
         $existingStmt = $db->prepare('SELECT id, rol FROM users WHERE id = :id LIMIT 1');
         $existingStmt->execute(['id' => $id]);
@@ -169,6 +184,7 @@ final class AdminController
             'lavozim_ru' => $lavozimRu !== '' ? $lavozimRu : null,
             'bolinma' => $bolinma !== '' ? $bolinma : null,
             'bolinma_ru' => $bolinmaRu !== '' ? $bolinmaRu : null,
+            'filial' => $filial !== '' ? $filial : null,
             'telefon' => $telefon !== '' ? $telefon : null,
             'rol' => $rol,
         ];
@@ -393,9 +409,10 @@ final class AdminController
     private static function insertUser(\PDO $db, array $payload): int
     {
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
+        Util::ensureSchema($db, self::FILIAL_DDL);
         $stmt = $db->prepare(
-            'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, tugilgan_sana, lavozim, lavozim_ru, bolinma, bolinma_ru, telefon, rol)
-             VALUES (:login, :password_hash, :familiya, :ism, :otasi, :tugilgan_sana, :lavozim, :lavozim_ru, :bolinma, :bolinma_ru, :telefon, :rol)'
+            'INSERT INTO users (login, password_hash, familiya, ism, otasining_ismi, tugilgan_sana, lavozim, lavozim_ru, bolinma, bolinma_ru, filial, telefon, rol)
+             VALUES (:login, :password_hash, :familiya, :ism, :otasi, :tugilgan_sana, :lavozim, :lavozim_ru, :bolinma, :bolinma_ru, :filial, :telefon, :rol)'
         );
         try {
             $stmt->execute($payload);
@@ -412,10 +429,12 @@ final class AdminController
     private static function applyEditPayload(\PDO $db, int $id, array $payload): void
     {
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
+        Util::ensureSchema($db, self::FILIAL_DDL);
         $setSql = 'familiya = :familiya, ism = :ism, otasining_ismi = :otasi,
                     tugilgan_sana = :tugilgan_sana,
                     lavozim = :lavozim, lavozim_ru = :lavozim_ru,
                     bolinma = :bolinma, bolinma_ru = :bolinma_ru,
+                    filial = :filial,
                     telefon = :telefon, rol = :rol';
         $hasPassword = isset($payload['password_hash']);
         if ($hasPassword) {

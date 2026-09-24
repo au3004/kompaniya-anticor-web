@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/api_exception.dart';
+import '../../models/filials.dart';
 import '../../models/roles.dart';
 import '../../services/session_provider.dart';
 import '../../theme.dart';
@@ -132,7 +133,10 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                               child: ListTile(
                                 onTap: canEdit ? () => _openEdit(u) : null,
                                 title: Text('${u['familiya']} ${u['ism']}'),
-                                subtitle: Text('${u['lavozim'] ?? '—'} · ${_roleLabel(u['rol'])}', style: const TextStyle(fontSize: 12)),
+                                subtitle: Text(
+                                  '${u['lavozim'] ?? '—'} · ${Filials.label(u['filial'] as String?)} · ${_roleLabel(u['rol'])}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
                                 leading: CircleAvatar(
                                   backgroundColor: locked ? AppColors.coral.withOpacity(0.15) : AppColors.azure.withOpacity(0.1),
                                   child: Icon(locked ? Icons.lock_outline : Icons.person_outline, color: locked ? AppColors.coral : AppColors.azure, size: 18),

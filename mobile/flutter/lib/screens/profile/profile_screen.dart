@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../api/api_client.dart';
 import '../../api/api_exception.dart';
+import '../../models/filials.dart';
 import '../../services/session_provider.dart';
 import '../../theme.dart';
 import 'sessions_screen.dart';
@@ -113,6 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   _infoRow("Bo'linma", user.bolinma),
+                  _infoRow('Filial', Filials.label(user.filial)),
                   _infoRow('Telefon', user.telefon),
                   _infoRow("Tug'ilgan sana", user.tugilganSana),
                 ],

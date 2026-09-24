@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/api_exception.dart';
+import '../../models/filials.dart';
 import '../../models/roles.dart';
 import '../../services/session_provider.dart';
 import '../../theme.dart';
@@ -32,6 +33,7 @@ class _EmployeeEditSheetState extends State<EmployeeEditSheet> {
   final _lavozimCtrl = TextEditingController();
   final _bolinmaCtrl = TextEditingController();
   final _telefonCtrl = TextEditingController();
+  String? _filial;
   String _rol = Roles.user;
   bool _busy = false;
   String? _error;
@@ -50,6 +52,8 @@ class _EmployeeEditSheetState extends State<EmployeeEditSheet> {
       _lavozimCtrl.text = (e['lavozim'] as String?) ?? '';
       _bolinmaCtrl.text = (e['bolinma'] as String?) ?? '';
       _telefonCtrl.text = (e['telefon'] as String?) ?? '';
+      final filial = e['filial'] as String?;
+      _filial = (filial != null && Filials.all.contains(filial)) ? filial : null;
       _rol = (e['rol'] as String?) ?? Roles.user;
     }
   }
@@ -68,6 +72,7 @@ class _EmployeeEditSheetState extends State<EmployeeEditSheet> {
         'otasi': _otasiCtrl.text.trim(),
         'lavozim': _lavozimCtrl.text.trim(),
         'bolinma': _bolinmaCtrl.text.trim(),
+        'filial': _filial ?? '',
         'telefon': _telefonCtrl.text.trim(),
         'rol': _rol,
         if (_parolCtrl.text.isNotEmpty) 'parol': _parolCtrl.text,
@@ -141,6 +146,16 @@ class _EmployeeEditSheetState extends State<EmployeeEditSheet> {
                 TextFormField(controller: _lavozimCtrl, decoration: const InputDecoration(labelText: 'Lavozim')),
                 const SizedBox(height: 12),
                 TextFormField(controller: _bolinmaCtrl, decoration: const InputDecoration(labelText: "Bo'linma")),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  value: _filial,
+                  decoration: const InputDecoration(labelText: 'Filial'),
+                  items: [
+                    const DropdownMenuItem<String?>(value: null, child: Text('— Tanlanmagan —')),
+                    ...Filials.all.map((f) => DropdownMenuItem<String?>(value: f, child: Text(Filials.labels[f]!))),
+                  ],
+                  onChanged: (v) => setState(() => _filial = v),
+                ),
                 const SizedBox(height: 12),
                 TextFormField(controller: _telefonCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Telefon')),
                 const SizedBox(height: 12),

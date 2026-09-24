@@ -683,7 +683,7 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <h3 data-i18n="hubEmployees">Xodimlar ro'yxati</h3>
         <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
       </button>
-      <button class="hub-card" id="addEmployeeSubCard" onclick="cancelEmployeeEdit(); populateRoleSelect(); openSection('addEmployeeView')" style="display:none;">
+      <button class="hub-card" id="addEmployeeSubCard" onclick="cancelEmployeeEdit(); populateRoleSelect(); populateFilialSelect(); openSection('addEmployeeView')" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
         <h3 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h3>
         <p data-i18n="hubAddEmployeeDesc">Tizimga yangi xodim yoki administrator qo'shish</p>
@@ -714,11 +714,11 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
           <tr>
             <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
             <th data-i18n="thTugilganSana">Tug'ilgan sana</th>
-            <th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th><th data-i18n="thPhone">Telefon</th>
+            <th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th><th data-i18n="thFilial">Filial</th><th data-i18n="thPhone">Telefon</th>
             <th style="width:90px;" data-i18n="thAmal">Amal</th>
           </tr>
         </thead>
-        <tbody id="empTbody"><tr><td colspan="7" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        <tbody id="empTbody"><tr><td colspan="8" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -752,6 +752,10 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <div class="field"><label data-i18n="empLavozimRuLabel">Lavozim (Rus)</label><input type="text" id="eLavozimRu"></div>
         <div class="field"><label data-i18n="empBolinmaLabel">Bo'linma (O'zbek)</label><input type="text" id="eBolinma"></div>
         <div class="field"><label data-i18n="empBolinmaRuLabel">Bo'linma (Rus)</label><input type="text" id="eBolinmaRu"></div>
+        <div class="field">
+          <label data-i18n="empFilialLabel">Filial</label>
+          <select id="eFilial"></select>
+        </div>
         <div class="field"><label data-i18n="thPhone">Telefon</label><input type="text" id="eTelefon"></div>
         <div class="field">
           <label data-i18n="thRol">Rol</label>
@@ -1517,6 +1521,16 @@ const dict = {
     empTugilganSanaLabel:"Tug'ilgan sana", thTugilganSana:"Tug'ilgan sana",
     empLavozimLabel:"Lavozim (O'zbek)", empLavozimRuLabel:"Lavozim (Rus)",
     empBolinmaLabel:"Bo'linma (O'zbek)", empBolinmaRuLabel:"Bo'linma (Rus)",
+    empFilialLabel:"Filial", thFilial:"Filial", filialNoneOpt:"— Tanlanmagan —",
+    filial_ijroiya_apparati:"Ijroiya apparati",
+    filial_markaziy:"Markaziy filial",
+    filial_shimoliy:"Shimoliy filial",
+    filial_sharqiy:"Sharqiy filial",
+    filial_janubiy:"Janubiy filial",
+    filial_garbiy:"G'arbiy filial",
+    filial_janubi_garbiy:"Janubi-G'arbiy filial",
+    filial_texnik:"Ixtisoslashtirilgan texnik filial",
+    filial_tms_hub:"\"TMS Hub\" filiali",
     hubAddEmployee:"Yangi xodim qo'shish", hubAddEmployeeDesc:"Tizimga yangi xodim yoki administrator qo'shish",
     empFormEdit:"Xodimni tahrirlash", empPassEditHint:"Bo'sh qoldirsangiz, parol o'zgarmaydi",
     confirmDeleteEmployee:"Ushbu xodimni butunlay o'chirmoqchimisiz? Uning barcha tarixi (test, hujjat, so'rovnoma) ham o'chadi.",
@@ -1618,6 +1632,16 @@ const dict = {
     empTugilganSanaLabel:"Дата рождения", thTugilganSana:"Дата рождения",
     empLavozimLabel:"Должность (узб.)", empLavozimRuLabel:"Должность (рус.)",
     empBolinmaLabel:"Подразделение (узб.)", empBolinmaRuLabel:"Подразделение (рус.)",
+    empFilialLabel:"Филиал", thFilial:"Филиал", filialNoneOpt:"— Не выбрано —",
+    filial_ijroiya_apparati:"Исполнительный аппарат",
+    filial_markaziy:"Центральный филиал",
+    filial_shimoliy:"Северный филиал",
+    filial_sharqiy:"Восточный филиал",
+    filial_janubiy:"Южный филиал",
+    filial_garbiy:"Западный филиал",
+    filial_janubi_garbiy:"Юго-Западный филиал",
+    filial_texnik:"Специализированный технический филиал",
+    filial_tms_hub:"филиал «TMS Hub»",
     hubAddEmployee:"Добавить сотрудника", hubAddEmployeeDesc:"Добавить нового сотрудника или администратора",
     empFormEdit:"Редактировать сотрудника", empPassEditHint:"Если оставить пустым, пароль не изменится",
     confirmDeleteEmployee:"Удалить этого сотрудника навсегда? Вся его история (тест, документы, уведомления) также будет удалена.",
@@ -1757,10 +1781,10 @@ async function exportUsersReport(){
   try{
     const data = await apiCall({ action:'getUsersReport', token: currentUserForKpi.token });
     if(!data.success) return alert(dict[currentLang].savedErr);
-    const rows = [['ID','Login','Parol','Familiya','Ism',"Otasining ismi","Tug'ilgan sana",'Lavozim',"Bo'linma",'Telefon','Lavozim RU',"Bo'linma RU",'Rol',"Hujjatlar bilan tanishgan","Test topshirgan"]];
+    const rows = [['ID','Login','Parol','Familiya','Ism',"Otasining ismi","Tug'ilgan sana",'Lavozim',"Bo'linma",'Filial','Telefon','Lavozim RU',"Bo'linma RU",'Rol',"Hujjatlar bilan tanishgan","Test topshirgan"]];
     data.users.forEach(u => {
       rows.push([
-        u.id, u.login, '', u.familiya, u.ism, u.otasi || '', formatBirthDate(u.tugilganSana), u.lavozim || '', u.bolinma || '',
+        u.id, u.login, '', u.familiya, u.ism, u.otasi || '', formatBirthDate(u.tugilganSana), u.lavozim || '', u.bolinma || '', filialLabel(u.filial),
         u.telefon || '', u.lavozimRu || '', u.bolinmaRu || '', u.rol,
         u.hujjatTanishgan ? 'Ha' : "Yo'q", u.testTopshirgan ? 'Ha' : "Yo'q"
       ]);
@@ -2319,7 +2343,7 @@ function renderUsersTable(){
     const editBtn = canEditEmp ? `<button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>` : '';
     const deleteBtn = canDeleteEmp ? `<button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>` : '';
     const actions = (unlockBtn || editBtn || deleteBtn) ? `<div class="row-actions">${unlockBtn}${editBtn}${deleteBtn}</div>` : '—';
-    return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}${lockedBadge}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
+    return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}${lockedBadge}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(filialLabel(u.filial))}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
   }).join('');
 }
 
@@ -2342,6 +2366,20 @@ function populateRoleSelect(currentValue){
   sel.disabled = false;
 }
 
+// backend/src/Filials.php bilan bir xil belgilangan ro'yxat (erkin matn emas — tanlov orqali).
+const FILIALS = ['ijroiya_apparati','markaziy','shimoliy','sharqiy','janubiy','garbiy','janubi_garbiy','texnik','tms_hub'];
+
+function filialLabel(f){
+  return f ? (dict[currentLang]['filial_' + f] || f) : '—';
+}
+
+function populateFilialSelect(currentValue){
+  const sel = document.getElementById('eFilial');
+  sel.innerHTML = `<option value="">${escapeHtml(dict[currentLang].filialNoneOpt)}</option>` +
+    FILIALS.map(f => `<option value="${f}">${escapeHtml(dict[currentLang]['filial_' + f])}</option>`).join('');
+  sel.value = (currentValue && FILIALS.includes(currentValue)) ? currentValue : '';
+}
+
 function startEditEmployee(id){
   const u = usersData.find(x => String(x.id) === String(id));
   if(!u) return;
@@ -2359,6 +2397,7 @@ function startEditEmployee(id){
   document.getElementById('eLavozimRu').value = u.lavozimRu || '';
   document.getElementById('eBolinma').value = u.bolinma || '';
   document.getElementById('eBolinmaRu').value = u.bolinmaRu || '';
+  populateFilialSelect(u.filial || '');
   document.getElementById('eTelefon').value = u.telefon || '';
   populateRoleSelect(u.rol || 'user');
   document.getElementById('empFormEyebrow').textContent = dict[currentLang].empFormEdit;
@@ -2451,6 +2490,7 @@ async function submitEmployeeForm(e){
     lavozimRu: document.getElementById('eLavozimRu').value.trim(),
     bolinma: document.getElementById('eBolinma').value.trim(),
     bolinmaRu: document.getElementById('eBolinmaRu').value.trim(),
+    filial: document.getElementById('eFilial').value,
     telefon: document.getElementById('eTelefon').value.trim(),
     rol: document.getElementById('eRol').value
   };

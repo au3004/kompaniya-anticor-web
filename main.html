@@ -849,6 +849,7 @@ body{
           <tr><td data-i18n="thBirthDate">Tug'ilgan sana</td><td id="hrInfoBirth">—</td></tr>
           <tr><td data-i18n="posLabel">Lavozim</td><td id="hrInfoPos">—</td></tr>
           <tr><td data-i18n="deptLabel">Bo'linma</td><td id="hrInfoDept">—</td></tr>
+          <tr><td data-i18n="filialLbl">Filial</td><td id="hrInfoFilial">—</td></tr>
           <tr><td data-i18n="phoneLabel">Telefon</td><td id="hrInfoPhone">—</td></tr>
         </table>
       </div>
@@ -1062,6 +1063,7 @@ body{
     <div class="info-row"><span class="label" data-i18n="fishLabel">F.I.Sh</span><span class="val" id="infoFish">—</span></div>
     <div class="info-row"><span class="label" data-i18n="posLabel">Lavozim</span><span class="val" id="infoPos">—</span></div>
     <div class="info-row"><span class="label" data-i18n="deptLabel">Bo'linma</span><span class="val" id="infoDept">—</span></div>
+    <div class="info-row"><span class="label" data-i18n="filialLbl">Filial</span><span class="val" id="infoFilial">—</span></div>
     <div class="info-row"><span class="label" data-i18n="phoneLabel">Telefon</span><span class="val" id="infoPhone">—</span></div>
   </div>
 </div>
@@ -1201,7 +1203,16 @@ const dict = {
     docLabel:"Ichki normativ hujjatlar bilan tanishgan", testLabel:"Test natijasi",
     declLabel:"Deklaratsiya to'ldirilgan",
     oldPassLabel:"Eski parol", newPassLabel:"Yangi parol", confirmPassLabel:"Yangi parolni tasdiqlash",
-    saveBtn:"Saqlash", fishLabel:"F.I.Sh", posLabel:"Lavozim", deptLabel:"Bo'linma", phoneLabel:"Telefon",
+    saveBtn:"Saqlash", fishLabel:"F.I.Sh", posLabel:"Lavozim", deptLabel:"Bo'linma", filialLbl:"Filial", phoneLabel:"Telefon",
+    filial_ijroiya_apparati:"Ijroiya apparati",
+    filial_markaziy:"Markaziy filial",
+    filial_shimoliy:"Shimoliy filial",
+    filial_sharqiy:"Sharqiy filial",
+    filial_janubiy:"Janubiy filial",
+    filial_garbiy:"G'arbiy filial",
+    filial_janubi_garbiy:"Janubi-G'arbiy filial",
+    filial_texnik:"Ixtisoslashtirilgan texnik filial",
+    filial_tms_hub:"\"TMS Hub\" filiali",
     menuLogout:"Chiqish", changePassMenu:"Parolni almashtirish", backLabel:"Orqaga",
     yes:"Ha", no:"Yo'q", mismatchErr:"Yangi parollar mos kelmadi", oldWrongErr:"Eski parol noto'g'ri",
     weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
@@ -1251,7 +1262,16 @@ const dict = {
     docLabel:"Ознакомлен с внутренними документами", testLabel:"Результат теста",
     declLabel:"Декларация заполнена",
     oldPassLabel:"Старый пароль", newPassLabel:"Новый пароль", confirmPassLabel:"Подтвердите новый пароль",
-    saveBtn:"Сохранить", fishLabel:"ФИО", posLabel:"Должность", deptLabel:"Подразделение", phoneLabel:"Телефон",
+    saveBtn:"Сохранить", fishLabel:"ФИО", posLabel:"Должность", deptLabel:"Подразделение", filialLbl:"Филиал", phoneLabel:"Телефон",
+    filial_ijroiya_apparati:"Исполнительный аппарат",
+    filial_markaziy:"Центральный филиал",
+    filial_shimoliy:"Северный филиал",
+    filial_sharqiy:"Восточный филиал",
+    filial_janubiy:"Южный филиал",
+    filial_garbiy:"Западный филиал",
+    filial_janubi_garbiy:"Юго-Западный филиал",
+    filial_texnik:"Специализированный технический филиал",
+    filial_tms_hub:"филиал «TMS Hub»",
     menuLogout:"Выйти", changePassMenu:"Изменить пароль", backLabel:"Назад",
     yes:"Да", no:"Нет", mismatchErr:"Новые пароли не совпадают", oldWrongErr:"Старый пароль неверен",
     weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
@@ -1368,6 +1388,11 @@ async function renderInfoLang(){
   const dept = currentLang === 'ru' ? (currentUser.bolinmaRu || currentUser.bolinma) : currentUser.bolinma;
   document.getElementById('infoPos').textContent = pos || '—';
   document.getElementById('infoDept').textContent = dept || '—';
+  document.getElementById('infoFilial').textContent = filialLabel(currentUser.filial);
+}
+
+function filialLabel(f){
+  return f ? (dict[currentLang]['filial_' + f] || f) : '—';
 }
 
 /* ---------- Dropdown & modals ---------- */
@@ -1592,6 +1617,7 @@ function renderHrInfo(){
   document.getElementById('hrInfoBirth').textContent = formatBirthDate(currentUser.tugilganSana) || '—';
   document.getElementById('hrInfoPos').textContent = currentUser.lavozim || '—';
   document.getElementById('hrInfoDept').textContent = currentUser.bolinma || '—';
+  document.getElementById('hrInfoFilial').textContent = filialLabel(currentUser.filial);
   document.getElementById('hrInfoPhone').textContent = currentUser.telefon || '—';
 
   const fullName = [currentUser.familiya, currentUser.ism].filter(Boolean).join(' ') || currentUser.login;

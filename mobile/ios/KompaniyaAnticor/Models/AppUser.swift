@@ -8,6 +8,7 @@ struct AppUser {
     let tugilganSana: String?
     let lavozim: String?
     let bolinma: String?
+    let filial: String?
     let telefon: String?
     let rasm: String?
     let rol: String
@@ -25,6 +26,7 @@ struct AppUser {
         self.tugilganSana = json.str("tugilganSana")
         self.lavozim = json.str("lavozim")
         self.bolinma = json.str("bolinma")
+        self.filial = json.str("filial")
         self.telefon = json.str("telefon")
         self.rasm = json.str("rasm")
         self.rol = json.str("rol") ?? Roles.user

@@ -37,7 +37,7 @@ struct EmployeesView: View {
                             .overlay(Image(systemName: locked ? "lock" : "person").font(.caption).foregroundColor(locked ? AppColors.coral : AppColors.azure))
                         VStack(alignment: .leading, spacing: 2) {
                             Text("\(u.str("familiya") ?? "") \(u.str("ism") ?? "")").font(.subheadline.weight(.semibold))
-                            Text("\(u.str("lavozim") ?? "—") · \(Roles.label(u.str("rol")))").font(.caption).foregroundColor(AppColors.textDim)
+                            Text("\(u.str("lavozim") ?? "—") · \(Filials.label(u.str("filial"))) · \(Roles.label(u.str("rol")))").font(.caption).foregroundColor(AppColors.textDim)
                         }
                         Spacer()
                         Menu {

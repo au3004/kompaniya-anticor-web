@@ -18,6 +18,7 @@ use App\Validate;
 final class ReportsController
 {
     private const TUGILGAN_SANA_DDL = "ALTER TABLE users ADD COLUMN IF NOT EXISTS tugilgan_sana DATE AFTER otasining_ismi";
+    private const FILIAL_DDL = "ALTER TABLE users ADD COLUMN IF NOT EXISTS filial VARCHAR(50) AFTER bolinma_ru";
 
     public static function getUsersReport(array $input): void
     {
@@ -25,6 +26,7 @@ final class ReportsController
 
         $db = Database::connection();
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
+        Util::ensureSchema($db, self::FILIAL_DDL);
         $stmt = $db->prepare(
             "SELECT u.*,
                 EXISTS(SELECT 1 FROM doc_reads d WHERE d.user_id = u.id) AS has_docs,
@@ -52,6 +54,7 @@ final class ReportsController
             'lavozimRu' => $r['lavozim_ru'],
             'bolinma' => $r['bolinma'],
             'bolinmaRu' => $r['bolinma_ru'],
+            'filial' => $r['filial'] ?? null,
             'telefon' => $r['telefon'],
             'rol' => $r['rol'],
                 'hujjatTanishgan' => (bool) $r['has_docs'],

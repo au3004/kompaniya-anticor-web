@@ -16,6 +16,7 @@ struct EmployeeEditView: View {
     @State private var otasi = ""
     @State private var lavozim = ""
     @State private var bolinma = ""
+    @State private var filial = ""
     @State private var telefon = ""
     @State private var rol = Roles.user
     @State private var busy = false
@@ -41,6 +42,16 @@ struct EmployeeEditView: View {
                     TextField("Lavozim", text: $lavozim)
                     TextField("Bo'linma", text: $bolinma)
                     TextField("Telefon", text: $telefon).keyboardType(.phonePad)
+                }
+                Section("Filial") {
+                    Picker("Filial", selection: $filial) {
+                        Text("— Tanlanmagan —").tag("")
+                        ForEach(Filials.all, id: \.self) { f in
+                            Text(Filials.label(f)).tag(f)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
                 }
                 Section("Rol") {
                     Picker("Rol", selection: $rol) {
@@ -79,6 +90,8 @@ struct EmployeeEditView: View {
         otasi = e.str("otasi") ?? ""
         lavozim = e.str("lavozim") ?? ""
         bolinma = e.str("bolinma") ?? ""
+        let f = e.str("filial") ?? ""
+        filial = Filials.all.contains(f) ? f : ""
         telefon = e.str("telefon") ?? ""
         rol = e.str("rol") ?? Roles.user
     }
@@ -89,7 +102,7 @@ struct EmployeeEditView: View {
         Task {
             var params: [String: Any] = [
                 "familiya": familiya, "ism": ism, "otasi": otasi,
-                "lavozim": lavozim, "bolinma": bolinma, "telefon": telefon, "rol": rol,
+                "lavozim": lavozim, "bolinma": bolinma, "filial": filial, "telefon": telefon, "rol": rol,
             ]
             if !parol.isEmpty { params["parol"] = parol }
             do {

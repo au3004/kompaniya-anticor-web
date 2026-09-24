@@ -6,6 +6,7 @@ class AppUser {
   final String? tugilganSana;
   final String? lavozim;
   final String? bolinma;
+  final String? filial;
   final String? telefon;
   final String? rasm;
   final String rol;
@@ -18,6 +19,7 @@ class AppUser {
     this.tugilganSana,
     this.lavozim,
     this.bolinma,
+    this.filial,
     this.telefon,
     this.rasm,
     required this.rol,
@@ -34,6 +36,7 @@ class AppUser {
       tugilganSana: json['tugilganSana'] as String?,
       lavozim: json['lavozim'] as String?,
       bolinma: json['bolinma'] as String?,
+      filial: json['filial'] as String?,
       telefon: json['telefon'] as String?,
       rasm: json['rasm'] as String?,
       rol: (json['rol'] as String?) ?? 'user',

@@ -57,6 +57,8 @@ struct ProfileView: View {
                 VStack(spacing: 0) {
                     infoRow("Bo'linma", user?.bolinma)
                     Divider()
+                    infoRow("Filial", Filials.label(user?.filial))
+                    Divider()
                     infoRow("Telefon", user?.telefon)
                     Divider()
                     infoRow("Tug'ilgan sana", user?.tugilganSana)
