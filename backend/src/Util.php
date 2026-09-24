@@ -111,4 +111,37 @@ final class Util
             // pastda o'zining aniq DB xatoligini beradi.
         }
     }
+
+    /**
+     * "hr-admin", "hr", "rahbariyat" va "xarid" rollari olib tashlangan —
+     * ularning barcha vakolati anticor-adminga o'tkazilgan. Eski
+     * o'rnatishlarda bu rollardagi mavjud xodimlarni bir martalik
+     * anticor-adminga ko'chiradi, so'ng ENUM'ni qisqartiradi va endi
+     * ishlatilmaydigan "kelishuv (approval)" jadvallarini o'chiradi. Har
+     * ulanishda arzon SHOW COLUMNS bilan tekshiriladi, faqat kerak
+     * bo'lgandagina haqiqiy UPDATE/ALTER/DROP ishga tushadi.
+     */
+    public static function ensureRoleCleanup(\PDO $db): void
+    {
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM users LIKE 'rol'");
+            $col = $stmt->fetch();
+            if ($col && !str_contains((string) $col['Type'], "'hr-admin'")) {
+                return;
+            }
+            $db->exec(
+                "UPDATE users SET rol = 'anticor-admin' WHERE rol IN ('hr-admin','hr','rahbariyat','xarid')"
+            );
+            $db->exec(
+                "ALTER TABLE users MODIFY COLUMN rol " .
+                "ENUM('user','anticor-admin','anticor','super-admin') " .
+                "NOT NULL DEFAULT 'user'"
+            );
+            $db->exec('DROP TABLE IF EXISTS employee_pending_approvals');
+            $db->exec('DROP TABLE IF EXISTS employee_pending_requests');
+        } catch (\Throwable $e) {
+            // Best-effort — bajarilmasa, eski rollar bilan bog'liq amal
+            // pastda o'zining aniq DB xatoligini beradi.
+        }
+    }
 }

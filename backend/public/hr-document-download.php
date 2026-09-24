@@ -4,7 +4,7 @@ declare(strict_types=1);
 // Xodim Inson resurslari bo'limi orqali yuborgan shaxsiy hujjatni (PDF)
 // yuklab beradi. JSON action-dispatch API'dan tashqarida turadi (fayl
 // oqimini to'g'ridan-to'g'ri yuborish uchun) — lekin xuddi shunday HttpOnly
-// sessiya cookie orqali avtorizatsiya qilinadi, faqat hr-admin/hr
+// sessiya cookie orqali avtorizatsiya qilinadi, faqat anticor-admin
 // (+super-admin) — bular shaxsiy hujjatlar, ochiq emas.
 
 ini_set('display_errors', '0');

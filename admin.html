@@ -599,12 +599,6 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <h3 data-i18n="hubNotif">Xabarnoma yuborish</h3>
         <p data-i18n="hubNotifDesc">Xodimlarga xabarnoma yuborish va hisobot</p>
       </button>
-      <button class="hub-card" id="approvalsCard" onclick="openSection('approvalsView'); loadPendingRequests();" style="display:none; position:relative;">
-        <span id="approvalsBadge" style="display:none; position:absolute; top:16px; right:16px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:11px; font-weight:700; line-height:17px; text-align:center;"></span>
-        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-        <h3 data-i18n="hubApprovals">Tasdiqlash so'rovlari</h3>
-        <p data-i18n="hubApprovalsDesc">Yuqori rol berilishi kutilayotgan so'rovlar</p>
-      </button>
       <button class="hub-card" id="supportCard" onclick="openSection('supportView'); loadSupportRequests();" style="display:none;">
         <span id="supportBadge" style="display:none; position:absolute; top:16px; right:16px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:11px; font-weight:700; line-height:17px; text-align:center;"></span>
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg></div>
@@ -797,7 +791,7 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
     </div>
   </div>
 
-  <!-- Reyestrga kiritish (faqat xarid/super-admin) -->
+  <!-- Reyestrga kiritish (faqat anticor-admin/super-admin) -->
   <div id="purchaseEntryView" style="display:none;">
     <div class="page-head">
       <div>
@@ -834,7 +828,7 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
     </div>
   </div>
 
-  <!-- Xaridlar reyestri (xarid/anticor-admin/super-admin) -->
+  <!-- Xaridlar reyestri (anticor-admin/super-admin) -->
   <div id="purchasesRegistryView" style="display:none;">
     <div class="page-head">
       <div>
@@ -1199,36 +1193,6 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
     </div>
   </div>
 
-  <div id="approvalsView" style="display:none;">
-    <div class="page-head">
-      <div>
-        <div class="eyebrow" data-i18n="hubApprovals">Tasdiqlash so'rovlari</div>
-        <h1 data-i18n="hubApprovals">Tasdiqlash so'rovlari</h1>
-      </div>
-      <button class="back-btn" onclick="openSection('hubView')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
-        <span data-i18n="backBtn">Ortga</span>
-      </button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th data-i18n="thSana">Sana</th>
-            <th data-i18n="thApprovalType">Turi</th>
-            <th data-i18n="thFish">F.I.Sh</th>
-            <th data-i18n="thApprovalRole">So'ralgan rol</th>
-            <th data-i18n="approvalRequestedBy">Yubordi</th>
-            <th data-i18n="thApprovalVotes">Tasdiqlar</th>
-            <th data-i18n="thApprovalStatus">Holat</th>
-            <th style="width:150px;" data-i18n="thAmal">Amal</th>
-          </tr>
-        </thead>
-        <tbody id="approvalsTbody"><tr><td colspan="8" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
   <div id="supportView" style="display:none;">
     <div class="page-head">
       <div>
@@ -1558,17 +1522,8 @@ const dict = {
     confirmDeleteEmployee:"Ushbu xodimni butunlay o'chirmoqchimisiz? Uning barcha tarixi (test, hujjat, so'rovnoma) ham o'chadi.",
     cannotDeleteSelfErr:"O'zingizni o'chira olmaysiz", lastGlAdminErr:"Tizimda kamida bitta bosh administrator qolishi shart",
     role_user:"Xodim", role_anticor_admin:"Anticor — Admin", role_anticor:"Anticor",
-    role_hr_admin:"HR — Admin", role_hr:"HR", role_rahbariyat:"Rahbariyat", role_super_admin:"Super-admin",
-    role_xarid:"Xarid",
+    role_super_admin:"Super-admin",
     empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Ushbu login band, iltimos qayta kiriting",
-    empPendingApproval:"Yuborildi — rahbariyat va anticor-admin tasdig'ini kutmoqda",
-    hubApprovals:"Tasdiqlash so'rovlari", hubApprovalsDesc:"Yuqori rol berilishi kutilayotgan so'rovlar",
-    approvalsTitle:"Tasdiqlash so'rovlari", approvalsEmpty:"Kutilayotgan so'rovlar yo'q",
-    approvalTypeAdd:"Yangi xodim", approvalTypeEdit:"Rol o'zgartirish", approvalRequestedBy:"Yubordi",
-    approvalStatusPending:"Kutilmoqda", approvalStatusApproved:"Tasdiqlangan", approvalStatusRejected:"Rad etilgan",
-    approvalApproveBtn:"Tasdiqlash", approvalRejectBtn:"Rad etish", approvalConfirmReject:"Bu so'rovni rad etasizmi?",
-    approvalDecidedOk:"Qaror qabul qilindi ✓", approvalMyRequestsTitle:"Mening so'rovlarim",
-    thApprovalType:"Turi", thApprovalRole:"So'ralgan rol", thApprovalStatus:"Holat", thApprovalVotes:"Tasdiqlar",
     weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
     pwnedPasswordErr:"Bu parol avval ma'lumotlar sizib chiqishlarida uchragan. Iltimos boshqa parol tanlang.",
     passwordPolicyHint:"Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)",
@@ -1668,17 +1623,8 @@ const dict = {
     confirmDeleteEmployee:"Удалить этого сотрудника навсегда? Вся его история (тест, документы, уведомления) также будет удалена.",
     cannotDeleteSelfErr:"Вы не можете удалить себя", lastGlAdminErr:"В системе должен остаться хотя бы один главный администратор",
     role_user:"Сотрудник", role_anticor_admin:"Антикор — Админ", role_anticor:"Антикор",
-    role_hr_admin:"HR — Админ", role_hr:"HR", role_rahbariyat:"Руководство", role_super_admin:"Супер-админ",
-    role_xarid:"Закупки",
+    role_super_admin:"Супер-админ",
     empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, пожалуйста, введите другой",
-    empPendingApproval:"Отправлено — ожидает подтверждения руководства и anticor-admin",
-    hubApprovals:"Заявки на утверждение", hubApprovalsDesc:"Заявки на присвоение более высокой роли",
-    approvalsTitle:"Заявки на утверждение", approvalsEmpty:"Нет ожидающих заявок",
-    approvalTypeAdd:"Новый сотрудник", approvalTypeEdit:"Изменение роли", approvalRequestedBy:"Отправил",
-    approvalStatusPending:"Ожидает", approvalStatusApproved:"Одобрено", approvalStatusRejected:"Отклонено",
-    approvalApproveBtn:"Одобрить", approvalRejectBtn:"Отклонить", approvalConfirmReject:"Отклонить эту заявку?",
-    approvalDecidedOk:"Решение принято ✓", approvalMyRequestsTitle:"Мои заявки",
-    thApprovalType:"Тип", thApprovalRole:"Запрошенная роль", thApprovalStatus:"Статус", thApprovalVotes:"Подтверждения",
     weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
     pwnedPasswordErr:"Этот пароль ранее встречался в утечках данных. Пожалуйста, выберите другой пароль.",
     passwordPolicyHint:"Минимум 8 символов: заглавная, строчная буква, цифра и спецсимвол (например !@#$%)",
@@ -2380,22 +2326,20 @@ function renderUsersTable(){
 /**
  * Rol tanlash ro'yxatini chaqiruvchining huquq darajasiga qarab quradi:
  * super-admin barcha rollarni, jumladan super-admin'ning o'zini ham
- * (rolni topshirish/transfer uchun) beradi; hr-admin — super-admin'dan
+ * (rolni topshirish/transfer uchun) beradi; anticor-admin — super-admin'dan
  * BOSHQA barcha rolni beradi (backend/src/Controllers/AdminController.php
  * allowedRolesFor() bilan bir xil mantiq) — super-admin varianti hech
- * qachon ko'rsatilmaydi. "hr" esa rolni umuman o'zgartira olmaydi, shu
- * sabab select cheklangan (disabled) ko'rsatiladi — faqat mavjud qiymatni
- * ko'rsatib turadi.
+ * qachon ko'rsatilmaydi.
  */
 function populateRoleSelect(currentValue){
   const rol = currentUserForKpi && currentUserForKpi.rol;
-  const withSuper = ['user','anticor-admin','anticor','hr-admin','hr','rahbariyat','xarid','super-admin'];
-  const withoutSuper = ['user','anticor-admin','anticor','hr-admin','hr','rahbariyat','xarid'];
+  const withSuper = ['user','anticor-admin','anticor','super-admin'];
+  const withoutSuper = ['user','anticor-admin','anticor'];
   const options = rol === 'super-admin' ? withSuper : withoutSuper;
   const sel = document.getElementById('eRol');
   sel.innerHTML = options.map(r => `<option value="${r}">${escapeHtml(dict[currentLang]['role_' + r.replace(/-/g,'_')] || r)}</option>`).join('');
   if(currentValue && options.includes(currentValue)) sel.value = currentValue;
-  sel.disabled = (rol === 'hr');
+  sel.disabled = false;
 }
 
 function startEditEmployee(id){
@@ -2515,12 +2459,7 @@ async function submitEmployeeForm(e){
   try{
     const data = await apiCall(payload);
     btn.disabled = false;
-    if(data.success && data.pending){
-      cancelEmployeeEdit();
-      msg.textContent = dict[currentLang].empPendingApproval; msg.classList.add('ok');
-      loadUsersList(currentUserForKpi);
-      if(typeof loadPendingRequests === 'function') loadPendingRequests();
-    } else if(data.success){
+    if(data.success){
       cancelEmployeeEdit();
       msg.textContent = dict[currentLang].empSavedOk; msg.classList.add('ok');
       loadUsersList(currentUserForKpi);
@@ -3564,83 +3503,6 @@ ${bodyHtml}
   win.document.close();
 }
 
-/* ---------- Kelishuv (approval) so'rovlari ---------- */
-let approvalsData = [];
-
-function roleLabel(r){
-  return r ? (dict[currentLang]['role_' + String(r).replace(/-/g,'_')] || r) : '—';
-}
-
-async function loadPendingRequests(){
-  const tbody = document.getElementById('approvalsTbody');
-  try{
-    const data = await apiCall({ action:'getPendingEmployeeRequests', token: currentUserForKpi.token });
-    if(data.success){ approvalsData = data.requests; renderApprovalsTable(); updateApprovalsBadge(); }
-    else if(tbody) tbody.innerHTML = `<tr><td colspan="8" class="loading-row">Xatolik</td></tr>`;
-  } catch(ex){
-    if(tbody) tbody.innerHTML = `<tr><td colspan="8" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
-  }
-}
-
-function renderApprovalsTable(){
-  const tbody = document.getElementById('approvalsTbody');
-  if(!tbody) return;
-  if(!approvalsData || approvalsData.length === 0){
-    tbody.innerHTML = `<tr><td colspan="8" class="loading-row">${dict[currentLang].approvalsEmpty}</td></tr>`;
-    return;
-  }
-  const rol = currentUserForKpi && currentUserForKpi.rol;
-  const isApprover = REQUEST_APPROVE.includes(rol);
-  tbody.innerHTML = approvalsData.map(r => {
-    const typeLabel = r.type === 'add' ? dict[currentLang].approvalTypeAdd : dict[currentLang].approvalTypeEdit;
-    const statusKey = r.status === 'approved' ? 'approvalStatusApproved' : (r.status === 'rejected' ? 'approvalStatusRejected' : 'approvalStatusPending');
-    const statusClass = r.status === 'approved' ? 'ok' : (r.status === 'rejected' ? 'no' : '');
-    const votesHtml = (r.approvals || []).map(a => {
-      const mark = a.decision === 'approved' ? '✓' : '✗';
-      return `${escapeHtml(roleLabel(a.rol))}: ${mark} ${escapeHtml(a.fish)}`;
-    }).join('<br>') || '—';
-    const actions = (isApprover && r.status === 'pending')
-      ? `<button type="button" class="icon-btn" title="${dict[currentLang].approvalApproveBtn}" onclick="decideRequestRow(${r.id},'approved')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M20 6L9 17l-5-5"/></svg></button>
-         <button type="button" class="icon-btn danger" title="${dict[currentLang].approvalRejectBtn}" onclick="decideRequestRow(${r.id},'rejected')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`
-      : '—';
-    return `<tr>
-      <td>${escapeHtml(r.sana)}</td>
-      <td>${escapeHtml(typeLabel)}</td>
-      <td>${escapeHtml(r.fish)}</td>
-      <td>${escapeHtml(roleLabel(r.rol))}</td>
-      <td>${escapeHtml(r.requestedByFish)}</td>
-      <td>${votesHtml}</td>
-      <td><span class="badge ${statusClass}">${dict[currentLang][statusKey]}</span></td>
-      <td><div class="row-actions">${actions}</div></td>
-    </tr>`;
-  }).join('');
-}
-
-function updateApprovalsBadge(){
-  const badge = document.getElementById('approvalsBadge');
-  if(!badge) return;
-  const rol = currentUserForKpi && currentUserForKpi.rol;
-  const isApprover = REQUEST_APPROVE.includes(rol);
-  const count = isApprover ? approvalsData.filter(r => r.status === 'pending').length : 0;
-  badge.textContent = String(count);
-  badge.style.display = count > 0 ? 'flex' : 'none';
-  badge.style.alignItems = 'center';
-  badge.style.justifyContent = 'center';
-}
-
-async function decideRequestRow(id, decision){
-  if(decision === 'rejected' && !confirm(dict[currentLang].approvalConfirmReject)) return;
-  try{
-    const data = await apiCall({ action:'decidePendingEmployeeRequest', token: currentUserForKpi.token, requestId: id, decision });
-    if(data.success){
-      loadPendingRequests();
-      if(data.status === 'approved') loadUsersList(currentUserForKpi);
-    } else {
-      alert(dict[currentLang].savedErr + (data.message ? ': ' + data.message : ''));
-    }
-  } catch(ex){ alert('Xatolik: ' + ex.message); }
-}
-
 async function loadSupportRequests(){
   const tbody = document.getElementById('supportTbody');
   try{
@@ -3777,27 +3639,20 @@ async function saveSupportComment(){
 
 /* ===== Rol guruhlari (backend/src/Roles.php bilan bir xil mantiq) =====
    anticor-admin/anticor/super-admin — "Korrupsiyaga qarshi kurashish";
-   hr-admin/hr/rahbariyat/super-admin — "Xodimlar" (faqat ko'rish);
-   hr-admin/super-admin — xodim qo'shish/o'chirish + rolni istalgancha
-   o'zgartirish; hr-admin/hr/super-admin — mavjud xodim ma'lumotlarini
-   (F.I.Sh, telefon va h.k.) tahrirlash — "hr" rolni o'zgartira olmaydi;
+   anticor-admin/super-admin — "Xodimlar" (ko'rish + qo'shish/o'chirish +
+   rolni istalgancha o'zgartirish + ma'lumotlarini tahrirlash);
    anticor-admin/super-admin — Anticor tarkibini boshqarish (test/hujjat/
    so'rovnoma savoli qo'shish-o'chirish, zaxira nusxa — parol hash'lari
    bor bo'lgani uchun bu ham shu (qat'iyroq) darajaga tegishli). */
 const ANTICOR_VIEW = ['anticor-admin', 'anticor', 'super-admin'];
 const ANTICOR_MANAGE = ['anticor-admin', 'super-admin'];
-const HR_VIEW = ['hr-admin', 'hr', 'rahbariyat', 'super-admin'];
-const HR_MANAGE = ['hr-admin', 'super-admin'];
-const HR_EDIT = ['hr-admin', 'hr', 'super-admin'];
-const NOTIFY_SEND = ['anticor-admin', 'anticor', 'hr-admin', 'hr', 'rahbariyat', 'super-admin'];
-// hr-admin xodimga "user"dan boshqa rol berayotganda kelishuv so'rovi yaratadi —
-// shu so'rovlarni ko'ra/tasdiqlay oladigan rollar (rahbariyat + anticor-admin,
-// ikkalasi ham kerak — super-admin esa yakka o'zi zaxira huquq sifatida).
-const REQUEST_APPROVE = ['anticor-admin', 'rahbariyat', 'super-admin'];
-// Xaridlar reyestri: xarid rolidagilar ko'radi/kirita oladi, anticor-admin
-// esa faqat nazorat maqsadida ko'ra oladi (o'zi yozuv kirita olmaydi).
-const PURCHASE_VIEW = ['xarid', 'anticor-admin', 'super-admin'];
-const PURCHASE_ENTRY = ['xarid', 'super-admin'];
+const HR_VIEW = ['anticor-admin', 'super-admin'];
+const HR_MANAGE = ['anticor-admin', 'super-admin'];
+const HR_EDIT = ['anticor-admin', 'super-admin'];
+const NOTIFY_SEND = ['anticor-admin', 'anticor', 'super-admin'];
+// Xaridlar reyestri: anticor-admin/super-admin ko'radi va yozuv kirita oladi.
+const PURCHASE_VIEW = ['anticor-admin', 'super-admin'];
+const PURCHASE_ENTRY = ['anticor-admin', 'super-admin'];
 
 function init(){
   const user = getCurrentUser();
@@ -3808,7 +3663,7 @@ function init(){
   const canAnticorManage = ANTICOR_MANAGE.includes(rol);
   const canEmployees = HR_VIEW.includes(rol);
   const canAddEmployee = HR_MANAGE.includes(rol);
-  const canHrDocs = ['hr-admin', 'hr', 'super-admin'].includes(rol); // Yuborilgan hujjatlar — rahbariyat bunga kirmaydi
+  const canHrDocs = ['anticor-admin', 'super-admin'].includes(rol); // Yuborilgan hujjatlar
   const canManage = canAnticorManage; // Test savollari, Hujjat qo'shish — faqat anticor-admin/super-admin
   const canSurvey = canAnticor; // Anonim so'rovnoma — ichki huquqlar canAnticorManage'ga qarab farqlanadi (openSurveyEntry)
   const canNotifSend = NOTIFY_SEND.includes(rol);
@@ -3816,7 +3671,6 @@ function init(){
   const canReports = canAnticor; // Hisobotlar — faqat ko'rish, shu bois anticor ham kiradi
   const canErrorLog = canAnticorManage; // Tizim jurnali — xom xatolik matnlarini o'z ichiga oladi, shu bois faqat boshqaruv darajasi (backend: ANTICOR_MANAGE)
   const canBackup = canAnticorManage; // Zaxira nusxada barcha xodimlarning parol hash'lari bor — qat'iyroq daraja
-  const canApprovals = HR_MANAGE.includes(rol) || REQUEST_APPROVE.includes(rol); // hr-admin (o'z so'rovlari) + rahbariyat/anticor-admin/super-admin (tasdiqlash)
   const canPurchaseView = PURCHASE_VIEW.includes(rol);
   const canPurchaseEntry = PURCHASE_ENTRY.includes(rol);
   const canPurchases = canPurchaseView || canPurchaseEntry;
@@ -3833,7 +3687,6 @@ function init(){
   document.getElementById('purchasesCard').style.display = canPurchases ? 'block' : 'none';
   document.getElementById('purchasesRegistryCard').style.display = canPurchaseView ? 'block' : 'none';
   document.getElementById('purchaseEntrySubCard').style.display = canPurchaseEntry ? 'block' : 'none';
-  document.getElementById('approvalsCard').style.display = canApprovals ? 'block' : 'none';
   document.getElementById('conflictCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
@@ -3848,7 +3701,6 @@ function init(){
   currentUserForKpi = user;
   if(canAnticor) loadStats(user);
   if(canEmployees) loadUsersList(user);
-  if(canApprovals) loadPendingRequests();
   if(canSupport) loadSupportRequests();
   setTimeout(loadNotifBadge, 400);
 }

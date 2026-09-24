@@ -5,7 +5,7 @@ declare(strict_types=1);
 // action-dispatch API'dan tashqarida turadi (fayl oqimini to'g'ridan-
 // to'g'ri yuborish uchun) — lekin xuddi shunday HttpOnly sessiya cookie
 // orqali avtorizatsiya qilinadi, faqat Xaridlar reyestriga kirish huquqi
-// bor rollar (xarid/anticor-admin/super-admin).
+// bor rollar (anticor-admin/super-admin).
 
 ini_set('display_errors', '0');
 error_reporting(E_ALL);

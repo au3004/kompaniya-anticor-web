@@ -11,11 +11,10 @@ use App\Util;
 use App\Validate;
 
 /**
- * "Xaridlar reyestri" — "xarid" roli (+ anticor-admin/super-admin faqat
- * ko'rish uchun) tomonidan kiritiladigan shartnoma yozuvlari. Shartnoma
- * fayli DocsController/HrDocumentController'dagi kabi to'g'ridan-to'g'ri
- * serverda (backend/purchase_contracts/, public/ papkadan tashqarida)
- * saqlanadi.
+ * "Xaridlar reyestri" — anticor-admin/super-admin tomonidan kiritiladigan
+ * shartnoma yozuvlari. Shartnoma fayli DocsController/HrDocumentController'
+ * dagi kabi to'g'ridan-to'g'ri serverda (backend/purchase_contracts/,
+ * public/ papkadan tashqarida) saqlanadi.
  */
 final class PurchaseController
 {

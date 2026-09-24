@@ -68,8 +68,8 @@ ishlab turganda):
 Qamrab olingan: login (+ TOTP 2FA, meni eslab qol), profil (rasm,
 sessiyalar, parol, 2FA), hujjatlar, test, so'rovnoma, deklaratsiya
 wizard'i, yordam, HR hujjatlari, xabarnomalar, va boshqaruv paneli
-(xodimlar, tasdiqlash so'rovlari, statistika, xaridlar reyestri,
-deklaratsiyalar, tizim jurnali, zaxira nusxa).
+(xodimlar, statistika, xaridlar reyestri, deklaratsiyalar, tizim
+jurnali, zaxira nusxa).
 
 Hali qamrab olinmagan (kerak bo'lsa keyingi bosqichda qo'shiladi):
 - Hisobotlar bo'limidagi 8 ta XLSX eksport (veb versiyada mavjud) —

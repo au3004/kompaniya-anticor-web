@@ -26,7 +26,7 @@ CREATE TABLE users (
   bolinma_ru        VARCHAR(200),
   telefon           VARCHAR(20),
   rasm_url          VARCHAR(500),        -- endi base64 emas, haqiqiy fayl yo'li (masalan /uploads/photos/12.jpg)
-  rol               ENUM('user','anticor-admin','anticor','hr-admin','hr','super-admin','rahbariyat','xarid') NOT NULL DEFAULT 'user',
+  rol               ENUM('user','anticor-admin','anticor','super-admin') NOT NULL DEFAULT 'user',
   totp_secret       VARCHAR(64) NULL,    -- ikki bosqichli tasdiqlash (2FA) kaliti, ixtiyoriy
   totp_enabled      TINYINT(1) NOT NULL DEFAULT 0,
   created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -233,44 +233,10 @@ CREATE TABLE error_log (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
--- 11) XODIM KELISHUV (APPROVAL) SO'ROVLARI — hr-admin xodimga "user"dan
--- boshqa rol berayotganda (yangi qo'shishda yoki tahrirlashda), o'zgarish
--- darhol saqlanmaydi: to'liq so'rov shu yerda "pending" holatda kutadi,
--- rahbariyat VA anticor-admin (ikkalasi ham) tasdiqlagach qo'llaniladi;
--- super-admin yakka o'zi zaxira huquq sifatida darhol yakuniy qaror beradi.
--- ---------------------------------------------------------------------
-CREATE TABLE employee_pending_requests (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
-  request_type    ENUM('add','edit') NOT NULL,
-  target_user_id  INT NULL,
-  requested_by    INT NOT NULL,
-  payload         TEXT NOT NULL,
-  status          ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
-  created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-  decided_at      DATETIME NULL,
-  FOREIGN KEY (requested_by) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (target_user_id) REFERENCES users(id) ON DELETE SET NULL,
-  INDEX idx_status (status)
-) ENGINE=InnoDB;
-
-CREATE TABLE employee_pending_approvals (
-  id            INT AUTO_INCREMENT PRIMARY KEY,
-  request_id    INT NOT NULL,
-  approver_id   INT NOT NULL,
-  approver_rol  VARCHAR(20) NOT NULL,
-  decision      ENUM('approved','rejected') NOT NULL,
-  izoh          TEXT NULL,
-  decided_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (request_id) REFERENCES employee_pending_requests(id) ON DELETE CASCADE,
-  FOREIGN KEY (approver_id) REFERENCES users(id) ON DELETE CASCADE,
-  UNIQUE KEY uniq_request_approver (request_id, approver_id)
-) ENGINE=InnoDB;
-
--- ---------------------------------------------------------------------
--- 12) XARIDLAR REYESTRI — "xarid" roli (+ anticor-admin/super-admin
--- faqat ko'rish uchun) tomonidan kiritiladigan shartnoma yozuvlari.
--- Shartnoma fayli backend/purchase_contracts/ papkasida (public/ papkadan
--- tashqarida, hr_documents kabi) saqlanadi.
+-- 11) XARIDLAR REYESTRI — anticor-admin/super-admin tomonidan
+-- kiritiladigan shartnoma yozuvlari. Shartnoma fayli
+-- backend/purchase_contracts/ papkasida (public/ papkadan tashqarida,
+-- hr_documents kabi) saqlanadi.
 -- ---------------------------------------------------------------------
 CREATE TABLE purchases (
   id                  INT AUTO_INCREMENT PRIMARY KEY,

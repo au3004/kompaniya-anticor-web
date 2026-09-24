@@ -52,10 +52,6 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
     );
     if (result == 'ok') {
       _load();
-    } else if (result == 'pending' && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Kelishuv (tasdiqlash) uchun yuborildi")),
-      );
     }
   }
 
@@ -169,10 +165,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
       Roles.user: 'Oddiy xodim',
       Roles.anticorAdmin: 'Anticor - boshqaruvchi',
       Roles.anticor: 'Anticor',
-      Roles.hrAdmin: 'HR - boshqaruvchi',
-      Roles.hr: 'HR',
-      Roles.rahbariyat: 'Rahbariyat',
-      Roles.xarid: 'Xarid',
+      Roles.superAdmin: 'Super-admin',
     };
     return labels[rol] ?? (rol?.toString() ?? '—');
   }

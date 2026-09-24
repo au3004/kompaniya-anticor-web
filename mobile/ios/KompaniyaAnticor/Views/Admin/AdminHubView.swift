@@ -15,11 +15,6 @@ struct AdminHubView: View {
                         HubCardView(data: .init(icon: "person.2", title: "Xodimlar", subtitle: "Xodimlar ro'yxati va boshqaruvi", color: AppColors.azure))
                     }
                 }
-                if Roles.requestApprove.contains(rol) || rol == Roles.hrAdmin {
-                    NavigationLink(destination: PendingApprovalsView()) {
-                        HubCardView(data: .init(icon: "checkmark.seal", title: "Tasdiqlash so'rovlari", subtitle: "Yangi rol tayinlash so'rovlari", color: AppColors.teal))
-                    }
-                }
                 if Roles.anticorView.contains(rol) {
                     NavigationLink(destination: StatsView()) {
                         HubCardView(data: .init(icon: "chart.bar", title: "Statistika", subtitle: "Test/hujjat bo'yicha umumiy ko'rsatkichlar", color: AppColors.coral))

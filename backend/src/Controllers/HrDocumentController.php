@@ -14,7 +14,7 @@ use App\Util;
  * "Inson resurslarini boshqarish xizmati" bo'limi orqali xodimlar o'zlariga
  * tegishli hujjatlarni (masalan ariza, ma'lumotnoma) yuboradi — fayllar
  * DocsController'dagi kabi to'g'ridan-to'g'ri serverda (backend/hr_documents/,
- * public/ papkadan tashqarida) saqlanadi va faqat hr-admin/hr (+super-admin)
+ * public/ papkadan tashqarida) saqlanadi va faqat anticor-admin (+super-admin)
  * ko'ra oladi.
  */
 final class HrDocumentController
@@ -110,7 +110,7 @@ final class HrDocumentController
         Response::success(['id' => (int) $db->lastInsertId()]);
     }
 
-    /** hr-admin/hr (+super-admin) — barcha xodimlardan kelgan hujjatlar ro'yxati. */
+    /** anticor-admin (+super-admin) — barcha xodimlardan kelgan hujjatlar ro'yxati. */
     public static function list(array $input): void
     {
         Auth::requireRole($input, Roles::HR_DOCS);

@@ -44,6 +44,7 @@ final class Database
             // bo'lgandagina haqiqiy ALTER/UPDATE ishga tushadi.
             Util::ensureRoleMigration(self::$pdo);
             Util::ensureXaridRole(self::$pdo);
+            Util::ensureRoleCleanup(self::$pdo);
         } catch (PDOException $e) {
             Response::error('Bazaga ulanishda xatolik', 'DB_ERROR', 500);
         }

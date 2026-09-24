@@ -13,7 +13,6 @@ struct EmployeesView: View {
     @State private var error: String?
     @State private var query = ""
     @State private var sheetItem: EmployeeSheetItem?
-    @State private var pendingToast = false
 
     var body: some View {
         let rol = session.user?.rol ?? ""
@@ -68,14 +67,10 @@ struct EmployeesView: View {
         }
         .task { await load() }
         .sheet(item: $sheetItem) { item in
-            EmployeeEditView(existing: item.existing) { pending in
-                if pending { pendingToast = true }
+            EmployeeEditView(existing: item.existing) {
                 Task { await load() }
             }
             .environmentObject(session)
-        }
-        .alert("Kelishuv (tasdiqlash) uchun yuborildi", isPresented: $pendingToast) {
-            Button("OK", role: .cancel) {}
         }
     }
 

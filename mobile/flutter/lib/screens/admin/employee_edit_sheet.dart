@@ -10,16 +10,10 @@ const _roleLabels = {
   Roles.user: 'Oddiy xodim',
   Roles.anticorAdmin: 'Anticor - boshqaruvchi',
   Roles.anticor: 'Anticor',
-  Roles.hrAdmin: 'HR - boshqaruvchi',
-  Roles.hr: 'HR',
-  Roles.rahbariyat: 'Rahbariyat',
-  Roles.xarid: 'Xarid',
 };
 
 /// Yangi xodim qo'shish (existing == null) yoki mavjudini tahrirlash.
-/// backend: AdminController::addEmployee / editEmployee — agar hr-admin
-/// "user"dan boshqa rol bersa, so'rov kelishuv (pending approval) holatiga
-/// tushishi mumkin, shu holat alohida xabar bilan ko'rsatiladi.
+/// backend: AdminController::addEmployee / editEmployee.
 class EmployeeEditSheet extends StatefulWidget {
   final Map<String, dynamic>? existing;
   const EmployeeEditSheet({super.key, this.existing});
@@ -78,14 +72,13 @@ class _EmployeeEditSheetState extends State<EmployeeEditSheet> {
         'rol': _rol,
         if (_parolCtrl.text.isNotEmpty) 'parol': _parolCtrl.text,
       };
-      Map<String, dynamic> data;
       if (_isEdit) {
-        data = await api.call('editEmployee', {'id': widget.existing!['id'], ...params});
+        await api.call('editEmployee', {'id': widget.existing!['id'], ...params});
       } else {
-        data = await api.call('addEmployee', {'login': _loginCtrl.text.trim(), ...params});
+        await api.call('addEmployee', {'login': _loginCtrl.text.trim(), ...params});
       }
       if (mounted) {
-        Navigator.of(context).pop(data['pending'] == true ? 'pending' : 'ok');
+        Navigator.of(context).pop('ok');
       }
     } on ApiException catch (e) {
       setState(() => _error = e.message);

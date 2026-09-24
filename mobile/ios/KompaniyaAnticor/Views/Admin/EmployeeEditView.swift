@@ -1,15 +1,13 @@
 import SwiftUI
 
 /// Yangi xodim qo'shish (existing == nil) yoki mavjudini tahrirlash.
-/// backend: AdminController::addEmployee / editEmployee — agar hr-admin
-/// "user"dan boshqa rol bersa, so'rov kelishuv (pending approval) holatiga
-/// tushishi mumkin, shu holat alohida xabar bilan ko'rsatiladi.
+/// backend: AdminController::addEmployee / editEmployee.
 struct EmployeeEditView: View {
     @EnvironmentObject var session: SessionStore
     @Environment(\.dismiss) private var dismiss
 
     let existing: [String: Any]?
-    let onSaved: (_ pending: Bool) -> Void
+    let onSaved: () -> Void
 
     @State private var loginText = ""
     @State private var parol = ""
@@ -46,7 +44,7 @@ struct EmployeeEditView: View {
                 }
                 Section("Rol") {
                     Picker("Rol", selection: $rol) {
-                        ForEach([Roles.user, Roles.anticorAdmin, Roles.anticor, Roles.hrAdmin, Roles.hr, Roles.rahbariyat, Roles.xarid], id: \.self) { r in
+                        ForEach([Roles.user, Roles.anticorAdmin, Roles.anticor], id: \.self) { r in
                             Text(Roles.label(r)).tag(r)
                         }
                     }
@@ -95,15 +93,14 @@ struct EmployeeEditView: View {
             ]
             if !parol.isEmpty { params["parol"] = parol }
             do {
-                let data: [String: Any]
                 if isEdit, let id = existing?["id"] {
                     params["id"] = id
-                    data = try await session.api.call("editEmployee", params)
+                    _ = try await session.api.call("editEmployee", params)
                 } else {
                     params["login"] = loginText
-                    data = try await session.api.call("addEmployee", params)
+                    _ = try await session.api.call("addEmployee", params)
                 }
-                onSaved((data["pending"] as? Bool) == true)
+                onSaved()
                 dismiss()
             } catch let apiError as APIError {
                 error = apiError.message
