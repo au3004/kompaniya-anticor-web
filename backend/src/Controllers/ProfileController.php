@@ -44,9 +44,10 @@ final class ProfileController
         $docRow = $docStmt->fetch();
         $hujjatSana = $docRow ? date('Y-m-d', strtotime((string) $docRow['read_at'])) : null;
 
+        // Xodim testni cheklangan marta topshiradi — hisobga eng yuqori natija olinadi.
         $testStmt = $db->prepare(
             'SELECT points, max_points, percent, passed FROM test_attempts
-             WHERE user_id = :id ORDER BY attempted_at DESC LIMIT 1'
+             WHERE user_id = :id ORDER BY percent DESC, attempted_at DESC LIMIT 1'
         );
         $testStmt->execute(['id' => $user['id']]);
         $testRow = $testStmt->fetch();

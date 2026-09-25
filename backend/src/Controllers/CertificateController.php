@@ -8,10 +8,10 @@ use App\Util;
 
 /**
  * Testdan o'tish balini qo'lga kiritgan xodimga beriladigan sertifikat (PDF).
- * Xodimda doim faqat bitta amaldagi sertifikat bo'ladi — eng so'nggi
- * muvaffaqiyatli urinishga tegishli. Yangi muvaffaqiyatli urinish yoki
- * F.I.Sh/filial o'zgarishi sertifikatni qayta yaratadi (sana doim testdan
- * o'tilgan kun). Fayllar backend/certificates/ ichida (public/ dan tashqarida)
+ * Xodimda doim faqat bitta amaldagi sertifikat bo'ladi — eng yuqori ball
+ * olingan muvaffaqiyatli urinishga tegishli (teng bo'lsa — keyingisi). Undan
+ * yuqori natija yoki F.I.Sh/filial o'zgarishi sertifikatni qayta yaratadi
+ * (sana doim o'sha urinish kuni). Fayllar backend/certificates/ ichida (public/ dan tashqarida)
  * saqlanadi va faqat certificate-download.php orqali beriladi.
  */
 final class CertificateController
@@ -38,15 +38,15 @@ final class CertificateController
 
     public static function hasPassed(\PDO $db, int $userId): bool
     {
-        return self::latestPassingAttempt($db, $userId) !== null;
+        return self::bestPassingAttempt($db, $userId) !== null;
     }
 
-    private static function latestPassingAttempt(\PDO $db, int $userId): ?array
+    private static function bestPassingAttempt(\PDO $db, int $userId): ?array
     {
         $stmt = $db->prepare(
             'SELECT id, attempted_at FROM test_attempts
              WHERE user_id = :uid AND passed = 1
-             ORDER BY attempted_at DESC, id DESC LIMIT 1'
+             ORDER BY percent DESC, attempted_at DESC, id DESC LIMIT 1'
         );
         $stmt->execute(['uid' => $userId]);
         $row = $stmt->fetch();
@@ -61,7 +61,7 @@ final class CertificateController
     public static function ensureForUser(\PDO $db, array $user): ?array
     {
         $userId = (int) $user['id'];
-        $attempt = self::latestPassingAttempt($db, $userId);
+        $attempt = self::bestPassingAttempt($db, $userId);
         if (!$attempt) {
             return null;
         }

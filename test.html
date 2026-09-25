@@ -260,6 +260,9 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
 .result-card a:hover{ transform:translateY(-2px); }
 .result-card .actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
 #quizForm.hidden{ display:none; }
+.attempts-note{ display:none; background:var(--input-bg); border:1px solid var(--input-border); border-radius:14px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:var(--text-dim); line-height:1.45; }
+.attempts-note.show{ display:block; }
+.attempts-note.warn{ border-color:var(--coral); color:var(--coral); font-weight:600; }
 .inactive-card{ display:none; text-align:center; background:var(--bg); box-shadow:var(--neu-out-sm); border:none; border-radius:20px; padding:40px 30px; }
 .inactive-card.show{ display:block; animation:qRise .5s cubic-bezier(.2,.9,.25,1) both; }
 .inactive-card .icon{ width:52px; height:52px; margin:0 auto 16px; color:var(--text-dim); }
@@ -362,6 +365,8 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   </div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
+  <div class="attempts-note" id="attemptsNote"></div>
+
   <form id="quizForm"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></form>
 
   <div class="submit-wrap">
@@ -380,6 +385,16 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
     <div class="actions">
       <a id="certLink" href="#" target="_blank" rel="noopener" style="display:none;" data-i18n="certDownload">Sertifikatni yuklab olish</a>
       <a href="main.html" data-i18n="backHome">Asosiy sahifaga qaytish</a>
+    </div>
+  </div>
+
+  <div class="result-card" id="limitCard">
+    <div class="verdict" style="color:var(--coral);" data-i18n="limitTitle">Qayta topshirish mumkin emas</div>
+    <div class="sub" id="limitMsg"></div>
+    <div class="points-line" id="limitBest"></div>
+    <div class="actions">
+      <a id="limitCertLink" href="#" target="_blank" rel="noopener" style="display:none;" data-i18n="certDownload">Sertifikatni yuklab olish</a>
+      <a href="main.html?section=anticor" data-i18n="backHome">Asosiy sahifaga qaytish</a>
     </div>
   </div>
 
@@ -433,6 +448,11 @@ const dict = {
     passSub:"Natijangiz saqlandi", failSub:"Hujjatlarni qayta ko'rib chiqib, testni qayta urinib ko'ring", savingErr:"Natijani saqlashda xatolik",
     pointsLabel:"ball", wrongHeader:"Xato javob berilgan savollar:", inactiveMsg:"Test yakunlangan",
     certDownload:"Sertifikatni yuklab olish",
+    attemptsLeft:"Testni jami {max} marta topshirish mumkin, sizda {left} ta urinish qoldi. Sertifikat uchun eng yuqori natijangiz hisobga olinadi.",
+    attemptsLast:"Diqqat: bu sizning oxirgi urinishingiz — undan keyin testni qayta topshirib bo'lmaydi.",
+    limitTitle:"Qayta topshirish mumkin emas", limitMsg:"Siz testni {max} marta topshirib bo'lgansiz. Sertifikat uchun eng yuqori natijangiz hisobga olingan.",
+    bestResult:"Eng yuqori natijangiz: {p}%", attemptLine:"urinish {used}/{max}",
+    noAttemptsLeft:"Boshqa urinish qolmadi — testni qayta topshirib bo'lmaydi.", attemptsLeftShort:"Yana {left} ta urinishingiz bor.",
     loading:"Yuklanmoqda...", notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q" },
   ru:{ brandName:"АО «Узтелеком»", backBtn:"Назад", eyebrow:"Проверьте свои знания", pageTitle:"Тест по темам противодействия коррупции",
     submitBtn:"Завершить тест", backHome:"Вернуться на главную", noQuestions:"Вопросы не найдены",
@@ -440,6 +460,11 @@ const dict = {
     passSub:"Результат сохранён", failSub:"Пересмотрите документы и попробуйте снова", savingErr:"Ошибка при сохранении результата",
     pointsLabel:"баллов", wrongHeader:"Вопросы с неверным ответом:", inactiveMsg:"Тест завершён",
     certDownload:"Скачать сертификат",
+    attemptsLeft:"Тест можно пройти всего {max} раза, у вас осталось попыток: {left}. Для сертификата учитывается ваш лучший результат.",
+    attemptsLast:"Внимание: это ваша последняя попытка — после неё пройти тест повторно будет нельзя.",
+    limitTitle:"Повторное прохождение невозможно", limitMsg:"Вы уже прошли тест {max} раза. Для сертификата учтён ваш лучший результат.",
+    bestResult:"Ваш лучший результат: {p}%", attemptLine:"попытка {used}/{max}",
+    noAttemptsLeft:"Попыток больше не осталось — пройти тест повторно нельзя.", attemptsLeftShort:"У вас есть ещё попыток: {left}.",
     loading:"Загрузка...", notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений" }
 };
 
@@ -487,9 +512,49 @@ async function loadQuestions(){
       document.getElementById('inactiveCard').classList.add('show');
       return;
     }
+    if(data.success && data.maxAttempts){
+      attemptInfo = { used: data.attemptsUsed, max: data.maxAttempts, best: data.bestPercent, certificate: data.certificate };
+      if(attemptInfo.used >= attemptInfo.max){ showLimitCard(); return; }
+      renderAttemptNote();
+    }
     allQuestions = data.success ? data.questions : [];
   } catch(ex){ allQuestions = []; }
   renderQuestions();
+}
+
+// Test cheklangan marta topshiriladi (backend: TestController::maxAttempts).
+var attemptInfo = null; // var: applyLang() sahifa yuklanishida bundan oldin chaqirilishi mumkin
+const fmt = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k]);
+const certUrl = () => API_BASE_URL.replace('backend/public/index.php', 'backend/public/certificate-download.php');
+
+function renderAttemptNote(){
+  const note = document.getElementById('attemptsNote');
+  if(!attemptInfo || attemptInfo.used >= attemptInfo.max || document.getElementById('resultCard').classList.contains('show')){ note.classList.remove('show'); return; }
+  const left = attemptInfo.max - attemptInfo.used;
+  note.textContent = left === 1 && attemptInfo.max > 1
+    ? dict[currentLang].attemptsLast
+    : fmt(dict[currentLang].attemptsLeft, { max: attemptInfo.max, left });
+  note.classList.toggle('warn', left === 1 && attemptInfo.max > 1);
+  note.classList.add('show');
+}
+
+function showLimitCard(){
+  document.getElementById('quizForm').style.display = 'none';
+  document.getElementById('submitBtn').style.display = 'none';
+  document.querySelector('.progress-bar').style.display = 'none';
+  document.getElementById('attemptsNote').classList.remove('show');
+  document.getElementById('resultCard').classList.remove('show');
+  renderLimitCard();
+  document.getElementById('limitCard').classList.add('show');
+}
+
+function renderLimitCard(){
+  if(!attemptInfo) return;
+  document.getElementById('limitMsg').textContent = fmt(dict[currentLang].limitMsg, { max: attemptInfo.max });
+  document.getElementById('limitBest').textContent = attemptInfo.best !== null && attemptInfo.best !== undefined ? fmt(dict[currentLang].bestResult, { p: attemptInfo.best }) : '';
+  const link = document.getElementById('limitCertLink');
+  link.href = certUrl();
+  link.style.display = attemptInfo.certificate ? 'inline-block' : 'none';
 }
 loadQuestions();
 
@@ -507,6 +572,10 @@ function applyLang(){
   document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
   document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
   document.getElementById('langPickerCode').textContent = currentLang.toUpperCase();
+  if(attemptInfo){
+    renderAttemptNote();
+    if(document.getElementById('limitCard').classList.contains('show')) renderLimitCard();
+  }
 }
 function setLang(l){
   currentLang=l; localStorage.setItem('km_lang', l);
@@ -615,7 +684,9 @@ async function submitTest(){
 
   try{
     const data = await apiCall({ action:'submitTest', token, answers: answerList });
+    if(!data.success && data.code === 'ATTEMPTS_EXHAUSTED'){ loadQuestions(); return; }
     if(!data.success){ throw new Error(data.message || 'error'); }
+    document.getElementById('attemptsNote').classList.remove('show');
 
     rc.classList.add('show');
     document.getElementById('resultVerdict').textContent = data.passed ? dict[currentLang].passVerdict : dict[currentLang].failVerdict;
@@ -623,11 +694,18 @@ async function submitTest(){
     scoreEl.textContent = data.percent + '%';
     scoreEl.className = 'score ' + (data.passed ? 'pass' : 'fail');
     document.getElementById('resultSub').textContent = data.passed ? dict[currentLang].passSub : dict[currentLang].failSub;
-    document.getElementById('resultPoints').textContent = `${data.points}/${data.maxPoints} ${dict[currentLang].pointsLabel}`;
+    document.getElementById('resultPoints').textContent = `${data.points}/${data.maxPoints} ${dict[currentLang].pointsLabel}`
+      + (data.maxAttempts ? ' · ' + fmt(dict[currentLang].attemptLine, { used: data.attemptsUsed, max: data.maxAttempts }) : '');
+    if(data.maxAttempts && !data.passed){
+      const left = data.maxAttempts - data.attemptsUsed;
+      document.getElementById('resultSub').textContent = left > 0
+        ? dict[currentLang].failSub + '. ' + fmt(dict[currentLang].attemptsLeftShort, { left })
+        : dict[currentLang].noAttemptsLeft;
+    }
 
     if(data.certificate){
       const certLink = document.getElementById('certLink');
-      certLink.href = API_BASE_URL.replace('backend/public/index.php', 'backend/public/certificate-download.php');
+      certLink.href = certUrl();
       certLink.style.display = 'inline-block';
     }
 

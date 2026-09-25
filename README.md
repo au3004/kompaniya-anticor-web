@@ -73,7 +73,7 @@ Normativ hujjatlar ikki yo'l bilan qo'shiladi:
 
 ## Sertifikat
 
-Testdan o'tish balini qo'lga kiritgan xodimga avtomatik PDF sertifikat (F.I.Sh + filial) yaratiladi: test natijasi sahifasidan va "Holatingizni tekshiring" kartasidan yuklab olinadi, admin esa Korrupsiyaga qarshi kurashish statistikasi jadvalidan istalgan xodimnikini ochadi. Har bir xodimda faqat bitta amaldagi sertifikat bo'ladi (eng so'nggi muvaffaqiyatli urinish).
+Testdan o'tish balini qo'lga kiritgan xodimga avtomatik PDF sertifikat (F.I.Sh + filial) yaratiladi: test natijasi sahifasidan va "Holatingizni tekshiring" kartasidan yuklab olinadi, admin esa Korrupsiyaga qarshi kurashish statistikasi jadvalidan istalgan xodimnikini ochadi. Har bir xodim testni **2 marta** topshira oladi (`.env`da `TEST_MAX_ATTEMPTS`), 3-urinishda ogohlantirish chiqadi; sertifikat va natija uchun eng yuqori ball hisoblanadi. Xodimga qayta imkoniyat berish kerak bo'lsa, admin Hisobotlar bo'limidan uning test urinishlarini o'chiradi.
 
 - PDF'lar `backend/certificates/` papkasida saqlanadi — bu papka PHP uchun yoziladigan bo'lishi shart. Fayl yo'qolsa, keyingi yuklab olishda avtomatik qayta yaratiladi.
 - Kirill/lotin harflari uchun tFPDF (`backend/src/Vendor/tfpdf/`, LGPL) va DejaVu shriftlari (`backend/fonts/unifont/`) ishlatiladi. `backend/fonts/unifont/` yoziladigan bo'lsa, shrift o'lchamlari keshlanib, generatsiya tezlashadi (majburiy emas).

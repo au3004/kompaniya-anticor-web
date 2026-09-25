@@ -1491,7 +1491,7 @@ const dict = {
     thId:"ID", thFish:"F.I.Sh", thPos:"Lavozim", thDept:"Bo'linma", thPhone:"Telefon", thDoc:"Hujjat sanasi", thTest:"Test natijasi",
     thLogin:"Login", thRol:"Rol", thAmal:"Amal",
     searchPh:"F.I.Sh bo'yicha qidirish...", noResults:"Hech narsa topilmadi",
-    loading:"Yuklanmoqda...", yes:"Ha", no:"Yo'q", notTaken:"Ishlamagan", certDownloadBtn:"Sertifikatni yuklab olish", denied:"Sizda bu sahifaga kirish huquqi yo'q",
+    loading:"Yuklanmoqda...", yes:"Ha", no:"Yo'q", notTaken:"Ishlamagan", certDownloadBtn:"Sertifikatni yuklab olish", testAttemptsHint:"Eng yuqori natija · ishlatilgan urinishlar", denied:"Sizda bu sahifaga kirish huquqi yo'q",
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
     testFormAdd:"Yangi savol qo'shish", testFormEdit:"Savolni tahrirlash", testListTitle:"Mavjud savollar",
     langUzTitle:"O'zbekcha", langRuTitle:"Русский",
@@ -1603,7 +1603,7 @@ const dict = {
     thId:"ID", thFish:"ФИО", thPos:"Должность", thDept:"Подразделение", thPhone:"Телефон", thDoc:"Дата ознакомления", thTest:"Результат теста",
     thLogin:"Логин", thRol:"Роль", thAmal:"Действие",
     searchPh:"Поиск по ФИО...", noResults:"Ничего не найдено",
-    loading:"Загрузка...", yes:"Да", no:"Нет", notTaken:"Не пройден", certDownloadBtn:"Скачать сертификат", denied:"У вас нет доступа к этой странице",
+    loading:"Загрузка...", yes:"Да", no:"Нет", notTaken:"Не пройден", certDownloadBtn:"Скачать сертификат", testAttemptsHint:"Лучший результат · использовано попыток", denied:"У вас нет доступа к этой странице",
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
     testFormAdd:"Добавить новый вопрос", testFormEdit:"Редактировать вопрос", testListTitle:"Существующие вопросы",
     langUzTitle:"Узбекский", langRuTitle:"Русский",
@@ -2157,7 +2157,10 @@ function renderTable(){
   document.getElementById('tbody').innerHTML = filteredEmployees.map((emp, i) => {
     const docBadge = emp.hujjatSana ? `<span class="badge ok">${escapeHtml(emp.hujjatSana)}</span>` : `<span class="badge no">${dict[currentLang].no}</span>`;
     let testBadge = `<span class="badge wait">${dict[currentLang].notTaken}</span>`;
-    if(emp.testTaken) testBadge = `<span class="badge ${emp.passed?'ok':'no'}">${emp.testPoints} — ${emp.testPercent}%</span>`;
+    // Xodim testni cheklangan marta topshiradi — eng yuqori natija va urinishlar soni ko'rsatiladi.
+    const maxAttempts = statsData && statsData.summary && statsData.summary.maxAttempts;
+    const attemptsTxt = (maxAttempts && emp.testAttempts) ? ` · ${emp.testAttempts}/${maxAttempts}` : '';
+    if(emp.testTaken) testBadge = `<span class="badge ${emp.passed?'ok':'no'}" title="${escapeHtml(dict[currentLang].testAttemptsHint)}">${emp.testPoints} — ${emp.testPercent}%${attemptsTxt}</span>`;
     if(emp.hasCertificate){
       const certUrl = `${API_BASE_URL.replace('backend/public/index.php','backend/public/certificate-download.php')}?userId=${encodeURIComponent(emp.id)}`;
       testBadge += `<a class="icon-btn" style="text-decoration:none; display:inline-flex; vertical-align:middle; margin-left:6px;" title="${dict[currentLang].certDownloadBtn}" href="${certUrl}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/></svg></a>`;

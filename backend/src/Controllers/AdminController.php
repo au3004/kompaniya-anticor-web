@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Auth;
+use App\Config;
 use App\Database;
 use App\Filials;
 use App\PwnedPasswords;
@@ -468,12 +469,16 @@ final class AdminController
         $attemptRows = $db->query(
             'SELECT * FROM test_attempts ORDER BY user_id ASC, attempted_at DESC'
         )->fetchAll();
-        $latestAttempt = [];
+        // Xodim testni cheklangan marta topshiradi — hisobga eng yuqori natijali
+        // urinish olinadi (teng bo'lsa — keyingisi, chunki qatorlar sana bo'yicha kamayib boradi).
+        $bestAttempt = [];
+        $attemptCount = [];
         $everPassed = [];
         foreach ($attemptRows as $a) {
             $uid = (int) $a['user_id'];
-            if (!isset($latestAttempt[$uid])) {
-                $latestAttempt[$uid] = $a;
+            $attemptCount[$uid] = ($attemptCount[$uid] ?? 0) + 1;
+            if (!isset($bestAttempt[$uid]) || (int) $a['percent'] > (int) $bestAttempt[$uid]['percent']) {
+                $bestAttempt[$uid] = $a;
             }
             if ((bool) $a['passed']) {
                 $everPassed[$uid] = true;
@@ -492,7 +497,7 @@ final class AdminController
                 $docsDone++;
             }
 
-            $attempt = $latestAttempt[$uid] ?? null;
+            $attempt = $bestAttempt[$uid] ?? null;
             $testTaken = $attempt !== null;
             if ($testTaken) {
                 if ((bool) $attempt['passed']) {
@@ -513,8 +518,7 @@ final class AdminController
                 'testPoints' => $testTaken ? (int) $attempt['points'] : null,
                 'testPercent' => $testTaken ? (int) $attempt['percent'] : null,
                 'passed' => $testTaken ? (bool) $attempt['passed'] : false,
-                // Oxirgi urinish muvaffaqiyatsiz bo'lsa ham, avvalgi muvaffaqiyatli
-                // urinish uchun berilgan sertifikat amalda qoladi.
+                'testAttempts' => $attemptCount[$uid] ?? 0,
                 'hasCertificate' => isset($everPassed[$uid]),
             ];
         }
@@ -528,6 +532,7 @@ final class AdminController
                 'testsPassed' => $testsPassed,
                 'testsFailed' => $testsFailed,
                 'notStarted' => $total - $testsPassed - $testsFailed,
+                'maxAttempts' => max(1, Config::int('TEST_MAX_ATTEMPTS', 2)),
             ],
             'employees' => $employees,
         ]);

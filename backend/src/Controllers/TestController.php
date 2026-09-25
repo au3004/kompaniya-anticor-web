@@ -23,6 +23,27 @@ final class TestController
         return $value === false ? true : $value === 'true';
     }
 
+    /** Har bir xodim testni necha marta topshira oladi (sertifikat uchun eng yuqori natija hisoblanadi). */
+    private static function maxAttempts(): int
+    {
+        return max(1, Config::int('TEST_MAX_ATTEMPTS', 2));
+    }
+
+    private static function attemptsUsed(\PDO $db, int $userId): int
+    {
+        $stmt = $db->prepare('SELECT COUNT(*) FROM test_attempts WHERE user_id = :uid');
+        $stmt->execute(['uid' => $userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    private static function bestPercent(\PDO $db, int $userId): ?int
+    {
+        $stmt = $db->prepare('SELECT MAX(percent) FROM test_attempts WHERE user_id = :uid');
+        $stmt->execute(['uid' => $userId]);
+        $v = $stmt->fetchColumn();
+        return $v === null || $v === false ? null : (int) $v;
+    }
+
     public static function getQuestions(array $input): void
     {
         $viewer = Auth::optionalUser($input);
@@ -47,7 +68,16 @@ final class TestController
             return ['id' => (int) $r['id'], 'uz' => $uz, 'ru' => $ru];
         }, $rows);
 
-        Response::success(['active' => self::isActive(), 'questions' => $questions]);
+        $result = ['active' => self::isActive(), 'questions' => $questions];
+        if ($viewer) {
+            $userId = (int) $viewer['id'];
+            $result['attemptsUsed'] = self::attemptsUsed($db, $userId);
+            $result['maxAttempts'] = self::maxAttempts();
+            $result['bestPercent'] = self::bestPercent($db, $userId);
+            $result['certificate'] = CertificateController::hasPassed($db, $userId);
+        }
+
+        Response::success($result);
     }
 
     public static function submit(array $input): void
@@ -99,17 +129,42 @@ final class TestController
         $threshold = Config::int('TEST_PASS_THRESHOLD', 80);
         $passed = $percent >= $threshold;
 
-        $ins = $db->prepare(
-            'INSERT INTO test_attempts (user_id, points, max_points, percent, passed)
-             VALUES (:user_id, :points, :max_points, :percent, :passed)'
-        );
-        $ins->execute([
-            'user_id' => $user['id'],
-            'points' => $points,
-            'max_points' => $totalQuestions,
-            'percent' => $percent,
-            'passed' => $passed ? 1 : 0,
-        ]);
+        // Urinishlar sonini tekshirish va yozish bitta tranzaksiyada, xodim
+        // qatori qulflangan holda — bir vaqtda yuborilgan ikki so'rov cheklovni
+        // aylanib o'tib, ortiqcha urinish yozib qo'ya olmasligi uchun.
+        $maxAttempts = self::maxAttempts();
+        $db->beginTransaction();
+        try {
+            $lock = $db->prepare('SELECT id FROM users WHERE id = :id FOR UPDATE');
+            $lock->execute(['id' => $user['id']]);
+            $used = self::attemptsUsed($db, (int) $user['id']);
+            if ($used >= $maxAttempts) {
+                $db->rollBack();
+                Response::error(
+                    "Siz testni {$maxAttempts} marta topshirib bo'lgansiz — qayta topshirish mumkin emas",
+                    'ATTEMPTS_EXHAUSTED',
+                    403
+                );
+            }
+
+            $ins = $db->prepare(
+                'INSERT INTO test_attempts (user_id, points, max_points, percent, passed)
+                 VALUES (:user_id, :points, :max_points, :percent, :passed)'
+            );
+            $ins->execute([
+                'user_id' => $user['id'],
+                'points' => $points,
+                'max_points' => $totalQuestions,
+                'percent' => $percent,
+                'passed' => $passed ? 1 : 0,
+            ]);
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
 
         if ($passed) {
             // Sertifikat yaratilmasa ham test natijasi saqlanadi — yuklab olishda
@@ -126,7 +181,10 @@ final class TestController
             'maxPoints' => $totalQuestions,
             'percent' => $percent,
             'passed' => $passed,
-            'certificate' => $passed,
+            // Oldingi urinishda o'tgan bo'lsa, bu safar o'tmasa ham sertifikat saqlanadi.
+            'certificate' => CertificateController::hasPassed($db, (int) $user['id']),
+            'attemptsUsed' => $used + 1,
+            'maxAttempts' => $maxAttempts,
             'wrongIds' => $wrongIds,
         ]);
     }
