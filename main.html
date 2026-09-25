@@ -1377,6 +1377,14 @@ if(currentUser && new URLSearchParams(window.location.search).get('openHelp') ==
   history.replaceState(null, '', window.location.pathname);
 }
 
+// Ichki sahifalarning (docs/test/survey) "Ortga" tugmasi foydalanuvchini
+// bosh sahifaga emas, kelgan bo'limiga qaytaradi (masalan main.html?section=anticor).
+const initialSection = new URLSearchParams(window.location.search).get('section');
+if(currentUser && initialSection){
+  sidebarShowSection(initialSection);
+  history.replaceState(null, '', window.location.pathname);
+}
+
 async function renderInfoLang(){
   if(!currentUser) return;
   if(currentLang === 'ru' && !currentUser.lavozimRu && !currentUser._ruFetched){
@@ -1629,7 +1637,7 @@ function renderHrInfo(){
   const fullName = [currentUser.familiya, currentUser.ism].filter(Boolean).join(' ') || currentUser.login;
   document.getElementById('hrBadgeName').textContent = fullName;
   document.getElementById('hrBadgePos').textContent = currentUser.lavozim || dict[currentLang].hrBadgeNoPos;
-  document.getElementById('hrBadgeId').textContent = 'ID-' + String(currentUser.id || '').padStart(5, '0');
+  document.getElementById('hrBadgeId').textContent = 'ID-' + String(currentUser.displayId ?? '').padStart(5, '0');
   document.getElementById('hrBadgeAvatar').src = currentUser.rasm || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(fullName) + '&backgroundColor=00A3E0';
 }
 

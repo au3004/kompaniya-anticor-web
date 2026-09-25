@@ -1502,6 +1502,7 @@ const dict = {
     docNameUz:"Hujjat nomi (O'zbek)", docNameRu:"Hujjat nomi (Rus)",
     docFileLabel:"PDF fayl", docFileChoose:"PDF fayl tanlash", docFileHint:"Faqat PDF, maksimal 25MB",
     docFileKeepCurrent:"Fayl tanlanmasa, mavjud fayl saqlanib qoladi",
+    docFromFolderBadge:"Hujjatlar papkasidan", docFromFolderHint:"Bu hujjat Hujjatlar papkasidan avtomatik olinadi — bu yerda faqat nomini o'zgartirish mumkin; faylni almashtirish yoki o'chirish uchun uni o'sha papkada almashtiring/o'chiring",
     docFileTooLargeErr:"Fayl hajmi juda katta (maksimal 25MB)",
     docFileTypeErr:"Fayl formati noto'g'ri, faqat PDF qabul qilinadi",
     docFileRequiredErr:"PDF fayl tanlanishi shart",
@@ -1537,7 +1538,7 @@ const dict = {
     cannotDeleteSelfErr:"O'zingizni o'chira olmaysiz", lastGlAdminErr:"Tizimda kamida bitta bosh administrator qolishi shart",
     role_user:"Xodim", role_anticor_admin:"Anticor — Admin", role_anticor:"Anticor",
     role_super_admin:"Super-admin",
-    empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", loginTakenErr:"Ushbu login band, iltimos qayta kiriting",
+    empSavedOk:"Xodim muvaffaqiyatli qo'shildi ✓", empUpdatedOk:"Xodim ma'lumotlari saqlandi ✓", loginTakenErr:"Ushbu login band, iltimos qayta kiriting",
     weakPasswordErr:"Parol kamida 8 belgidan iborat bo'lib, kamida bitta katta harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak",
     pwnedPasswordErr:"Bu parol avval ma'lumotlar sizib chiqishlarida uchragan. Iltimos boshqa parol tanlang.",
     passwordPolicyHint:"Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)",
@@ -1613,6 +1614,7 @@ const dict = {
     docNameUz:"Название документа (узб.)", docNameRu:"Название документа (рус.)",
     docFileLabel:"PDF файл", docFileChoose:"Выбрать PDF файл", docFileHint:"Только PDF, максимум 25MB",
     docFileKeepCurrent:"Если файл не выбран, текущий файл останется без изменений",
+    docFromFolderBadge:"Из папки Hujjatlar", docFromFolderHint:"Документ автоматически берётся из папки Hujjatlar — здесь можно изменить только название; чтобы заменить или удалить файл, сделайте это в самой папке",
     docFileTooLargeErr:"Размер файла слишком большой (максимум 25MB)",
     docFileTypeErr:"Неверный формат файла, принимается только PDF",
     docFileRequiredErr:"Необходимо выбрать PDF файл",
@@ -1648,7 +1650,7 @@ const dict = {
     cannotDeleteSelfErr:"Вы не можете удалить себя", lastGlAdminErr:"В системе должен остаться хотя бы один главный администратор",
     role_user:"Сотрудник", role_anticor_admin:"Антикор — Админ", role_anticor:"Антикор",
     role_super_admin:"Супер-админ",
-    empSavedOk:"Сотрудник успешно добавлен ✓", loginTakenErr:"Этот логин занят, пожалуйста, введите другой",
+    empSavedOk:"Сотрудник успешно добавлен ✓", empUpdatedOk:"Данные сотрудника сохранены ✓", loginTakenErr:"Этот логин занят, пожалуйста, введите другой",
     weakPasswordErr:"Пароль должен содержать не менее 8 символов, включая заглавную и строчную буквы, цифру и спецсимвол",
     pwnedPasswordErr:"Этот пароль ранее встречался в утечках данных. Пожалуйста, выберите другой пароль.",
     passwordPolicyHint:"Минимум 8 символов: заглавная, строчная буква, цифра и спецсимвол (например !@#$%)",
@@ -2340,12 +2342,16 @@ function renderUsersTable(){
   const canEditEmp = currentUserForKpi && HR_EDIT.includes(currentUserForKpi.rol);
   const canDeleteEmp = currentUserForKpi && HR_MANAGE.includes(currentUserForKpi.rol);
   const canUnlock = currentUserForKpi && HR_MANAGE.includes(currentUserForKpi.rol);
+  // Backend (AdminController::EDITABLE_TARGET_ROLES) bilan bir xil: super-admin
+  // bo'lmagan admin faqat "user"/"anticor" rolidagilarni tahrirlay/o'chira oladi.
+  const viewerIsSuper = currentUserForKpi && currentUserForKpi.rol === 'super-admin';
   document.getElementById('empTbody').innerHTML = filteredUsers.map((u, i) => {
     const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
+    const rowEditable = viewerIsSuper || ['user', 'anticor'].includes(u.rol);
     const lockedBadge = u.locked ? `<span class="badge no" style="margin-left:6px;" title="${dict[currentLang].lockedUntilLabel}: ${escapeHtml(u.lockedUntil||'')}">${dict[currentLang].lockedBadge}</span>` : '';
     const unlockBtn = (u.locked && canUnlock) ? `<button type="button" class="icon-btn" title="${dict[currentLang].unlockBtn}" onclick="unlockEmployeeRow('${escapeHtml(u.login)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button>` : '';
-    const editBtn = canEditEmp ? `<button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>` : '';
-    const deleteBtn = canDeleteEmp ? `<button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>` : '';
+    const editBtn = (canEditEmp && rowEditable) ? `<button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>` : '';
+    const deleteBtn = (canDeleteEmp && rowEditable) ? `<button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>` : '';
     const actions = (unlockBtn || editBtn || deleteBtn) ? `<div class="row-actions">${unlockBtn}${editBtn}${deleteBtn}</div>` : '—';
     return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}${lockedBadge}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(filialLabel(u.filial))}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
   }).join('');
@@ -2504,8 +2510,9 @@ async function submitEmployeeForm(e){
     const data = await apiCall(payload);
     btn.disabled = false;
     if(data.success){
+      const wasEdit = !!editingEmployeeId;
       cancelEmployeeEdit();
-      msg.textContent = dict[currentLang].empSavedOk; msg.classList.add('ok');
+      msg.textContent = wasEdit ? dict[currentLang].empUpdatedOk : dict[currentLang].empSavedOk; msg.classList.add('ok');
       loadUsersList(currentUserForKpi);
     } else if(data.code === 'LOGIN_TAKEN'){
       document.getElementById('eLoginWarning').classList.add('show');
@@ -2516,7 +2523,7 @@ async function submitEmployeeForm(e){
     } else if(data.code === 'LAST_GL_ADMIN'){
       msg.textContent = dict[currentLang].lastGlAdminErr; msg.classList.add('err');
     } else {
-      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
+      msg.textContent = dict[currentLang].savedErr + (data.message ? ': ' + data.message : ''); msg.classList.add('err');
     }
   } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
   return false;
@@ -2676,11 +2683,11 @@ function renderDocsTable(){
   document.getElementById('docsTbody').innerHTML = docsData.map((d, i) => `
     <tr>
       <td>${i + 1}</td>
-      <td style="white-space:normal;">${escapeHtml(d.uz)}</td>
+      <td style="white-space:normal;">${escapeHtml(d.uz)}${d.fromFolder ? ` <span class="badge wait" style="margin-left:6px;" title="${escapeHtml(dict[currentLang].docFromFolderHint)}">${dict[currentLang].docFromFolderBadge}</span>` : ''}</td>
       <td><div class="row-actions">
         <a class="icon-btn" style="text-decoration:none;" title="${dict[currentLang].downloadBtn}" href="${API_BASE_URL.replace('backend/public/index.php','backend/public/document-download.php')}?id=${encodeURIComponent(d.id)}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></a>
         <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditDoc('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteDocRow('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+        ${d.fromFolder ? '' : `<button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteDocRow('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>`}
       </div></td>
     </tr>`).join('');
 }
@@ -2735,7 +2742,7 @@ function startEditDoc(id){
   document.getElementById('dFile').value = '';
   document.getElementById('docFileBtnText').textContent = dict[currentLang].docFileChoose;
   const currentEl = document.getElementById('docFileCurrent');
-  currentEl.textContent = dict[currentLang].docFileKeepCurrent;
+  currentEl.textContent = d.fromFolder ? dict[currentLang].docFromFolderHint : dict[currentLang].docFileKeepCurrent;
   currentEl.style.display = 'block';
   document.getElementById('docFormTitle').textContent = dict[currentLang].docFormEdit;
   document.getElementById('docCancelBtn').style.display = 'inline-flex';
@@ -2779,7 +2786,7 @@ async function submitDocForm(e){
     } else if(data.code === 'INVALID_FILE'){
       msg.textContent = dict[currentLang].docFileTypeErr; msg.classList.add('err');
     } else {
-      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
+      msg.textContent = dict[currentLang].savedErr + (data.message ? ': ' + data.message : ''); msg.classList.add('err');
     }
   } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
   return false;
@@ -2790,6 +2797,7 @@ async function deleteDocRow(id){
   try{
     const data = await apiCall({ action:'deleteDocument', token: currentUserForKpi.token, id });
     if(data.success) loadDocs();
+    else alert(dict[currentLang].savedErr + (data.message ? ': ' + data.message : ''));
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 

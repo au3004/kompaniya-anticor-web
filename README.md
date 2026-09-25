@@ -64,6 +64,13 @@ Kunlik avtomatik zaxira uchun `backend/scripts/backup.php` skriptini rejalashtir
 
 Nusxalar `backend/backups/` papkasida saqlanadi (web orqali to'g'ridan-to'g'ri ochilmaydi), `BACKUP_KEEP_DAYS` (standart 30 kun)dan eskilari avtomatik o'chiriladi.
 
+## Hujjatlar
+
+Normativ hujjatlar ikki yo'l bilan qo'shiladi:
+
+- **Hujjatlar/ papkasi orqali** — loyiha ildizidagi `Hujjatlar/` papkasiga (masalan `htdocs/anticor/Hujjatlar`) PDF fayl tashlansa, u keyingi safar hujjatlar ro'yxati ochilganda avtomatik paydo bo'ladi (nomi fayl nomidan olinadi, admin panelidan o'zgartirish mumkin). Papkadan o'chirilgan fayl ro'yxatdan ham yo'qoladi. Papkadagi `.htaccess` fayllarga to'g'ridan-to'g'ri havola orqali (login qilmasdan) kirishni taqiqlaydi — uni o'chirmang.
+- **Admin panelidan** — "Hujjat qo'shish" bo'limida PDF yuklanadi (`backend/documents/`da saqlanadi).
+
 ## Sertifikat
 
 Testdan o'tish balini qo'lga kiritgan xodimga avtomatik PDF sertifikat (F.I.Sh + filial) yaratiladi: test natijasi sahifasidan va "Holatingizni tekshiring" kartasidan yuklab olinadi, admin esa Korrupsiyaga qarshi kurashish statistikasi jadvalidan istalgan xodimnikini ochadi. Har bir xodimda faqat bitta amaldagi sertifikat bo'ladi (eng so'nggi muvaffaqiyatli urinish).

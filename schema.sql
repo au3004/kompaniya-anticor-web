@@ -116,7 +116,9 @@ CREATE TABLE documents (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   nomi_uz     VARCHAR(500) NOT NULL,
   nomi_ru     VARCHAR(500),
-  url         VARCHAR(1000) NOT NULL,
+  url         VARCHAR(1000) NULL,          -- eskirgan (Google Drive davri), endi ishlatilmaydi
+  file_name   VARCHAR(255) NULL,           -- admin panelidan yuklangan PDF (backend/documents/)
+  folder_file VARCHAR(255) NULL UNIQUE,    -- Hujjatlar/ papkasidan avtomatik olingan PDF
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 

@@ -9,6 +9,7 @@ use App\Database;
 use App\PwnedPasswords;
 use App\RateLimit;
 use App\Response;
+use App\Roles;
 use App\Util;
 use App\Validate;
 
@@ -109,6 +110,7 @@ final class AuthController
     {
         return [
             'id' => (int) $user['id'],
+            'displayId' => self::displayId($user),
             'familiya' => $user['familiya'],
             'ism' => $user['ism'],
             'otasi' => $user['otasining_ismi'],
@@ -120,6 +122,22 @@ final class AuthController
             'rasm' => Util::photoUrl($user['rasm_url']),
             'rol' => $user['rol'],
         ];
+    }
+
+    /**
+     * Xodimga ko'rsatiladigan ID raqami. super-admin hech qayerda ko'rinmasligi
+     * shart — uning haqiqiy id'si boshqalarning raqamlari orasida "tushib
+     * qolgan" raqam sifatida sezilmasligi uchun, u 0 oladi, qolganlar esa o'zidan
+     * kichik id'li super-admin(lar) soniga kamaytiriladi (ID-001, ID-002, ...).
+     */
+    private static function displayId(array $user): int
+    {
+        if ($user['rol'] === Roles::SUPER_ADMIN) {
+            return 0;
+        }
+        $stmt = Database::connection()->prepare('SELECT COUNT(*) FROM users WHERE rol = :rol AND id < :id');
+        $stmt->execute(['rol' => Roles::SUPER_ADMIN, 'id' => (int) $user['id']]);
+        return (int) $user['id'] - (int) $stmt->fetchColumn();
     }
 
     public static function login(array $input): void
@@ -390,21 +408,10 @@ final class AuthController
         $insSess->execute(['token' => $sessToken, 'user_id' => $row['user_id'], 'expires_at' => $sessExpiresAt]);
         Auth::setSessionCookie($sessToken);
 
-        Response::success([
-            'token' => true,
-            'login' => $row['login'],
-            'id' => (int) $row['user_id'],
-            'familiya' => $row['familiya'],
-            'ism' => $row['ism'],
-            'otasi' => $row['otasining_ismi'],
-            'tugilganSana' => $row['tugilgan_sana'] ?? null,
-            'lavozim' => $row['lavozim'],
-            'bolinma' => $row['bolinma'],
-            'filial' => $row['filial'] ?? null,
-            'telefon' => $row['telefon'],
-            'rasm' => Util::photoUrl($row['rasm_url']),
-            'rol' => $row['rol'],
-        ]);
+        Response::success(array_merge(
+            ['token' => true, 'login' => $row['login']],
+            self::userProfileFields($row)
+        ));
     }
 
     public static function changePassword(array $input): void

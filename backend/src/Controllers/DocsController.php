@@ -20,8 +20,11 @@ final class DocsController
 {
     // "url" ustuni eski (Google Drive kabi) havolalar davridan qolgan — endi
     // to'ldirilmaydi, shuning uchun NOT NULL cheklovini olib tashlaymiz.
+    // folder_file — hujjat loyiha ildizidagi Hujjatlar/ papkasidan olinganda
+    // undagi fayl nomi (bunday hujjatning file_name'i bo'sh bo'ladi).
     private const DDL = 'ALTER TABLE documents
         ADD COLUMN IF NOT EXISTS file_name VARCHAR(255) NULL AFTER url,
+        ADD COLUMN IF NOT EXISTS folder_file VARCHAR(255) NULL UNIQUE AFTER file_name,
         MODIFY COLUMN url VARCHAR(1000) NULL';
 
     private const MAX_BYTES = 25 * 1024 * 1024;
@@ -35,16 +38,72 @@ final class DocsController
         return $dir;
     }
 
+    /** Loyiha ildizidagi Hujjatlar/ papkasi (masalan htdocs/anticor/Hujjatlar). */
+    public static function folderDir(): string
+    {
+        return dirname(__DIR__, 3) . '/Hujjatlar';
+    }
+
+    /**
+     * Hujjatlar/ papkasidagi PDF fayllarni hujjatlar ro'yxati bilan
+     * moslashtiradi: yangi fayl — yangi hujjat (nomi fayl nomidan olinadi,
+     * keyin admin panelidan o'zgartirish mumkin), papkadan o'chirilgan fayl —
+     * ro'yxatdan ham o'chadi. Admin panelidan yuklangan hujjatlarga tegilmaydi.
+     */
+    private static function syncFolder(\PDO $db): void
+    {
+        // Hujjatlar ro'yxati har ochilganda chaqiriladi — ALTER TABLE'ni faqat
+        // ustun hali yo'q bo'lgandagina ishga tushiramiz.
+        if (!$db->query("SHOW COLUMNS FROM documents LIKE 'folder_file'")->fetch()) {
+            Util::ensureSchema($db, self::DDL);
+        }
+        $dir = self::folderDir();
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $files = [];
+        foreach (scandir($dir) ?: [] as $name) {
+            if ($name[0] !== '.' && strcasecmp(pathinfo($name, PATHINFO_EXTENSION), 'pdf') === 0 && is_file($dir . '/' . $name)) {
+                $files[$name] = true;
+            }
+        }
+
+        $known = [];
+        foreach ($db->query('SELECT id, folder_file FROM documents WHERE folder_file IS NOT NULL')->fetchAll() as $row) {
+            if (isset($files[$row['folder_file']])) {
+                $known[$row['folder_file']] = true;
+            } else {
+                $del = $db->prepare('DELETE FROM documents WHERE id = :id');
+                $del->execute(['id' => $row['id']]);
+            }
+        }
+
+        $new = array_diff_key($files, $known);
+        if (!$new) {
+            return;
+        }
+        $names = array_keys($new);
+        natcasesort($names);
+        $ins = $db->prepare('INSERT IGNORE INTO documents (nomi_uz, nomi_ru, folder_file) VALUES (:uz, :ru, :file)');
+        foreach ($names as $name) {
+            $title = mb_substr(trim(pathinfo($name, PATHINFO_FILENAME)), 0, 500);
+            $ins->execute(['uz' => $title, 'ru' => $title, 'file' => $name]);
+        }
+    }
+
     public static function getDocuments(array $input): void
     {
         Auth::requireUser($input);
         $db = Database::connection();
-        $rows = $db->query('SELECT id, nomi_uz, nomi_ru FROM documents ORDER BY id ASC')->fetchAll();
+        self::syncFolder($db);
+        $rows = $db->query('SELECT id, nomi_uz, nomi_ru, folder_file FROM documents ORDER BY id ASC')->fetchAll();
 
         $docs = array_map(static fn (array $r) => [
             'id' => (int) $r['id'],
             'uz' => $r['nomi_uz'],
             'ru' => $r['nomi_ru'],
+            'fromFolder' => $r['folder_file'] !== null,
         ], $rows);
 
         Response::success(['docs' => $docs]);
@@ -137,11 +196,26 @@ final class DocsController
         $db = Database::connection();
         Util::ensureSchema($db, self::DDL);
 
-        $existingStmt = $db->prepare('SELECT file_name FROM documents WHERE id = :id LIMIT 1');
+        $existingStmt = $db->prepare('SELECT file_name, folder_file FROM documents WHERE id = :id LIMIT 1');
         $existingStmt->execute(['id' => $id]);
         $existing = $existingStmt->fetch();
         if (!$existing) {
             Response::error('Hujjat topilmadi', 'NOT_FOUND', 404);
+        }
+
+        if ($existing['folder_file'] !== null) {
+            // Fayl Hujjatlar/ papkasida boshqariladi — bu yerda faqat nomi o'zgaradi.
+            if ($fileDataUrl !== '') {
+                Response::error(
+                    "Bu hujjat Hujjatlar papkasidan olinadi — faylni o'sha papkada almashtiring",
+                    'FOLDER_DOCUMENT',
+                    422
+                );
+            }
+            $stmt = $db->prepare('UPDATE documents SET nomi_uz = :uz, nomi_ru = :ru WHERE id = :id');
+            $stmt->execute(['uz' => $uz, 'ru' => $ru !== '' ? $ru : null, 'id' => $id]);
+            Response::success();
+            return;
         }
 
         $oldFileName = $existing['file_name'];
@@ -186,9 +260,19 @@ final class DocsController
         }
 
         $db = Database::connection();
-        $stmt = $db->prepare('SELECT file_name FROM documents WHERE id = :id LIMIT 1');
+        Util::ensureSchema($db, self::DDL);
+        $stmt = $db->prepare('SELECT file_name, folder_file FROM documents WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
+
+        if ($row && $row['folder_file'] !== null) {
+            // O'chirilsa ham keyingi ochilishda papkadan qayta qo'shilib qolardi.
+            Response::error(
+                "Bu hujjat Hujjatlar papkasidan olinadi — uni ro'yxatdan olib tashlash uchun faylni o'sha papkadan o'chiring",
+                'FOLDER_DOCUMENT',
+                422
+            );
+        }
 
         $del = $db->prepare('DELETE FROM documents WHERE id = :id');
         $del->execute(['id' => $id]);

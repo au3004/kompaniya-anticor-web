@@ -35,18 +35,23 @@ if ($id <= 0) {
 }
 
 $db = Database::connection();
-$stmt = $db->prepare('SELECT nomi_uz, file_name FROM documents WHERE id = :id LIMIT 1');
+$stmt = $db->prepare('SELECT nomi_uz, file_name, folder_file FROM documents WHERE id = :id LIMIT 1');
 $stmt->execute(['id' => $id]);
 $row = $stmt->fetch();
 
-if (!$row || empty($row['file_name'])) {
+// Hujjat yoki admin panelidan yuklangan (backend/documents/), yoki
+// loyiha ildizidagi Hujjatlar/ papkasidan avtomatik olingan bo'ladi.
+if ($row && !empty($row['folder_file'])) {
+    $dir = DocsController::folderDir();
+    $path = $dir . '/' . basename((string) $row['folder_file']);
+} elseif ($row && !empty($row['file_name'])) {
+    $dir = DocsController::documentsDir();
+    $path = $dir . '/' . $row['file_name'];
+} else {
     http_response_code(404);
     echo 'Topilmadi';
     exit;
 }
-
-$dir = DocsController::documentsDir();
-$path = $dir . '/' . $row['file_name'];
 $realPath = realpath($path);
 $realBase = realpath($dir);
 if (!$realPath || !$realBase || !str_starts_with($realPath, $realBase) || !is_file($realPath)) {
