@@ -32,6 +32,23 @@ Barcha sahifalardagi API manzili sahifa qayerdan ochilgan bo'lsa (localhost, mah
 - **Tezkor, istalgan joydan**: [ngrok](https://ngrok.com) yoki shunga o'xshash tunnel xizmati orqali (`ngrok http 80`) vaqtinchalik ochiq havola oling.
 - **Doimiy (production)**: haqiqiy PHP+MySQL hosting/VPS'ga joylashtiring, `FORCE_HTTPS=true` qiling va domenga SSL sertifikat o'rnating.
 
+## Serverga joylashtirishdan oldin (majburiy tekshiruv ro'yxati)
+
+Mahalliy XAMPP sozlamalari haqiqiy serverda xavfli — ishga tushirishdan oldin har bir bandni bajaring:
+
+1. **MySQL foydalanuvchisi.** `backend/.env`da `DB_USER=root` va bo'sh `DB_PASS=` qoldirilmasin. Faqat shu bazaga huquqi bor alohida foydalanuvchi yarating va `.env`ga yozing:
+   ```sql
+   CREATE USER 'anticor_user'@'localhost' IDENTIFIED BY '<kuchli-parol>';
+   GRANT ALL PRIVILEGES ON kompaniya_anticor.* TO 'anticor_user'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
+2. **HTTPS.** Domenga SSL sertifikat o'rnating va `.env`da `FORCE_HTTPS=true` qiling.
+3. **Manzil.** `.env`da `PUBLIC_BASE_URL` haqiqiy domenga o'zgartirilsin; `ALLOWED_ORIGINS` bo'sh qolsin (`*` yozilmasin).
+4. **`.htaccess` ishlashi.** Apache'da `AllowOverride All` yoqilgan bo'lsin — `backend/` (kod va `.env`) va `Hujjatlar/` papkalarini veb orqali ochilishdan aynan shu fayllar himoya qiladi. Nginx ishlatilsa, xuddi shu taqiqlarni server sozlamasida qo'lda yozing.
+5. **Yoziladigan papkalar.** PHP quyidagilarga yoza olishi kerak: `backend/documents`, `backend/hr_documents`, `backend/purchase_contracts`, `backend/certificates`, `backend/backups`, `backend/public/uploads/photos` (ixtiyoriy: `backend/fonts/unifont`).
+6. **Zaxira nusxa.** `MYSQLDUMP_PATH`ni tekshiring va `backend/scripts/backup.php`ni kunlik rejalashtiring (qarang: "Zaxira nusxa").
+7. **Test sozlamalari.** `TEST_PASS_THRESHOLD` va `TEST_MAX_ATTEMPTS` qiymatlari kerakligiga ishonch hosil qiling.
+
 ## Rollar
 
 | Rol | Huquqlar |
