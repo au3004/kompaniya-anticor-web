@@ -1,0 +1,10 @@
+# Bu papkadagi hujjatlar faqat tizimga kirgan xodimlarga
+# backend/public/document-download.php orqali beriladi — to'g'ridan-to'g'ri
+# havola (masalan /anticor/Hujjatlar/fayl.pdf) orqali ochilmasin.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+</IfModule>
