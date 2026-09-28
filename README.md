@@ -43,7 +43,7 @@ Mahalliy XAMPP sozlamalari haqiqiy serverda xavfli — ishga tushirishdan oldin 
    FLUSH PRIVILEGES;
    ```
 2. **HTTPS.** Domenga SSL sertifikat o'rnating va `.env`da `FORCE_HTTPS=true` qiling.
-3. **Manzil.** `.env`da `PUBLIC_BASE_URL` haqiqiy domenga o'zgartirilsin; `ALLOWED_ORIGINS` bo'sh qolsin (`*` yozilmasin).
+3. **Manzil.** `.env`da `PUBLIC_BASE_URL` haqiqiy domenga o'zgartirilsin (sertifikatlardagi QR-kodlar ham shu manzilga olib boradi — o'zgargach sertifikatlar avtomatik yangilanadi); `ALLOWED_ORIGINS` bo'sh qolsin (`*` yozilmasin).
 4. **`.htaccess` ishlashi.** Apache'da `AllowOverride All` yoqilgan bo'lsin — `backend/` (kod va `.env`) va `Hujjatlar/` papkalarini veb orqali ochilishdan aynan shu fayllar himoya qiladi. Nginx ishlatilsa, xuddi shu taqiqlarni server sozlamasida qo'lda yozing.
 5. **Yoziladigan papkalar.** PHP quyidagilarga yoza olishi kerak: `backend/documents`, `backend/hr_documents`, `backend/purchase_contracts`, `backend/certificates`, `backend/backups`, `backend/public/uploads/photos` (ixtiyoriy: `backend/fonts/unifont`).
 6. **Zaxira nusxa.** `MYSQLDUMP_PATH`ni tekshiring va `backend/scripts/backup.php`ni kunlik rejalashtiring (qarang: "Zaxira nusxa").
@@ -90,10 +90,14 @@ Normativ hujjatlar ikki yo'l bilan qo'shiladi:
 
 ## Sertifikat
 
-Testdan o'tish balini qo'lga kiritgan xodimga avtomatik PDF sertifikat (F.I.Sh + filial) yaratiladi: test natijasi sahifasidan va "Holatingizni tekshiring" kartasidan yuklab olinadi, admin esa Korrupsiyaga qarshi kurashish statistikasi jadvalidan istalgan xodimnikini ochadi. Har bir xodim testni **2 marta** topshira oladi (`.env`da `TEST_MAX_ATTEMPTS`), 3-urinishda ogohlantirish chiqadi; sertifikat va natija uchun eng yuqori ball hisoblanadi. Xodimga qayta imkoniyat berish kerak bo'lsa, admin Hisobotlar bo'limidan uning test urinishlarini o'chiradi.
+Testdan o'tish balini qo'lga kiritgan xodimga avtomatik PDF sertifikat yaratiladi: test natijasi sahifasidan va "Holatingizni tekshiring" kartasidan yuklab olinadi, admin esa Korrupsiyaga qarshi kurashish statistikasi jadvalidan istalgan xodimnikini ochadi. Har bir xodim testni **2 marta** topshira oladi (`.env`da `TEST_MAX_ATTEMPTS`), 3-urinishda ogohlantirish chiqadi; sertifikat va natija uchun eng yuqori ball hisoblanadi. Xodimga qayta imkoniyat berish kerak bo'lsa, admin Hisobotlar bo'limidan uning test urinishlarini o'chiradi.
 
+- **Sertifikatdagi ma'lumotlar:** raqam (`AK-<yil>-<urinish raqami>`), F.I.Sh, filial, bo'linma, to'plangan ball, sana va pastda ikki imzo: xodim filialining rahbari hamda komplaens departamenti direktori (QR-kod bilan).
+- **Imzo qo'yuvchilar** admin panelidagi **Sertifikat** bo'limida kiritiladi (har bir filial uchun lavozim va F.I.Sh, komplaens direktori). Shu yerda har bir filial bo'yicha namunani ko'rish mumkin. O'zgartirish saqlangach, xodimlarning sertifikatlari keyingi ochilishda avtomatik yangilanadi (F.I.Sh, filial yoki bo'linma o'zgarganda ham).
+- **QR-kod** `backend/public/certificate-verify.php` sahifasiga olib boradi — u login talab qilmaydi va faqat taxmin qilib bo'lmaydigan havola orqali sertifikat haqiqiyligini (raqam, F.I.Sh, filial, sana, imzolagan shaxs) ko'rsatadi. Test natijalari o'chirilsa, sertifikat "amal qilmaydi" deb ko'rsatiladi.
+- **Dizayn** `backend/src/CertificatePdf.php` faylida (dizayner maketi `sertifikat_shablon.html` asosida), rasmlari `backend/certificate_assets/` papkasida. Yakuniy dizayn bilan almashtirilganda faqat shu joylar o'zgaradi; `CertificatePdf::VERSION` oshirilsa, barcha sertifikatlar yangi dizaynda qayta yaratiladi.
 - PDF'lar `backend/certificates/` papkasida saqlanadi — bu papka PHP uchun yoziladigan bo'lishi shart. Fayl yo'qolsa, keyingi yuklab olishda avtomatik qayta yaratiladi.
-- Kirill/lotin harflari uchun tFPDF (`backend/src/Vendor/tfpdf/`, LGPL) va DejaVu shriftlari (`backend/fonts/unifont/`) ishlatiladi. `backend/fonts/unifont/` yoziladigan bo'lsa, shrift o'lchamlari keshlanib, generatsiya tezlashadi (majburiy emas).
+- Shriftlar: Poppins (SIL OFL) va kirill harflari uchun DejaVu Sans (`backend/fonts/unifont/`), PDF kutubxonasi — tFPDF (`backend/src/Vendor/tfpdf/`, LGPL). `backend/fonts/unifont/` yoziladigan bo'lsa, shrift o'lchamlari keshlanib, generatsiya tezlashadi (majburiy emas).
 
 ## Tizim jurnali
 

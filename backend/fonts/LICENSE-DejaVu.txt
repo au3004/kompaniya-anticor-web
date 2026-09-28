@@ -1,4 +1,4 @@
-DejaVu fonts (DejaVuSerif.ttf, DejaVuSerif-Bold.ttf) — https://dejavu-fonts.github.io/
+DejaVu fonts (DejaVuSans.ttf, DejaVuSans-Bold.ttf) — https://dejavu-fonts.github.io/
 
 Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved.
 Bitstream Vera is a trademark of Bitstream, Inc.

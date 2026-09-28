@@ -273,5 +273,7 @@ CREATE TABLE certificates (
   filial           VARCHAR(50) NULL,
   file_name        VARCHAR(64) NOT NULL,
   issued_at        DATETIME NOT NULL,
+  render_sig       CHAR(40) NULL,          -- sertifikatga chiqqan ma'lumotlar "imzosi" (o'zgarsa PDF qayta yaratiladi)
+  verify_token     CHAR(24) NULL UNIQUE,   -- QR-kod orqali tekshiruv sahifasi (certificate-verify.php) tokeni
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

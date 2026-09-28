@@ -274,6 +274,9 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
 .field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; }
 .field input, .field select, .field textarea{ width:100%; padding:11px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; }
 .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--azure); }
+/* Sertifikat sozlamalari jadvalidagi kiritish maydonlari (.field bilan bir xil ko'rinish). */
+#certSettingsTbody input{ width:100%; min-width:160px; padding:8px 11px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:9px; color:var(--text); font-size:13px; font-family:'Inter'; outline:none; }
+#certSettingsTbody input:focus{ border-color:var(--azure); }
 .file-btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:12px 14px; border:1.5px dashed var(--input-border); border-radius:10px; background:var(--input-bg); color:var(--text-dim); font-size:13.5px; font-weight:600; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
 .file-btn:hover{ border-color:var(--azure); color:var(--azure); }
 /* Ochilgan <select> ro'yxati (<option>lar) brauzer tomonidan alohida, sahifa
@@ -588,6 +591,11 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
         <h3 data-i18n="hubDocs">Hujjat qo'shish</h3>
         <p data-i18n="hubDocsDesc">Normativ hujjatlarni qo'shish, tahrirlash, o'chirish</p>
+      </button>
+      <button class="hub-card" id="certCard" onclick="openSection('certView'); loadCertSettings();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/></svg></div>
+        <h3 data-i18n="hubCert">Sertifikat</h3>
+        <p data-i18n="hubCertDesc">Sertifikatdagi imzo qo'yuvchilar va namuna</p>
       </button>
       <button class="hub-card" id="surveyCard" onclick="openSurveyEntry()" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></div>
@@ -1341,6 +1349,38 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
     </div>
   </div>
 
+  <!-- Sertifikat: imzo qo'yuvchilar (filial rahbarlari, komplaens direktori) va namuna -->
+  <div id="certView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubCert">Sertifikat</div>
+        <h1 data-i18n="certSettingsTitle">Sertifikat sozlamalari</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <p class="tsub" style="margin-bottom:14px;" data-i18n="certSettingsDesc">Sertifikat pastidagi imzo qismida xodimning filiali rahbari va komplaens departamenti direktori chiqadi. QR-kod sertifikat haqiqiyligini tekshirish sahifasiga olib boradi. O'zgartirishlar saqlangach, xodimlarning sertifikatlari keyingi ochilishda avtomatik yangilanadi.</p>
+    <form class="form-card" style="max-width:none;" onsubmit="return saveCertSettings(event)">
+      <div class="table-wrap" style="margin-bottom:0;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="thFilial">Filial</th>
+              <th data-i18n="certColTitle">Lavozim (sertifikatda)</th>
+              <th data-i18n="certColName">F.I.Sh (masalan: Aliyev A.A.)</th>
+              <th style="width:110px;" data-i18n="certColPreview">Namuna</th>
+            </tr>
+          </thead>
+          <tbody id="certSettingsTbody"><tr><td colspan="4" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        </table>
+      </div>
+      <button class="submit-btn" type="submit" id="certSaveBtn" style="margin-top:16px;" data-i18n="saveBtn">Saqlash</button>
+      <div class="msg" id="certFormMsg"></div>
+    </form>
+  </div>
+
   <!-- Zaxira nusxa (faqat gl-admin) -->
   <div id="backupView" style="display:none;">
     <div class="page-head">
@@ -1548,6 +1588,9 @@ const dict = {
     backupCreateBtn:"Hozir zaxira nusxa olish", backupCreating:"Zaxira olinmoqda...",
     backupColName:"Sana / vaqt", backupColSize:"Hajmi", backupDownloadBtn:"Yuklab olish",
     hubErrorLog:"Tizim jurnali", hubErrorLogDesc:"Server tomonida yuzaga kelgan xatoliklar tarixi",
+    hubCert:"Sertifikat", hubCertDesc:"Sertifikatdagi imzo qo'yuvchilar va namuna", certSettingsTitle:"Sertifikat sozlamalari",
+    certSettingsDesc:"Sertifikat pastidagi imzo qismida xodimning filiali rahbari va komplaens departamenti direktori chiqadi. QR-kod sertifikat haqiqiyligini tekshirish sahifasiga olib boradi. O'zgartirishlar saqlangach, xodimlarning sertifikatlari keyingi ochilishda avtomatik yangilanadi.",
+    certColTitle:"Lavozim (sertifikatda)", certColName:"F.I.Sh (masalan: Aliyev A.A.)", certColPreview:"Namuna", certKomplaensRow:"Komplaens departamenti", certPreviewLink:"Ko'rish",
     errorLogDesc:"So'nggi 200 ta server xatoligi (eng yangisi birinchi). 90 kundan eski yozuvlar avtomatik o'chiriladi.",
     errorLogColAction:"Amal", errorLogColMessage:"Xabar" },
   ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
@@ -1660,6 +1703,9 @@ const dict = {
     backupCreateBtn:"Создать резервную копию сейчас", backupCreating:"Создание копии...",
     backupColName:"Дата / время", backupColSize:"Размер", backupDownloadBtn:"Скачать",
     hubErrorLog:"Системный журнал", hubErrorLogDesc:"История ошибок на стороне сервера",
+    hubCert:"Сертификат", hubCertDesc:"Подписанты сертификата и образец", certSettingsTitle:"Настройки сертификата",
+    certSettingsDesc:"В блоке подписей сертификата указываются руководитель филиала сотрудника и директор департамента комплаенс. QR-код ведёт на страницу проверки подлинности сертификата. После сохранения сертификаты сотрудников обновятся автоматически при следующем открытии.",
+    certColTitle:"Должность (в сертификате)", certColName:"Ф.И.О. (например: Aliyev A.A.)", certColPreview:"Образец", certKomplaensRow:"Департамент комплаенс", certPreviewLink:"Открыть",
     errorLogDesc:"Последние 200 ошибок сервера (сначала новые). Записи старше 90 дней удаляются автоматически.",
     errorLogColAction:"Действие", errorLogColMessage:"Сообщение" }
 };
@@ -2147,6 +2193,56 @@ async function loadErrorLog(){
   } catch(ex){
     tbody.innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
   }
+}
+
+// ---- Sertifikat sozlamalari (imzo qo'yuvchilar) ----
+function certPreviewUrl(filial){
+  return API_BASE_URL.replace('backend/public/index.php','backend/public/certificate-preview.php') + (filial ? '?filial=' + encodeURIComponent(filial) : '');
+}
+
+async function loadCertSettings(){
+  const tbody = document.getElementById('certSettingsTbody');
+  try{
+    const data = await apiCall({ action:'getCertificateSettings', token: currentUserForKpi.token });
+    if(!data.success){ tbody.innerHTML = `<tr><td colspan="4" class="loading-row">${escapeHtml(data.message || dict[currentLang].savedErr)}</td></tr>`; return; }
+    const row = (key, label, item, filial) => `
+      <tr data-cert-key="${escapeHtml(key)}">
+        <td>${escapeHtml(label)}</td>
+        <td><input type="text" class="cert-title" maxlength="100" value="${escapeHtml(item.title)}" style="width:100%;"></td>
+        <td><input type="text" class="cert-name" maxlength="100" value="${escapeHtml(item.name)}" style="width:100%;"></td>
+        <td><a href="${certPreviewUrl(filial)}" target="_blank" rel="noopener noreferrer" style="color:var(--azure); font-weight:600;">${dict[currentLang].certPreviewLink}</a></td>
+      </tr>`;
+    tbody.innerHTML = row('komplaens', dict[currentLang].certKomplaensRow, data.komplaens, '')
+      + FILIALS.map(f => row(f, filialLabel(f), data.filials[f] || {title:'', name:''}, f)).join('');
+  } catch(ex){
+    tbody.innerHTML = `<tr><td colspan="4" class="loading-row">Xatolik: ${escapeHtml(ex.message)}</td></tr>`;
+  }
+}
+
+async function saveCertSettings(e){
+  e.preventDefault();
+  const msg = document.getElementById('certFormMsg'); msg.className = 'msg';
+  const btn = document.getElementById('certSaveBtn'); btn.disabled = true;
+  const payload = { action:'saveCertificateSettings', token: currentUserForKpi.token, komplaens:{}, filials:{} };
+  document.querySelectorAll('#certSettingsTbody tr[data-cert-key]').forEach(tr => {
+    const item = { title: tr.querySelector('.cert-title').value.trim(), name: tr.querySelector('.cert-name').value.trim() };
+    const key = tr.getAttribute('data-cert-key');
+    if(key === 'komplaens') payload.komplaens = item; else payload.filials[key] = item;
+  });
+  try{
+    const data = await apiCall(payload);
+    if(data.success){
+      msg.textContent = dict[currentLang].savedOk; msg.className = 'msg ok';
+      loadCertSettings();
+    } else {
+      msg.textContent = data.message || dict[currentLang].savedErr; msg.className = 'msg err';
+    }
+  } catch(ex){
+    msg.textContent = dict[currentLang].savedErr; msg.className = 'msg err';
+  } finally {
+    btn.disabled = false;
+  }
+  return false;
 }
 
 function renderTable(){
@@ -3745,6 +3841,7 @@ function init(){
   document.getElementById('conflictCard').style.display = canAnticor ? 'block' : 'none';
   document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
+  document.getElementById('certCard').style.display = canManage ? 'block' : 'none';
   document.getElementById('surveyCard').style.display = canSurvey ? 'block' : 'none';
   document.getElementById('notifSendCard').style.display = canNotifSend ? 'block' : 'none';
   document.getElementById('addEmployeeSubCard').style.display = canAddEmployee ? 'block' : 'none';

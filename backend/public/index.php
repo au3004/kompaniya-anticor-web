@@ -15,6 +15,7 @@ use App\Response;
 use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\BackupController;
+use App\Controllers\CertificateController;
 use App\Controllers\ConflictDeclarationController;
 use App\Controllers\DocsController;
 use App\Controllers\HrDocumentController;
@@ -128,6 +129,8 @@ $routes = [
     'getTestQuestions' => [TestController::class, 'getQuestions'],
     'submitTest' => [TestController::class, 'submit'],
     'setTestActive' => [TestController::class, 'setActive'],
+    'getCertificateSettings' => [CertificateController::class, 'getSettings'],
+    'saveCertificateSettings' => [CertificateController::class, 'saveSettings'],
     'addTestQuestion' => [TestController::class, 'add'],
     'editTestQuestion' => [TestController::class, 'edit'],
     'deleteTestQuestion' => [TestController::class, 'delete'],
