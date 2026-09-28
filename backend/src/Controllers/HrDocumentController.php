@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Database;
 use App\RateLimit;
@@ -143,14 +144,17 @@ final class HrDocumentController
 
     public static function delete(array $input): void
     {
-        Auth::requireRole($input, Roles::HR_DOCS);
+        $me = Auth::requireRole($input, Roles::HR_DOCS);
         $id = (int) ($input['id'] ?? 0);
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
         }
 
         $db = Database::connection();
-        $stmt = $db->prepare('SELECT file_name FROM hr_documents WHERE id = :id LIMIT 1');
+        $stmt = $db->prepare(
+            'SELECT h.file_name, h.original_name, u.familiya, u.ism, u.otasining_ismi, u.login
+             FROM hr_documents h LEFT JOIN users u ON u.id = h.user_id WHERE h.id = :id LIMIT 1'
+        );
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
 
@@ -159,6 +163,9 @@ final class HrDocumentController
 
         if ($row && !empty($row['file_name'])) {
             @unlink(self::documentsDir() . '/' . $row['file_name']);
+        }
+        if ($row) {
+            Audit::log($me, 'hr_doc_delete', ($row['original_name'] ?: $row['file_name']) . ' — ' . Audit::userLabel($row));
         }
 
         Response::success();

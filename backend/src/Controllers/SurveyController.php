@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Roles;
 use App\Database;
@@ -94,7 +95,7 @@ final class SurveyController
 
     public static function setActive(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $active = Validate::bool($input, 'active');
 
         $db = Database::connection();
@@ -103,6 +104,7 @@ final class SurveyController
              ON DUPLICATE KEY UPDATE setting_value = :v2"
         );
         $stmt->execute(['v' => $active ? 'true' : 'false', 'v2' => $active ? 'true' : 'false']);
+        Audit::log($me, 'survey_active', $active ? 'yoqildi' : "o'chirildi");
 
         Response::success();
     }
@@ -133,7 +135,7 @@ final class SurveyController
 
     public static function add(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $f = self::questionFields($input);
 
         $db = Database::connection();
@@ -146,13 +148,15 @@ final class SurveyController
               :savol_ru, :variant_a_ru, :variant_b_ru, :variant_c_ru, :variant_d_ru)'
         );
         $stmt->execute($f);
+        $newId = (int) $db->lastInsertId();
+        Audit::log($me, 'survey_question_add', "#{$newId}: " . mb_substr($f['savol'], 0, 200));
 
-        Response::success(['id' => (int) $db->lastInsertId()]);
+        Response::success(['id' => $newId]);
     }
 
     public static function edit(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
@@ -170,21 +174,28 @@ final class SurveyController
              WHERE id = :id'
         );
         $stmt->execute($f);
+        Audit::log($me, 'survey_question_edit', "#{$id}: " . mb_substr($f['savol'], 0, 200));
 
         Response::success();
     }
 
     public static function delete(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
         }
 
         $db = Database::connection();
+        $old = $db->prepare('SELECT savol FROM survey_questions WHERE id = :id');
+        $old->execute(['id' => $id]);
+        $savol = $old->fetchColumn();
         $stmt = $db->prepare('DELETE FROM survey_questions WHERE id = :id');
         $stmt->execute(['id' => $id]);
+        if ($savol !== false) {
+            Audit::log($me, 'survey_question_delete', "#{$id}: " . mb_substr((string) $savol, 0, 200));
+        }
 
         Response::success();
     }

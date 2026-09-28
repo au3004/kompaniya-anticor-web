@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Database;
 use App\Response;
@@ -135,7 +136,9 @@ final class PurchaseController
             throw $e;
         }
 
-        Response::success(['id' => (int) $db->lastInsertId()]);
+        $newId = (int) $db->lastInsertId();
+        Audit::log($me, 'purchase_add', "№{$shartnomaRaqami} — {$kontragent}");
+        Response::success(['id' => $newId]);
     }
 
     /**

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Database;
 use App\Response;
@@ -224,9 +225,19 @@ final class ReportsController
      * Jadval nomi har doim shu faylning o'zidagi qattiq belgilangan (whitelist)
      * qiymat, hech qachon foydalanuvchi kiritmasidan olinmaydi.
      */
+    /** Jurnal uchun: jadval => amal kodi. */
+    private const DELETE_AUDIT_ACTIONS = [
+        'test_attempts' => 'delete_test_attempts',
+        'doc_reads' => 'delete_doc_reads',
+        'survey_submissions' => 'delete_survey_submissions',
+        'notifications' => 'delete_notifications',
+        'notification_reads' => 'delete_notification_reads',
+        'support_requests' => 'delete_support_requests',
+    ];
+
     private static function bulkDelete(array $input, string $table, ?callable $after = null): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
         $ids = array_values(array_unique(array_filter(
             array_map('intval', Validate::array($input, 'ids')),
@@ -238,11 +249,27 @@ final class ReportsController
 
         $db = Database::connection();
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        // Jurnal uchun: kimning yozuvlari o'chirilayotgani (so'rovnoma anonim — ism yozilmaydi).
+        $whose = '';
+        if (in_array($table, ['test_attempts', 'doc_reads', 'notification_reads', 'support_requests'], true)) {
+            $names = $db->prepare(
+                "SELECT DISTINCT u.familiya, u.ism, u.otasining_ismi, u.login
+                 FROM {$table} t JOIN users u ON u.id = t.user_id WHERE t.id IN ({$placeholders})"
+            );
+            $names->execute($ids);
+            $whose = implode('; ', array_map([Audit::class, 'userLabel'], $names->fetchAll()));
+        }
+
         $stmt = $db->prepare("DELETE FROM {$table} WHERE id IN ({$placeholders})");
         $stmt->execute($ids);
         $deleted = $stmt->rowCount();
         if ($after) {
             $after($db);
+        }
+        if ($deleted > 0) {
+            Audit::log($me, self::DELETE_AUDIT_ACTIONS[$table] ?? 'delete_records',
+                "{$deleted} ta yozuv" . ($whose !== '' ? " — {$whose}" : ''));
         }
 
         Response::success(['deleted' => $deleted]);

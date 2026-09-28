@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\CertificatePdf;
 use App\Config;
@@ -10,6 +11,7 @@ use App\Database;
 use App\Filials;
 use App\Response;
 use App\Roles;
+use App\TestPolicy;
 use App\Util;
 use App\Validate;
 
@@ -83,14 +85,15 @@ final class CertificateController
     public static function revokedUserIds(\PDO $db): array
     {
         try {
+            $valid = TestPolicy::notExpiredSql($db, 't');
             $rows = $db->query(
-                'SELECT c.user_id FROM certificates c
+                "SELECT c.user_id FROM certificates c
                  WHERE c.revoked_attempt_id IS NOT NULL
                    AND c.revoked_attempt_id = (
                        SELECT t.id FROM test_attempts t
-                       WHERE t.user_id = c.user_id AND t.passed = 1
+                       WHERE t.user_id = c.user_id AND t.passed = 1 AND {$valid}
                        ORDER BY t.percent DESC, t.attempted_at DESC, t.id DESC LIMIT 1
-                   )'
+                   )"
             )->fetchAll(\PDO::FETCH_COLUMN);
         } catch (\Throwable $e) {
             return [];
@@ -98,12 +101,14 @@ final class CertificateController
         return array_fill_keys(array_map('intval', $rows), true);
     }
 
+    /** Eng yaxshi, muddati tugamagan o'tgan urinish (sertifikat shunga beriladi). */
     private static function bestPassingAttempt(\PDO $db, int $userId): ?array
     {
+        $valid = TestPolicy::notExpiredSql($db);
         $stmt = $db->prepare(
-            'SELECT id, points, max_points, attempted_at FROM test_attempts
-             WHERE user_id = :uid AND passed = 1
-             ORDER BY percent DESC, attempted_at DESC, id DESC LIMIT 1'
+            "SELECT id, points, max_points, attempted_at FROM test_attempts
+             WHERE user_id = :uid AND passed = 1 AND {$valid}
+             ORDER BY percent DESC, attempted_at DESC, id DESC LIMIT 1"
         );
         $stmt->execute(['uid' => $userId]);
         $row = $stmt->fetch();
@@ -148,6 +153,7 @@ final class CertificateController
             'bolinma' => trim((string) ($user['bolinma'] ?? '')),
             'ball' => (int) $attempt['points'] . ' / ' . (int) $attempt['max_points'],
             'date' => date('d.m.Y', strtotime($issuedAt)),
+            'validUntil' => self::formatDate(TestPolicy::validUntil($db, $issuedAt)),
         ], $token);
         $sig = sha1((string) json_encode([CertificatePdf::VERSION, $data]));
 
@@ -216,7 +222,13 @@ final class CertificateController
             'bolinma' => "Mijozlarga xizmat ko‘rsatish bo‘limi",
             'ball' => '92 / 100',
             'date' => date('d.m.Y'),
+            'validUntil' => self::formatDate(TestPolicy::validUntil($db, date('Y-m-d H:i:s'))),
         ], self::SAMPLE_TOKEN));
+    }
+
+    private static function formatDate(?string $ymd): ?string
+    {
+        return $ymd ? date('d.m.Y', strtotime($ymd)) : null;
     }
 
     /** Sertifikat raqami: AK-<yil>-<urinish raqami, 6 xona>. */
@@ -296,7 +308,7 @@ final class CertificateController
 
     public static function saveSettings(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
         $rows = [];
         $komplaens = is_array($input['komplaens'] ?? null) ? $input['komplaens'] : [];
@@ -310,6 +322,7 @@ final class CertificateController
         }
 
         $db = Database::connection();
+        $before = self::loadSettings($db);
         $stmt = $db->prepare(
             'INSERT INTO app_settings (setting_key, setting_value) VALUES (:k, :v)
              ON DUPLICATE KEY UPDATE setting_value = :v2'
@@ -326,7 +339,20 @@ final class CertificateController
             throw $e;
         }
 
-        Response::success(self::loadSettings($db));
+        $after = self::loadSettings($db);
+        $changes = [];
+        foreach (array_merge(['komplaens' => 'Komplaens'], Filials::LABELS_UZ) as $key => $label) {
+            $old = $key === 'komplaens' ? $before['komplaens'] : $before['filials'][$key];
+            $new = $key === 'komplaens' ? $after['komplaens'] : $after['filials'][$key];
+            if ($old !== $new) {
+                $changes[] = "{$label}: " . trim($new['title'] . ' ' . $new['name']);
+            }
+        }
+        if ($changes) {
+            Audit::log($me, 'cert_settings', implode('; ', $changes));
+        }
+
+        Response::success($after);
     }
 
     // ------------------------------------------------------------------
@@ -343,13 +369,14 @@ final class CertificateController
         Auth::requireRole($input, Roles::ANTICOR_VIEW);
         $db = Database::connection();
 
+        $valid = TestPolicy::notExpiredSql($db, 't');
         $stmt = $db->prepare(
-            'SELECT t.id AS attempt_id, t.user_id, t.points, t.max_points, t.attempted_at,
+            "SELECT t.id AS attempt_id, t.user_id, t.points, t.max_points, t.attempted_at,
                     u.familiya, u.ism, u.otasining_ismi, u.filial
              FROM test_attempts t
              JOIN users u ON u.id = t.user_id
-             WHERE t.passed = 1 AND u.rol != :superAdmin
-             ORDER BY t.user_id, t.percent DESC, t.attempted_at DESC, t.id DESC'
+             WHERE t.passed = 1 AND {$valid} AND u.rol != :superAdmin
+             ORDER BY t.user_id, t.percent DESC, t.attempted_at DESC, t.id DESC"
         );
         $stmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
         $revoked = self::revokedUserIds($db);
@@ -370,6 +397,7 @@ final class CertificateController
             'filial' => $r['filial'] ?: null,
             'ball' => (int) $r['points'] . '/' . (int) $r['max_points'],
             'sana' => date('d.m.Y', strtotime((string) $r['attempted_at'])),
+            'amalQiladi' => self::formatDate(TestPolicy::validUntil($db, (string) $r['attempted_at'])),
         ], $best);
 
         Response::success(['certificates' => array_values($list)]);
@@ -381,7 +409,7 @@ final class CertificateController
      */
     public static function revokeCertificates(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $ids = array_values(array_unique(array_filter(
             array_map('intval', Validate::array($input, 'ids')),
             static fn (int $id) => $id > 0
@@ -403,6 +431,7 @@ final class CertificateController
         );
 
         $revoked = 0;
+        $revokedNames = [];
         foreach ($ids as $userId) {
             $userStmt->execute(['id' => $userId, 'superAdmin' => Roles::SUPER_ADMIN]);
             $user = $userStmt->fetch();
@@ -425,6 +454,10 @@ final class CertificateController
                 ]);
             }
             $revoked++;
+            $revokedNames[] = Audit::userLabel($user) . ' — ' . self::number((string) $attempt['attempted_at'], (int) $attempt['id']);
+        }
+        if ($revokedNames) {
+            Audit::log($me, 'cert_revoke', implode('; ', $revokedNames));
         }
 
         Response::success(['deleted' => $revoked]);

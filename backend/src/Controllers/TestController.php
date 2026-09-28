@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Roles;
 use App\Config;
@@ -10,6 +11,7 @@ use App\Database;
 use App\Logger;
 use App\RateLimit;
 use App\Response;
+use App\TestPolicy;
 use App\Util;
 use App\Validate;
 
@@ -56,46 +58,67 @@ final class TestController
         return self::baseAttempts() + self::retakeGrants($db, $userId);
     }
 
+    // Quyidagi hisoblar faqat xodimning JORIY tsikli ichida (TestPolicy):
+    // sertifikat muddati tugagach, eski urinishlar va ruxsatlar hisobga olinmaydi.
+
+    /** [SQL sharti, parametrlar] — $column joriy tsikl boshidan keyin. */
+    private static function cycleFilter(\PDO $db, int $userId, string $column): array
+    {
+        $start = TestPolicy::cycleStart($db, $userId);
+        return $start === null ? ['', []] : [" AND {$column} >= :cycle_start", ['cycle_start' => $start]];
+    }
+
     private static function retakeGrants(\PDO $db, int $userId): int
     {
         try {
-            $stmt = $db->prepare('SELECT COUNT(*) FROM test_retakes WHERE user_id = :uid');
-            $stmt->execute(['uid' => $userId]);
+            [$cond, $params] = self::cycleFilter($db, $userId, 'granted_at');
+            $stmt = $db->prepare("SELECT COUNT(*) FROM test_retakes WHERE user_id = :uid{$cond}");
+            $stmt->execute(['uid' => $userId] + $params);
             return (int) $stmt->fetchColumn();
         } catch (\Throwable $e) {
             return 0; // jadval hali yaratilmagan
         }
     }
 
-    /** Barcha xodimlar bo'yicha qayta topshirish ruxsatlari soni — [user_id => n] (statistika uchun). */
-    public static function retakeGrantCounts(\PDO $db): array
+    /**
+     * Barcha xodimlar bo'yicha joriy tsikldagi qayta topshirish ruxsatlari soni
+     * — [user_id => n] (statistika uchun). $cycleStarts — TestPolicy::cycleStarts().
+     */
+    public static function retakeGrantCounts(\PDO $db, array $cycleStarts = []): array
     {
         Util::ensureSchema($db, self::RETAKES_DDL);
         $counts = [];
-        foreach ($db->query('SELECT user_id, COUNT(*) AS n FROM test_retakes GROUP BY user_id') as $r) {
-            $counts[(int) $r['user_id']] = (int) $r['n'];
+        foreach ($db->query('SELECT user_id, granted_at FROM test_retakes') as $r) {
+            $uid = (int) $r['user_id'];
+            if (isset($cycleStarts[$uid]) && (string) $r['granted_at'] < $cycleStarts[$uid]) {
+                continue;
+            }
+            $counts[$uid] = ($counts[$uid] ?? 0) + 1;
         }
         return $counts;
     }
 
     private static function hasPassedAttempt(\PDO $db, int $userId): bool
     {
-        $stmt = $db->prepare('SELECT 1 FROM test_attempts WHERE user_id = :uid AND passed = 1 LIMIT 1');
-        $stmt->execute(['uid' => $userId]);
+        [$cond, $params] = self::cycleFilter($db, $userId, 'attempted_at');
+        $stmt = $db->prepare("SELECT 1 FROM test_attempts WHERE user_id = :uid AND passed = 1{$cond} LIMIT 1");
+        $stmt->execute(['uid' => $userId] + $params);
         return (bool) $stmt->fetchColumn();
     }
 
     private static function attemptsUsed(\PDO $db, int $userId): int
     {
-        $stmt = $db->prepare('SELECT COUNT(*) FROM test_attempts WHERE user_id = :uid');
-        $stmt->execute(['uid' => $userId]);
+        [$cond, $params] = self::cycleFilter($db, $userId, 'attempted_at');
+        $stmt = $db->prepare("SELECT COUNT(*) FROM test_attempts WHERE user_id = :uid{$cond}");
+        $stmt->execute(['uid' => $userId] + $params);
         return (int) $stmt->fetchColumn();
     }
 
     private static function bestPercent(\PDO $db, int $userId): ?int
     {
-        $stmt = $db->prepare('SELECT MAX(percent) FROM test_attempts WHERE user_id = :uid');
-        $stmt->execute(['uid' => $userId]);
+        [$cond, $params] = self::cycleFilter($db, $userId, 'attempted_at');
+        $stmt = $db->prepare("SELECT MAX(percent) FROM test_attempts WHERE user_id = :uid{$cond}");
+        $stmt->execute(['uid' => $userId] + $params);
         $v = $stmt->fetchColumn();
         return $v === null || $v === false ? null : (int) $v;
     }
@@ -132,7 +155,10 @@ final class TestController
             $result['passed'] = self::hasPassedAttempt($db, $userId);
             $result['bestPercent'] = self::bestPercent($db, $userId);
             $result['certificate'] = CertificateController::hasCertificate($db, $userId);
+            // Oldingi tsiklda o'tgan (sertifikat muddati tugagan) — yillik qayta attestatsiya.
+            $result['renewal'] = TestPolicy::cycleStart($db, $userId) !== null;
         }
+        $result['deadline'] = TestPolicy::deadline($db);
 
         Response::success($result);
     }
@@ -262,7 +288,7 @@ final class TestController
         $userId = (int) Validate::int($input, 'userId');
 
         $db = Database::connection();
-        $stmt = $db->prepare('SELECT id, login FROM users WHERE id = :id AND rol != :superAdmin LIMIT 1');
+        $stmt = $db->prepare('SELECT id, login, familiya, ism, otasining_ismi FROM users WHERE id = :id AND rol != :superAdmin LIMIT 1');
         $stmt->execute(['id' => $userId, 'superAdmin' => Roles::SUPER_ADMIN]);
         $target = $stmt->fetch();
         if (!$target) {
@@ -297,6 +323,8 @@ final class TestController
             throw $e;
         }
 
+        Audit::log($me, 'retake_grant', Audit::userLabel($target));
+
         // Xabarnoma yuborilmasa ham ruxsat saqlanadi.
         try {
             $notify = $db->prepare(
@@ -318,7 +346,7 @@ final class TestController
 
     public static function setActive(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $active = Validate::bool($input, 'active');
 
         $db = Database::connection();
@@ -327,6 +355,7 @@ final class TestController
              ON DUPLICATE KEY UPDATE setting_value = :v2"
         );
         $stmt->execute(['v' => $active ? 'true' : 'false', 'v2' => $active ? 'true' : 'false']);
+        Audit::log($me, 'test_active', $active ? 'yoqildi' : "o'chirildi");
 
         Response::success();
     }
@@ -351,7 +380,7 @@ final class TestController
 
     public static function add(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $f = self::questionFields($input);
 
         $db = Database::connection();
@@ -364,13 +393,15 @@ final class TestController
               :savol_ru, :variant_a_ru, :variant_b_ru, :variant_c_ru, :variant_d_ru, :togri_javob_ru)'
         );
         $stmt->execute($f);
+        $newId = (int) $db->lastInsertId();
+        Audit::log($me, 'test_question_add', "#{$newId}: " . mb_substr($f['savol'], 0, 200));
 
-        Response::success(['id' => (int) $db->lastInsertId()]);
+        Response::success(['id' => $newId]);
     }
 
     public static function edit(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
@@ -388,21 +419,28 @@ final class TestController
              WHERE id = :id'
         );
         $stmt->execute($f);
+        Audit::log($me, 'test_question_edit', "#{$id}: " . mb_substr($f['savol'], 0, 200));
 
         Response::success();
     }
 
     public static function delete(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
         }
 
         $db = Database::connection();
+        $old = $db->prepare('SELECT savol FROM test_questions WHERE id = :id');
+        $old->execute(['id' => $id]);
+        $savol = $old->fetchColumn();
         $stmt = $db->prepare('DELETE FROM test_questions WHERE id = :id');
         $stmt->execute(['id' => $id]);
+        if ($savol !== false) {
+            Audit::log($me, 'test_question_delete', "#{$id}: " . mb_substr((string) $savol, 0, 200));
+        }
 
         Response::success();
     }

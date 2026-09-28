@@ -9,9 +9,11 @@ error_reporting(E_ALL);
 
 require dirname(__DIR__) . '/src/autoload.php';
 
+use App\Audit;
 use App\Config;
 use App\Cors;
 use App\Response;
+use App\TestPolicy;
 use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\BackupController;
@@ -129,6 +131,8 @@ $routes = [
     'getTestQuestions' => [TestController::class, 'getQuestions'],
     'submitTest' => [TestController::class, 'submit'],
     'grantTestRetake' => [TestController::class, 'grantRetake'],
+    'getTestSettings' => [TestPolicy::class, 'getSettings'],
+    'saveTestSettings' => [TestPolicy::class, 'saveSettings'],
     'setTestActive' => [TestController::class, 'setActive'],
     'getCertificateSettings' => [CertificateController::class, 'getSettings'],
     'saveCertificateSettings' => [CertificateController::class, 'saveSettings'],
@@ -149,6 +153,7 @@ $routes = [
     'getMyNotifications' => [NotificationController::class, 'mine'],
     'markNotificationRead' => [NotificationController::class, 'markRead'],
     'sendNotification' => [NotificationController::class, 'send'],
+    'sendReminders' => [NotificationController::class, 'sendReminders'],
     'getNotificationReport' => [NotificationController::class, 'report'],
 
     'getUsersList' => [AdminController::class, 'usersList'],
@@ -158,6 +163,7 @@ $routes = [
     'deleteEmployee' => [AdminController::class, 'deleteEmployee'],
     'unlockLogin' => [AdminController::class, 'unlockLogin'],
     'getErrorLog' => [AdminController::class, 'getErrorLog'],
+    'getAuditLog' => [Audit::class, 'getLog'],
 
     'addPurchase' => [PurchaseController::class, 'addPurchase'],
     'getPurchases' => [PurchaseController::class, 'getPurchases'],

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Roles;
 use App\Database;
@@ -156,7 +157,7 @@ final class DocsController
 
     public static function add(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
         $db = Database::connection();
         Util::ensureSchema($db, self::DDL);
@@ -179,12 +180,14 @@ final class DocsController
             throw $e;
         }
 
-        Response::success(['id' => (int) $db->lastInsertId()]);
+        $newId = (int) $db->lastInsertId();
+        Audit::log($me, 'doc_add', "#{$newId}: {$uz}");
+        Response::success(['id' => $newId]);
     }
 
     public static function edit(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
@@ -214,6 +217,7 @@ final class DocsController
             }
             $stmt = $db->prepare('UPDATE documents SET nomi_uz = :uz, nomi_ru = :ru WHERE id = :id');
             $stmt->execute(['uz' => $uz, 'ru' => $ru !== '' ? $ru : null, 'id' => $id]);
+            Audit::log($me, 'doc_edit', "#{$id}: {$uz}");
             Response::success();
             return;
         }
@@ -247,13 +251,14 @@ final class DocsController
         if ($newFileName && $oldFileName) {
             @unlink(self::documentsDir() . '/' . $oldFileName);
         }
+        Audit::log($me, 'doc_edit', "#{$id}: {$uz}" . ($newFileName ? ' (fayl almashtirildi)' : ''));
 
         Response::success();
     }
 
     public static function delete(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error('ID talab qilinadi', 'VALIDATION_ERROR', 422);
@@ -261,7 +266,7 @@ final class DocsController
 
         $db = Database::connection();
         Util::ensureSchema($db, self::DDL);
-        $stmt = $db->prepare('SELECT file_name, folder_file FROM documents WHERE id = :id LIMIT 1');
+        $stmt = $db->prepare('SELECT nomi_uz, file_name, folder_file FROM documents WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
 
@@ -279,6 +284,9 @@ final class DocsController
 
         if ($row && !empty($row['file_name'])) {
             @unlink(self::documentsDir() . '/' . $row['file_name']);
+        }
+        if ($row) {
+            Audit::log($me, 'doc_delete', "#{$id}: " . $row['nomi_uz']);
         }
 
         Response::success();

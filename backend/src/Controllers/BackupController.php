@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Roles;
 use App\Config;
@@ -23,12 +24,13 @@ final class BackupController
 {
     public static function create(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
         $result = self::performBackup();
         if (!$result['success']) {
             Response::error($result['error'], 'BACKUP_FAILED', 500);
         }
+        Audit::log($me, 'backup_create', (string) $result['name']);
 
         Response::success(['name' => $result['name'], 'sizeBytes' => $result['sizeBytes']]);
     }

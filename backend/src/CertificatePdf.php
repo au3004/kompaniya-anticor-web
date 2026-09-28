@@ -46,7 +46,7 @@ final class CertificatePdf extends \tFPDF
 
     /**
      * $d kalitlari: number, fish, filial (?string), bolinma (?string), ball,
-     * date, signers — [['title' => ..., 'name' => ..., 'qr' => url], ...] (1–2 ta).
+     * date, validUntil (?string), signers — [['title' => ..., 'name' => ..., 'qr' => url], ...] (1–2 ta).
      */
     public static function render(array $d): string
     {
@@ -153,7 +153,11 @@ final class CertificatePdf extends \tFPDF
         // Ball va sana kartochkalari.
         $y += 6;
         $x = self::X0;
-        foreach ([["To‘plangan ball", $d['ball']], ['Berilgan sana', $d['date']]] as [$label, $value]) {
+        $facts = [["To‘plangan ball", $d['ball']], ['Berilgan sana', $d['date']]];
+        if (!empty($d['validUntil'])) {
+            $facts[] = ['Amal qiladi', $d['validUntil'] . ' gacha'];
+        }
+        foreach ($facts as [$label, $value]) {
             $boxW = max(40.0, max($this->width($label, 'light', 8), $this->width($value, 'bold', 15)) + 10);
             $this->SetFillColor(...self::TINT);
             $this->roundedRect($x, $y, $boxW, 17.11, 2);

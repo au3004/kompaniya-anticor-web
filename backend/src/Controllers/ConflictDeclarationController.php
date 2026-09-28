@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Database;
 use App\RateLimit;
@@ -157,7 +158,7 @@ final class ConflictDeclarationController
     /** Admin panel: deklaratsiyani ro'yxatdan (bazadan) o'chiradi. */
     public static function adminDelete(array $input): void
     {
-        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
         $id = Validate::int($input, 'id');
         if (!$id) {
             Response::error("ID noto'g'ri", 'VALIDATION_ERROR', 422);
@@ -166,8 +167,18 @@ final class ConflictDeclarationController
         $db = Database::connection();
         self::ensure($db);
 
+        $who = $db->prepare(
+            'SELECT u.familiya, u.ism, u.otasining_ismi, u.login
+             FROM declarations d JOIN users u ON u.id = d.user_id WHERE d.id = :id'
+        );
+        $who->execute(['id' => $id]);
+        $owner = $who->fetch();
+
         $stmt = $db->prepare('DELETE FROM declarations WHERE id = :id');
         $stmt->execute(['id' => $id]);
+        if ($owner) {
+            Audit::log($me, 'declaration_delete', "#{$id} — " . Audit::userLabel($owner));
+        }
 
         Response::success();
     }

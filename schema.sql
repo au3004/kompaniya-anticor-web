@@ -290,3 +290,29 @@ CREATE TABLE certificates (
   revoked_attempt_id INT NULL,             -- admin shu test natijasi uchun sertifikatni bekor qilgan
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 13) ADMIN AMALLARI JURNALI — kim, qachon, nimani o'zgartirgan (xodimlar,
+-- natijalarni o'chirish, sertifikatlar, sozlamalar va h.k.). Faqat
+-- anticor-admin ko'radi (Tizim jurnali); super-admin amallari yozilmaydi.
+-- ---------------------------------------------------------------------
+CREATE TABLE admin_audit_log (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  actor_id    INT NULL,
+  actor_fish  VARCHAR(500) NOT NULL,
+  action      VARCHAR(60) NOT NULL,
+  details     TEXT NULL,
+  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_created (created_at),
+  INDEX idx_action (action)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 14) BAJARILGAN MIGRATSIYALAR — backend keyinroq qo'shilgan jadval/
+-- ustunlarni avtomatik yaratadi va shu yerda belgilaydi (har so'rovda
+-- qayta bajarmaslik uchun). Tozalansa, keyingi so'rovda qayta tekshiriladi.
+-- ---------------------------------------------------------------------
+CREATE TABLE schema_migrations (
+  id          VARCHAR(80) PRIMARY KEY,
+  applied_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;

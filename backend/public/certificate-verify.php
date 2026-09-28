@@ -18,6 +18,7 @@ use App\Controllers\CertificateController;
 use App\Database;
 use App\Filials;
 use App\Logger;
+use App\TestPolicy;
 use App\Util;
 
 Config::load();
@@ -53,6 +54,10 @@ try {
                 'Filial' => Filials::labelUz($filialKey) ?? '—',
                 'Berilgan sana' => date('d.m.Y', strtotime((string) $cert['issued_at'])),
             ];
+            $validUntil = TestPolicy::validUntil($db, (string) $cert['issued_at']);
+            if ($validUntil !== null) {
+                $rows['Amal qiladi'] = date('d.m.Y', strtotime($validUntil)) . ' gacha';
+            }
             $settings = CertificateController::loadSettings($db);
             $signer = null;
             if ($signerIndex === 1 && $filialKey !== null && isset($settings['filials'][$filialKey])) {
@@ -82,7 +87,7 @@ $h = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBS
     'valid' => ['ok', 'Sertifikat haqiqiy', "«Korrupsiyaga qarshi kurashish» o‘quv kursi bo‘yicha berilgan"],
     'sample' => ['warn', 'Bu sertifikat namunasi', 'Namuna faqat dizaynni ko‘rish uchun — u hech kimga berilmagan.'],
     'error' => ['bad', 'Tekshirib bo‘lmadi', 'Serverda xatolik yuz berdi. Birozdan so‘ng qayta urinib ko‘ring.'],
-    default => ['bad', 'Sertifikat topilmadi', 'Bunday sertifikat mavjud emas yoki u endi amal qilmaydi.'],
+    default => ['bad', 'Sertifikat topilmadi', 'Bunday sertifikat mavjud emas, uning muddati tugagan yoki u bekor qilingan.'],
 };
 ?>
 <!DOCTYPE html>

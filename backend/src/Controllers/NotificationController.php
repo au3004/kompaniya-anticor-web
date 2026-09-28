@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Database;
 use App\Response;
 use App\Roles;
+use App\TestPolicy;
 use App\Util;
 use App\Validate;
 
@@ -112,18 +114,119 @@ final class NotificationController
             $targetValue = implode(',', $logins);
         }
 
-        $stmt = $db->prepare(
-            'INSERT INTO notifications (sender_id, matn, target_type, target_value)
-             VALUES (:sender_id, :matn, :target_type, :target_value)'
-        );
-        $stmt->execute([
-            'sender_id' => $user['id'],
-            'matn' => $text,
-            'target_type' => $targetType,
-            'target_value' => mb_substr($targetValue, 0, 1000),
-        ]);
+        if ($targetType === 'department') {
+            $stmt = $db->prepare(
+                "INSERT INTO notifications (sender_id, matn, target_type, target_value)
+                 VALUES (:sender_id, :matn, 'department', :target_value)"
+            );
+            $stmt->execute(['sender_id' => $user['id'], 'matn' => $text, 'target_value' => mb_substr($targetValue, 0, 1000)]);
+        } else {
+            self::insertForLogins($db, (int) $user['id'], $text, $logins);
+        }
+        Audit::log($user, 'notification_send',
+            ($targetType === 'department' ? "bo'linma: {$targetValue}" : count($logins) . ' ta xodim')
+            . ' — ' . mb_substr($text, 0, 200));
 
         Response::success();
+    }
+
+    /**
+     * Login'lar ro'yxatiga xabarnoma yozadi. target_value 1000 belgi bilan
+     * cheklangani uchun ko'p qabul qiluvchili ro'yxat bir nechta yozuvga
+     * bo'linadi (avval ortig'i jimgina kesilib, ba'zi xodimlarga xabar yetmasdi).
+     */
+    private static function insertForLogins(\PDO $db, int $senderId, string $text, array $logins): int
+    {
+        $stmt = $db->prepare(
+            "INSERT INTO notifications (sender_id, matn, target_type, target_value)
+             VALUES (:sender_id, :matn, 'users', :target_value)"
+        );
+        $chunks = [];
+        $current = '';
+        foreach ($logins as $login) {
+            $candidate = $current === '' ? $login : $current . ',' . $login;
+            if (mb_strlen($candidate) > 1000 && $current !== '') {
+                $chunks[] = $current;
+                $candidate = $login;
+            }
+            $current = $candidate;
+        }
+        if ($current !== '') {
+            $chunks[] = $current;
+        }
+        foreach ($chunks as $chunk) {
+            $stmt->execute(['sender_id' => $senderId, 'matn' => $text, 'target_value' => $chunk]);
+        }
+        return count($chunks);
+    }
+
+    /**
+     * Bir tugma bilan eslatma: testni (joriy tsiklda) topshirmagan va/yoki
+     * hujjat bilan tanishmagan xodimlarga xabarnoma. types: ["test", "doc"];
+     * filial: '' — hamma, '__none' — filiali ko'rsatilmaganlar, aks holda filial kaliti.
+     * Admin rollari ham xodim sifatida hisobga olinadi (statistika bilan bir xil);
+     * super-admin hech qachon.
+     */
+    public static function sendReminders(array $input): void
+    {
+        $me = Auth::requireRole($input, Roles::NOTIFY_SEND);
+        $types = array_values(array_intersect(['test', 'doc'], array_map('strval', Validate::array($input, 'types'))));
+        if (!$types) {
+            Response::error('Eslatma turini tanlang', 'VALIDATION_ERROR', 422);
+        }
+        $filial = Validate::str($input, 'filial', 50);
+        $preview = Validate::bool($input, 'preview');
+
+        $db = Database::connection();
+        $users = $db->prepare('SELECT id, login, filial FROM users WHERE rol != :superAdmin');
+        $users->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $users = array_filter($users->fetchAll(), static fn (array $u): bool =>
+            $filial === '' || ($filial === '__none' ? empty($u['filial']) : $u['filial'] === $filial));
+
+        $readers = array_fill_keys(array_map('intval',
+            $db->query('SELECT DISTINCT user_id FROM doc_reads')->fetchAll(\PDO::FETCH_COLUMN)), true);
+        $cycleStarts = TestPolicy::cycleStarts($db);
+        $takers = [];
+        foreach ($db->query('SELECT user_id, attempted_at FROM test_attempts') as $a) {
+            $uid = (int) $a['user_id'];
+            if (!isset($cycleStarts[$uid]) || (string) $a['attempted_at'] >= $cycleStarts[$uid]) {
+                $takers[$uid] = true;
+            }
+        }
+
+        $deadline = TestPolicy::deadline($db);
+        $deadlineUz = $deadline ? ' Topshirish muddati: ' . date('d.m.Y', strtotime($deadline)) . '.' : '';
+        $deadlineRu = $deadline ? ' Срок сдачи: ' . date('d.m.Y', strtotime($deadline)) . '.' : '';
+        $texts = [
+            'test' => "Eslatma: siz hali «Korrupsiyaga qarshi kurashish» testini topshirmagansiz. Iltimos, testni topshiring.{$deadlineUz}\n"
+                . "Напоминание: вы ещё не прошли тест «Противодействие коррупции». Пожалуйста, пройдите тест.{$deadlineRu}",
+            'doc' => "Eslatma: iltimos, «Korrupsiyaga qarshi kurashish» bo'limidagi normativ hujjatlar bilan tanishing.\n"
+                . "Напоминание: пожалуйста, ознакомьтесь с нормативными документами в разделе «Противодействие коррупции».",
+        ];
+
+        $result = [];
+        foreach ($types as $type) {
+            $logins = [];
+            foreach ($users as $u) {
+                $uid = (int) $u['id'];
+                if (($type === 'test' && !isset($takers[$uid])) || ($type === 'doc' && !isset($readers[$uid]))) {
+                    $logins[] = (string) $u['login'];
+                }
+            }
+            if (!$preview && $logins) {
+                self::insertForLogins($db, (int) $me['id'], $texts[$type], $logins);
+            }
+            $result[$type] = count($logins);
+        }
+
+        if (!$preview && array_sum($result) > 0) {
+            $labels = ['test' => 'testni topshirmaganlar', 'doc' => 'hujjat bilan tanishmaganlar'];
+            Audit::log($me, 'reminders_send', implode('; ', array_map(
+                static fn (string $t): string => "{$labels[$t]}: {$result[$t]} ta", array_keys($result)
+            )) . ($filial !== '' ? ' — filial: ' . ($filial === '__none' ? "ko'rsatilmagan" : (\App\Filials::labelUz($filial) ?? $filial)) : ''));
+        }
+
+        Response::success(['counts' => $result, 'preview' => $preview]);
     }
 
     public static function report(array $input): void

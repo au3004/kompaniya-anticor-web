@@ -450,6 +450,7 @@ const dict = {
     certDownload:"Sertifikatni yuklab olish",
     attemptsOnce:"Diqqat: testni faqat 1 marta topshirish mumkin. O'ta olmasangiz, qayta topshirish uchun Korrupsiyaga qarshi kurashish bo'limining ruxsati kerak bo'ladi.",
     retakeGranted:"Sizga testni qayta topshirishga ruxsat berilgan.",
+    renewalMsg:"Sertifikatingiz muddati tugagan — qayta attestatsiya uchun testni qaytadan topshiring.", deadlineNote:"Topshirish muddati: {d}.", deadlinePassedNote:"Topshirish muddati ({d}) o'tib ketgan — testni imkon qadar tezroq topshiring.",
     attemptsLeft:"Testni jami {max} marta topshirish mumkin, sizda {left} ta urinish qoldi.",
     attemptsLast:"Diqqat: bu sizning oxirgi urinishingiz — o'ta olmasangiz, qayta topshirish uchun ruxsat kerak bo'ladi.",
     limitTitle:"Qayta topshirish uchun ruxsat kerak", limitMsg:"Siz testni topshirgansiz, ammo o'tish balini to'play olmadingiz. Qayta topshirish uchun Korrupsiyaga qarshi kurashish bo'limi ruxsat berishi kerak — ruxsat berilganda sizga xabarnoma keladi.",
@@ -465,6 +466,7 @@ const dict = {
     certDownload:"Скачать сертификат",
     attemptsOnce:"Внимание: тест можно пройти только 1 раз. Если вы не сдадите его, для пересдачи потребуется разрешение отдела противодействия коррупции.",
     retakeGranted:"Вам разрешено пересдать тест.",
+    renewalMsg:"Срок вашего сертификата истёк — для переаттестации пройдите тест заново.", deadlineNote:"Срок сдачи: {d}.", deadlinePassedNote:"Срок сдачи ({d}) истёк — пройдите тест как можно скорее.",
     attemptsLeft:"Тест можно пройти всего {max} раза, у вас осталось попыток: {left}.",
     attemptsLast:"Внимание: это ваша последняя попытка — если не сдадите, для пересдачи потребуется разрешение.",
     limitTitle:"Для пересдачи нужно разрешение", limitMsg:"Вы прошли тест, но не набрали проходной балл. Для пересдачи нужно разрешение отдела противодействия коррупции — когда оно будет дано, вы получите уведомление.",
@@ -519,7 +521,8 @@ async function loadQuestions(){
       return;
     }
     if(data.success && data.maxAttempts){
-      attemptInfo = { used: data.attemptsUsed, max: data.maxAttempts, best: data.bestPercent, certificate: data.certificate, passed: !!data.passed };
+      attemptInfo = { used: data.attemptsUsed, max: data.maxAttempts, best: data.bestPercent, certificate: data.certificate, passed: !!data.passed,
+        renewal: !!data.renewal, deadline: data.deadline || null };
       // Testdan o'tgan xodim qayta topshirmaydi; o'ta olmagan — faqat admin ruxsati bilan.
       if(attemptInfo.passed || attemptInfo.used >= attemptInfo.max){ showLimitCard(); return; }
       renderAttemptNote();
@@ -544,6 +547,15 @@ function renderAttemptNote(){
   else if(attemptInfo.max === 1){ text = dict[currentLang].attemptsOnce; warn = true; }
   else if(left === 1){ text = dict[currentLang].attemptsLast; warn = true; }
   else { text = fmt(dict[currentLang].attemptsLeft, { max: attemptInfo.max, left }); }
+  // Yillik qayta attestatsiya va topshirish muddati haqida.
+  if(attemptInfo.renewal && attemptInfo.used === 0) text = dict[currentLang].renewalMsg + ' ' + text;
+  if(attemptInfo.deadline){
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(attemptInfo.deadline);
+    const d = m ? `${m[3]}.${m[2]}.${m[1]}` : attemptInfo.deadline;
+    const passed = new Date(attemptInfo.deadline + 'T23:59:59') < new Date();
+    text += ' ' + fmt(dict[currentLang][passed ? 'deadlinePassedNote' : 'deadlineNote'], { d });
+    if(passed) warn = true;
+  }
   note.textContent = text;
   note.classList.toggle('warn', warn);
   note.classList.add('show');

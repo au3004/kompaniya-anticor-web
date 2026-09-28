@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Audit;
 use App\Auth;
 use App\Database;
 use App\Filials;
 use App\PwnedPasswords;
 use App\Response;
 use App\Roles;
+use App\TestPolicy;
 use App\Util;
 use App\Validate;
 use PDOException;
@@ -73,6 +75,8 @@ final class AdminController
         ];
 
         $id = self::insertUser($db, $payload);
+        Audit::log($me, 'employee_add', Audit::userLabel($payload + ['otasining_ismi' => $payload['otasi']])
+            . ' — rol: ' . $rol . ($payload['filial'] ? ', filial: ' . Filials::labelUz($payload['filial']) : ''));
         Response::success(['id' => $id]);
     }
 
@@ -165,7 +169,7 @@ final class AdminController
         Util::ensureSchema($db, self::TUGILGAN_SANA_DDL);
         Util::ensureSchema($db, self::FILIAL_DDL);
 
-        $existingStmt = $db->prepare('SELECT id, rol FROM users WHERE id = :id LIMIT 1');
+        $existingStmt = $db->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
         $existingStmt->execute(['id' => $id]);
         $existing = $existingStmt->fetch();
         if (!$existing) {
@@ -193,7 +197,37 @@ final class AdminController
         }
 
         self::applyEditPayload($db, $id, $payload);
+        Audit::log($me, 'employee_edit', Audit::userLabel($existing) . ' — ' . self::describeChanges($existing, $payload));
         Response::success();
+    }
+
+    /** Jurnal uchun: tahrirlashda qaysi maydonlar o'zgargani (rol/filial — eski → yangi). */
+    private static function describeChanges(array $existing, array $payload): string
+    {
+        $labels = [
+            'familiya' => 'familiya', 'ism' => 'ism', 'otasi' => 'otasining ismi', 'tugilgan_sana' => "tug'ilgan sana",
+            'lavozim' => 'lavozim', 'lavozim_ru' => 'lavozim (rus)', 'bolinma' => "bo'linma", 'bolinma_ru' => "bo'linma (rus)",
+            'filial' => 'filial', 'telefon' => 'telefon', 'rol' => 'rol',
+        ];
+        $changed = [];
+        foreach ($labels as $key => $label) {
+            $old = $existing[$key === 'otasi' ? 'otasining_ismi' : $key] ?? null;
+            $new = $payload[$key] ?? null;
+            if ((string) $old === (string) $new) {
+                continue;
+            }
+            if ($key === 'rol') {
+                $changed[] = "rol: {$old} → {$new}";
+            } elseif ($key === 'filial') {
+                $changed[] = 'filial: ' . (Filials::labelUz($old) ?? '—') . ' → ' . (Filials::labelUz($new) ?? '—');
+            } else {
+                $changed[] = $label;
+            }
+        }
+        if (isset($payload['password_hash'])) {
+            $changed[] = 'parol';
+        }
+        return $changed ? "o'zgargan: " . implode(', ', $changed) : "o'zgarish yo'q";
     }
 
     public static function deleteEmployee(array $input): void
@@ -209,7 +243,7 @@ final class AdminController
         }
 
         $db = Database::connection();
-        $existingStmt = $db->prepare('SELECT id, rol FROM users WHERE id = :id LIMIT 1');
+        $existingStmt = $db->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
         $existingStmt->execute(['id' => $id]);
         $existing = $existingStmt->fetch();
         if (!$existing) {
@@ -221,6 +255,7 @@ final class AdminController
 
         $stmt = $db->prepare('DELETE FROM users WHERE id = :id');
         $stmt->execute(['id' => $id]);
+        Audit::log($me, 'employee_delete', Audit::userLabel($existing) . ' — rol: ' . $existing['rol']);
 
         Response::success();
     }
@@ -231,10 +266,11 @@ final class AdminController
      */
     public static function unlockLogin(array $input): void
     {
-        Auth::requireRole($input, Roles::HR_MANAGE);
+        $me = Auth::requireRole($input, Roles::HR_MANAGE);
 
         $login = Validate::requiredStr($input, 'login', 100);
         Auth::resetAttempts($login);
+        Audit::log($me, 'employee_unlock', $login);
 
         Response::success();
     }
@@ -468,11 +504,16 @@ final class AdminController
         )->fetchAll();
         // Xodim testni cheklangan marta topshiradi — hisobga eng yuqori natijali
         // urinish olinadi (teng bo'lsa — keyingisi, chunki qatorlar sana bo'yicha kamayib boradi).
+        // Sertifikat muddati tugagan xodimlar uchun yangi tsikl — eski urinishlar hisobga olinmaydi.
+        $cycleStarts = TestPolicy::cycleStarts($db);
         $bestAttempt = [];
         $attemptCount = [];
         $everPassed = [];
         foreach ($attemptRows as $a) {
             $uid = (int) $a['user_id'];
+            if (isset($cycleStarts[$uid]) && (string) $a['attempted_at'] < $cycleStarts[$uid]) {
+                continue;
+            }
             $attemptCount[$uid] = ($attemptCount[$uid] ?? 0) + 1;
             if (!isset($bestAttempt[$uid]) || (int) $a['percent'] > (int) $bestAttempt[$uid]['percent']) {
                 $bestAttempt[$uid] = $a;
@@ -487,7 +528,7 @@ final class AdminController
         // Xodim testni 1 marta topshiradi; o'ta olmaganlarga admin qo'lda
         // qayta topshirish ruxsatini beradi (har bir ruxsat — +1 urinish).
         $baseAttempts = TestController::baseAttempts();
-        $retakeGrants = TestController::retakeGrantCounts($db);
+        $retakeGrants = TestController::retakeGrantCounts($db, $cycleStarts);
 
         $employees = [];
         $docsDone = 0;
@@ -516,6 +557,7 @@ final class AdminController
                 'fish' => Util::fullName($u),
                 'lavozim' => $u['lavozim'],
                 'bolinma' => $u['bolinma'],
+                'filial' => ($u['filial'] ?? null) ?: null,
                 'telefon' => $u['telefon'],
                 'hujjatSana' => $hujjatSana,
                 'testTaken' => $testTaken,
@@ -528,6 +570,10 @@ final class AdminController
                 'retakePending' => $testTaken && !isset($everPassed[$uid])
                     && ($attemptCount[$uid] ?? 0) < $baseAttempts + ($retakeGrants[$uid] ?? 0),
                 'hasCertificate' => isset($everPassed[$uid]) && !isset($revokedCertificates[$uid]),
+                // Sertifikat muddati tugagan — qayta attestatsiyadan o'tishi kerak.
+                'renewal' => isset($cycleStarts[$uid]),
+                'certValidUntil' => ($testTaken && (bool) $attempt['passed'])
+                    ? TestPolicy::validUntil($db, (string) $attempt['attempted_at']) : null,
             ];
         }
 
@@ -541,6 +587,8 @@ final class AdminController
                 'testsFailed' => $testsFailed,
                 'notStarted' => $total - $testsPassed - $testsFailed,
                 'maxAttempts' => $baseAttempts,
+                'deadline' => TestPolicy::deadline($db),
+                'validityMonths' => TestPolicy::validityMonths($db),
             ],
             'employees' => $employees,
         ]);

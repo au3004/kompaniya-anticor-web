@@ -7,6 +7,7 @@ use App\Auth;
 use App\Config;
 use App\Database;
 use App\Response;
+use App\TestPolicy;
 use App\Util;
 use App\Validate;
 
@@ -45,11 +46,14 @@ final class ProfileController
         $hujjatSana = $docRow ? date('Y-m-d', strtotime((string) $docRow['read_at'])) : null;
 
         // Xodim testni cheklangan marta topshiradi — hisobga eng yuqori natija olinadi.
+        // Joriy tsikl bo'yicha (sertifikat muddati tugagan bo'lsa, eski natijalar hisobga olinmaydi).
+        $cycleStart = TestPolicy::cycleStart($db, (int) $user['id']);
         $testStmt = $db->prepare(
             'SELECT points, max_points, percent, passed FROM test_attempts
-             WHERE user_id = :id ORDER BY percent DESC, attempted_at DESC LIMIT 1'
+             WHERE user_id = :id' . ($cycleStart !== null ? ' AND attempted_at >= :cs' : '') . '
+             ORDER BY percent DESC, attempted_at DESC LIMIT 1'
         );
-        $testStmt->execute(['id' => $user['id']]);
+        $testStmt->execute(['id' => $user['id']] + ($cycleStart !== null ? ['cs' => $cycleStart] : []));
         $testRow = $testStmt->fetch();
 
         $declStmt = $db->prepare(
