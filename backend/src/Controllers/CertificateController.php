@@ -25,6 +25,12 @@ use App\Validate;
  *
  * QR-kodlar certificate-verify.php?t=<token> sahifasiga olib boradi — u yerda
  * sertifikat haqiqiyligi (raqami, F.I.Sh, filiali, sanasi) tekshiriladi.
+ *
+ * Admin sertifikatni bekor qila oladi (Hisobotlar → Sertifikatlar):
+ * revoked_attempt_id o'sha test urinishiga tenglashtiriladi va shu natija
+ * uchun sertifikat boshqa berilmaydi. Xodim testni qaytadan muvaffaqiyatli
+ * topshirsa (yangi urinish — admin test natijalarini o'chirib, imkoniyat
+ * bergandan keyin), sertifikat yana avtomatik beriladi.
  */
 final class CertificateController
 {
@@ -38,13 +44,15 @@ final class CertificateController
         issued_at        DATETIME NOT NULL,
         render_sig       CHAR(40) NULL,
         verify_token     CHAR(24) NULL UNIQUE,
+        revoked_attempt_id INT NULL,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB';
 
     // Jadval shu ustunlarsiz yaratilgan bazalar uchun.
     private const ALTER_DDL = 'ALTER TABLE certificates
         ADD COLUMN IF NOT EXISTS render_sig CHAR(40) NULL AFTER issued_at,
-        ADD COLUMN IF NOT EXISTS verify_token CHAR(24) NULL UNIQUE AFTER render_sig';
+        ADD COLUMN IF NOT EXISTS verify_token CHAR(24) NULL UNIQUE AFTER render_sig,
+        ADD COLUMN IF NOT EXISTS revoked_attempt_id INT NULL AFTER verify_token';
 
     public const DEFAULT_FILIAL_TITLE = 'Filial direktori';
     public const DEFAULT_KOMPLAENS_TITLE = 'Komplaens departamenti direktori';
@@ -61,9 +69,33 @@ final class CertificateController
         return $dir;
     }
 
-    public static function hasPassed(\PDO $db, int $userId): bool
+    /** Xodimda amaldagi sertifikat bormi: testdan o'tgan va shu natija uchun sertifikat bekor qilinmagan. */
+    public static function hasCertificate(\PDO $db, int $userId): bool
     {
-        return self::bestPassingAttempt($db, $userId) !== null;
+        $attempt = self::bestPassingAttempt($db, $userId);
+        return $attempt !== null && !isset(self::revokedUserIds($db)[$userId]);
+    }
+
+    /**
+     * Sertifikati eng yaxshi (amaldagi) test natijasi uchun bekor qilingan
+     * xodimlar — [user_id => true]. Jadval/ustun hali bo'lmasa bo'sh.
+     */
+    public static function revokedUserIds(\PDO $db): array
+    {
+        try {
+            $rows = $db->query(
+                'SELECT c.user_id FROM certificates c
+                 WHERE c.revoked_attempt_id IS NOT NULL
+                   AND c.revoked_attempt_id = (
+                       SELECT t.id FROM test_attempts t
+                       WHERE t.user_id = c.user_id AND t.passed = 1
+                       ORDER BY t.percent DESC, t.attempted_at DESC, t.id DESC LIMIT 1
+                   )'
+            )->fetchAll(\PDO::FETCH_COLUMN);
+        } catch (\Throwable $e) {
+            return [];
+        }
+        return array_fill_keys(array_map('intval', $rows), true);
     }
 
     private static function bestPassingAttempt(\PDO $db, int $userId): ?array
@@ -101,6 +133,11 @@ final class CertificateController
         $stmt->execute(['uid' => $userId]);
         $existing = $stmt->fetch() ?: null;
 
+        // Admin shu natija uchun sertifikatni bekor qilgan.
+        if ($existing && (int) ($existing['revoked_attempt_id'] ?? 0) === (int) $attempt['id']) {
+            return null;
+        }
+
         // Tekshiruv tokeni xodimga bir marta beriladi va qayta yaratishda saqlanadi.
         $token = ($existing['verify_token'] ?? null) ?: bin2hex(random_bytes(12));
         $issuedAt = (string) $attempt['attempted_at'];
@@ -118,6 +155,7 @@ final class CertificateController
             $existing
             && (int) $existing['test_attempt_id'] === (int) $attempt['id']
             && $existing['render_sig'] === $sig
+            && $existing['revoked_attempt_id'] === null
             && is_file($dir . '/' . $existing['file_name'])
         ) {
             return $existing;
@@ -134,7 +172,7 @@ final class CertificateController
                  VALUES (:uid, :aid, :fish, :filial, :file, :issued, :sig, :token)
                  ON DUPLICATE KEY UPDATE test_attempt_id = :aid2, fish = :fish2, filial = :filial2,
                                          file_name = :file2, issued_at = :issued2, render_sig = :sig2,
-                                         verify_token = :token2'
+                                         verify_token = :token2, revoked_attempt_id = NULL'
             );
             $upsert->execute([
                 'uid' => $userId,
@@ -151,7 +189,7 @@ final class CertificateController
             throw $e;
         }
 
-        if ($existing && $existing['file_name'] !== $fileName) {
+        if ($existing && $existing['file_name'] !== '' && $existing['file_name'] !== $fileName) {
             @unlink($dir . '/' . $existing['file_name']);
         }
 
@@ -289,6 +327,107 @@ final class CertificateController
         }
 
         Response::success(self::loadSettings($db));
+    }
+
+    // ------------------------------------------------------------------
+    // Sertifikat olganlar ro'yxati va bekor qilish (Hisobotlar bo'limi)
+    // ------------------------------------------------------------------
+
+    /**
+     * Amaldagi sertifikati bor xodimlar (testdan o'tgan va bekor qilinmagan).
+     * Sertifikat fayli hali yaratilmagan bo'lsa ham ro'yxatga kiradi — u
+     * birinchi ochilishda yaratiladi. id — xodim (users.id).
+     */
+    public static function listCertificates(array $input): void
+    {
+        Auth::requireRole($input, Roles::ANTICOR_VIEW);
+        $db = Database::connection();
+
+        $stmt = $db->prepare(
+            'SELECT t.id AS attempt_id, t.user_id, t.points, t.max_points, t.attempted_at,
+                    u.familiya, u.ism, u.otasining_ismi, u.filial
+             FROM test_attempts t
+             JOIN users u ON u.id = t.user_id
+             WHERE t.passed = 1 AND u.rol != :superAdmin
+             ORDER BY t.user_id, t.percent DESC, t.attempted_at DESC, t.id DESC'
+        );
+        $stmt->execute(['superAdmin' => Roles::SUPER_ADMIN]);
+        $revoked = self::revokedUserIds($db);
+
+        $best = [];
+        foreach ($stmt->fetchAll() as $r) {
+            $uid = (int) $r['user_id'];
+            if (!isset($best[$uid]) && !isset($revoked[$uid])) {
+                $best[$uid] = $r;
+            }
+        }
+        usort($best, static fn (array $a, array $b): int => strcmp((string) $b['attempted_at'], (string) $a['attempted_at']));
+
+        $list = array_map(static fn (array $r): array => [
+            'id' => (int) $r['user_id'],
+            'raqam' => self::number((string) $r['attempted_at'], (int) $r['attempt_id']),
+            'fish' => Util::fullName($r),
+            'filial' => $r['filial'] ?: null,
+            'ball' => (int) $r['points'] . '/' . (int) $r['max_points'],
+            'sana' => date('d.m.Y', strtotime((string) $r['attempted_at'])),
+        ], $best);
+
+        Response::success(['certificates' => array_values($list)]);
+    }
+
+    /**
+     * Tanlangan xodimlarning (ids — users.id) amaldagi sertifikatini bekor
+     * qiladi: PDF o'chiriladi, QR "amal qilmaydi" deb ko'rsatadi.
+     */
+    public static function revokeCertificates(array $input): void
+    {
+        Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', Validate::array($input, 'ids')),
+            static fn (int $id) => $id > 0
+        )));
+        if (!$ids) {
+            Response::error('ID ro\'yxati talab qilinadi', 'VALIDATION_ERROR', 422);
+        }
+
+        $db = Database::connection();
+        Util::ensureSchema($db, self::DDL);
+        Util::ensureSchema($db, self::ALTER_DDL);
+        $dir = self::certificatesDir();
+        $userStmt = $db->prepare('SELECT * FROM users WHERE id = :id AND rol != :superAdmin LIMIT 1');
+        $certStmt = $db->prepare('SELECT id, file_name FROM certificates WHERE user_id = :uid LIMIT 1');
+        $update = $db->prepare('UPDATE certificates SET revoked_attempt_id = :aid, file_name = \'\' WHERE id = :id');
+        $insert = $db->prepare(
+            "INSERT INTO certificates (user_id, test_attempt_id, fish, filial, file_name, issued_at, revoked_attempt_id)
+             VALUES (:uid, :aid, :fish, :filial, '', :issued, :aid2)"
+        );
+
+        $revoked = 0;
+        foreach ($ids as $userId) {
+            $userStmt->execute(['id' => $userId, 'superAdmin' => Roles::SUPER_ADMIN]);
+            $user = $userStmt->fetch();
+            $attempt = $user ? self::bestPassingAttempt($db, $userId) : null;
+            if (!$attempt) {
+                continue;
+            }
+            $certStmt->execute(['uid' => $userId]);
+            $cert = $certStmt->fetch();
+            if ($cert) {
+                $update->execute(['aid' => $attempt['id'], 'id' => $cert['id']]);
+                if ($cert['file_name'] !== '' && basename((string) $cert['file_name']) === $cert['file_name']) {
+                    @unlink($dir . '/' . $cert['file_name']);
+                }
+            } else {
+                $insert->execute([
+                    'uid' => $userId, 'aid' => $attempt['id'], 'aid2' => $attempt['id'],
+                    'fish' => Util::fullName($user), 'filial' => ($user['filial'] ?? null) ?: null,
+                    'issued' => $attempt['attempted_at'],
+                ]);
+            }
+            $revoked++;
+        }
+
+        Response::success(['deleted' => $revoked]);
     }
 
     /**

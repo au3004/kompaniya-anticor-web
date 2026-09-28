@@ -74,7 +74,7 @@ final class TestController
             $result['attemptsUsed'] = self::attemptsUsed($db, $userId);
             $result['maxAttempts'] = self::maxAttempts();
             $result['bestPercent'] = self::bestPercent($db, $userId);
-            $result['certificate'] = CertificateController::hasPassed($db, $userId);
+            $result['certificate'] = CertificateController::hasCertificate($db, $userId);
         }
 
         Response::success($result);
@@ -182,7 +182,7 @@ final class TestController
             'percent' => $percent,
             'passed' => $passed,
             // Oldingi urinishda o'tgan bo'lsa, bu safar o'tmasa ham sertifikat saqlanadi.
-            'certificate' => CertificateController::hasPassed($db, (int) $user['id']),
+            'certificate' => CertificateController::hasCertificate($db, (int) $user['id']),
             'attemptsUsed' => $used + 1,
             'maxAttempts' => $maxAttempts,
             'wrongIds' => $wrongIds,

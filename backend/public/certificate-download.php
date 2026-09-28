@@ -67,7 +67,7 @@ try {
 }
 
 if (!$certificate) {
-    certificateFail(404, "Sertifikat mavjud emas — test hali muvaffaqiyatli topshirilmagan");
+    certificateFail(404, "Sertifikat mavjud emas — test hali muvaffaqiyatli topshirilmagan yoki sertifikat bekor qilingan");
 }
 
 $dir = CertificateController::certificatesDir();

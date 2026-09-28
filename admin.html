@@ -1285,6 +1285,13 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         </div>
       </div>
       <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repCertTitle">Sertifikatlar</div><div class="tsub" data-i18n="repCertDesc">Sertifikat olgan xodimlar — ko'rish va bekor qilish (o'chirish)</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('certificates')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportCertificatesReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
         <div><div class="ttitle" data-i18n="repDocReadsTitle">Hujjat bilan tanishish</div><div class="tsub" data-i18n="repDocReadsDesc">Xodimlar hujjatni o'qidim deb belgilagan yozuvlar — sinov/namoyish yozuvlarini o'chirish mumkin</div></div>
         <div style="display:flex; gap:8px;">
           <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('docReads')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
@@ -1336,6 +1343,7 @@ if(window.self !== window.top){ document.body.classList.add('embedded'); }
         <span data-i18n="backBtn">Ortga</span>
       </button>
     </div>
+    <p class="tsub" id="ddvNote" style="display:none; margin-bottom:12px;"></p>
     <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
       <button type="button" class="submit-btn" id="ddvDeleteBtn" style="width:auto; margin:0; padding:10px 18px; background:#dc2626;" onclick="ddvDeleteSelected()" disabled>
         <span data-i18n="deleteSelectedBtn">Tanlanganlarni o'chirish</span> (<span id="ddvSelectedCount">0</span>)
@@ -1588,7 +1596,9 @@ const dict = {
     backupCreateBtn:"Hozir zaxira nusxa olish", backupCreating:"Zaxira olinmoqda...",
     backupColName:"Sana / vaqt", backupColSize:"Hajmi", backupDownloadBtn:"Yuklab olish",
     hubErrorLog:"Tizim jurnali", hubErrorLogDesc:"Server tomonida yuzaga kelgan xatoliklar tarixi",
-    hubCert:"Sertifikat", hubCertDesc:"Sertifikatdagi imzo qo'yuvchilar va namuna", certSettingsTitle:"Sertifikat sozlamalari",
+    hubCert:"Sertifikat", hubCertDesc:"Sertifikatdagi imzo qo'yuvchilar va namuna",
+    repCertTitle:"Sertifikatlar", repCertDesc:"Sertifikat olgan xodimlar — ko'rish va bekor qilish (o'chirish)", colCertNumber:"Sertifikat raqami", colCertPdf:"PDF",
+    repCertNote:"O'chirilgan sertifikat bekor qilinadi: xodimda ko'rinmaydi, QR-kod \"amal qilmaydi\" deb ko'rsatadi. Test natijasi saqlanib qoladi. Sertifikat xodim testni qaytadan muvaffaqiyatli topshirsagina yana beriladi (buning uchun Test natijalaridan uning urinishlarini o'chiring).", certSettingsTitle:"Sertifikat sozlamalari",
     certSettingsDesc:"Sertifikat pastidagi imzo qismida xodimning filiali rahbari va komplaens departamenti direktori chiqadi. QR-kod sertifikat haqiqiyligini tekshirish sahifasiga olib boradi. O'zgartirishlar saqlangach, xodimlarning sertifikatlari keyingi ochilishda avtomatik yangilanadi.",
     certColTitle:"Lavozim (sertifikatda)", certColName:"F.I.Sh (masalan: Aliyev A.A.)", certColPreview:"Namuna", certKomplaensRow:"Komplaens departamenti", certPreviewLink:"Ko'rish",
     errorLogDesc:"So'nggi 200 ta server xatoligi (eng yangisi birinchi). 90 kundan eski yozuvlar avtomatik o'chiriladi.",
@@ -1703,7 +1713,9 @@ const dict = {
     backupCreateBtn:"Создать резервную копию сейчас", backupCreating:"Создание копии...",
     backupColName:"Дата / время", backupColSize:"Размер", backupDownloadBtn:"Скачать",
     hubErrorLog:"Системный журнал", hubErrorLogDesc:"История ошибок на стороне сервера",
-    hubCert:"Сертификат", hubCertDesc:"Подписанты сертификата и образец", certSettingsTitle:"Настройки сертификата",
+    hubCert:"Сертификат", hubCertDesc:"Подписанты сертификата и образец",
+    repCertTitle:"Сертификаты", repCertDesc:"Сотрудники, получившие сертификат — просмотр и аннулирование (удаление)", colCertNumber:"Номер сертификата", colCertPdf:"PDF",
+    repCertNote:"Удалённый сертификат аннулируется: сотрудник его не видит, QR-код показывает «недействителен». Результат теста сохраняется. Сертификат будет выдан снова, только если сотрудник заново успешно сдаст тест (для этого удалите его попытки в «Результатах тестов»).", certSettingsTitle:"Настройки сертификата",
     certSettingsDesc:"В блоке подписей сертификата указываются руководитель филиала сотрудника и директор департамента комплаенс. QR-код ведёт на страницу проверки подлинности сертификата. После сохранения сертификаты сотрудников обновятся автоматически при следующем открытии.",
     certColTitle:"Должность (в сертификате)", certColName:"Ф.И.О. (например: Aliyev A.A.)", certColPreview:"Образец", certKomplaensRow:"Департамент комплаенс", certPreviewLink:"Открыть",
     errorLogDesc:"Последние 200 ошибок сервера (сначала новые). Записи старше 90 дней удаляются автоматически.",
@@ -1921,6 +1933,16 @@ async function exportTestAttemptsReport(){
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
+async function exportCertificatesReport(){
+  try{
+    const data = await apiCall({ action:'getCertificatesList', token: currentUserForKpi.token });
+    if(!data.success) return alert(dict[currentLang].savedErr);
+    const rows = [['Sertifikat raqami','F.I.Sh','Filial','Ball','Sana']];
+    data.certificates.forEach(c => rows.push([c.raqam, c.fish, filialLabel(c.filial), c.ball, c.sana]));
+    downloadXlsx(`sertifikatlar_${todayStamp()}.xlsx`, rows, 'Sertifikatlar');
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
+}
+
 async function exportDocReadsReport(){
   try{
     const data = await apiCall({ action:'getDocReadsRaw', token: currentUserForKpi.token });
@@ -2001,6 +2023,21 @@ const DDV_CONFIGS = {
       { key:'otdi', labelKey:'colNatija', fmt:r => r.otdi ? dict[currentLang].colOtdi : dict[currentLang].colOtmadi },
     ],
   },
+  certificates: {
+    titleKey: 'repCertTitle',
+    noteKey: 'repCertNote',
+    fetchAction: 'getCertificatesList',
+    dataKey: 'certificates',
+    deleteAction: 'revokeCertificates',
+    columns: [
+      { key:'raqam', labelKey:'colCertNumber' },
+      { key:'fish', labelKey:'thFish' },
+      { key:'filial', labelKey:'thFilial', fmt:r => filialLabel(r.filial) },
+      { key:'ball', labelKey:'colBall' },
+      { key:'sana', labelKey:'thSana' },
+      { key:'pdf', labelKey:'colCertPdf', html:r => `<a href="${API_BASE_URL.replace('backend/public/index.php','backend/public/certificate-download.php')}?userId=${encodeURIComponent(r.id)}" target="_blank" rel="noopener noreferrer" style="color:var(--azure); font-weight:600;">${escapeHtml(dict[currentLang].certPreviewLink)}</a>` },
+    ],
+  },
   docReads: {
     titleKey: 'repDocReadsTitle',
     fetchAction: 'getDocReadsRaw',
@@ -2057,6 +2094,10 @@ async function openDataDeleteView(type){
   ddvType = type;
   ddvSelected = new Set();
   document.getElementById('ddvTitle').textContent = dict[currentLang][DDV_CONFIGS[type].titleKey];
+  const note = document.getElementById('ddvNote');
+  const noteKey = DDV_CONFIGS[type].noteKey;
+  note.textContent = noteKey ? dict[currentLang][noteKey] : '';
+  note.style.display = noteKey ? 'block' : 'none';
   openSection('dataDeleteView');
   await ddvReload();
 }
@@ -2089,7 +2130,7 @@ function ddvRender(){
   tbody.innerHTML = ddvData.map(r => `
     <tr>
       <td><input type="checkbox" ${ddvSelected.has(r.id)?'checked':''} onchange="ddvToggleOne(${r.id}, this.checked)"></td>
-      ${cfg.columns.map(c => `<td>${escapeHtml(String(c.fmt ? c.fmt(r) : (r[c.key] ?? '')))}</td>`).join('')}
+      ${cfg.columns.map(c => `<td>${c.html ? c.html(r) : escapeHtml(String(c.fmt ? c.fmt(r) : (r[c.key] ?? '')))}</td>`).join('')}
     </tr>
   `).join('');
   ddvUpdateFooter();
@@ -2121,7 +2162,7 @@ async function ddvDeleteSelected(){
   const cfg = DDV_CONFIGS[ddvType];
   try{
     const data = await apiCall({ action: cfg.deleteAction, token: currentUserForKpi.token, ids: Array.from(ddvSelected) });
-    if(!data.success){ alert(dict[currentLang].savedErr); return; }
+    if(!data.success){ alert(dict[currentLang].savedErr + (data.message ? ': ' + data.message : '')); return; }
     ddvSelected = new Set();
     await ddvReload();
   } catch(ex){ alert('Xatolik: ' + ex.message); }

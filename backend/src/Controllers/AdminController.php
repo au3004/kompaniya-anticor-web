@@ -483,6 +483,9 @@ final class AdminController
             }
         }
 
+        // Admin bekor qilgan sertifikatlar statistikada ham ko'rinmasin.
+        $revokedCertificates = CertificateController::revokedUserIds($db);
+
         $employees = [];
         $docsDone = 0;
         $testsPassed = 0;
@@ -517,7 +520,7 @@ final class AdminController
                 'testPercent' => $testTaken ? (int) $attempt['percent'] : null,
                 'passed' => $testTaken ? (bool) $attempt['passed'] : false,
                 'testAttempts' => $attemptCount[$uid] ?? 0,
-                'hasCertificate' => isset($everPassed[$uid]),
+                'hasCertificate' => isset($everPassed[$uid]) && !isset($revokedCertificates[$uid]),
             ];
         }
 
