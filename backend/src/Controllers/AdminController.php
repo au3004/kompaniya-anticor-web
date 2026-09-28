@@ -260,14 +260,13 @@ final class AdminController
     }
 
     /**
-     * anticor-admin (super-admin bo'lmagan) faqat shu (past darajali)
-     * rollardagi MAVJUD xodimlarni tahrira/o'chira oladi — boshqa
-     * anticor-admin/super-admin darajasidagi xodim yozuviga tegilmaydi
-     * (peer-darajadagi hisoblarni tasodifan/niyat bilan egallab olishdan
-     * himoya — rolni o'zgartirish huquqidan mustaqil cheklov, qarang:
-     * allowedRolesFor()).
+     * anticor-admin (super-admin bo'lmagan) shu rollardagi MAVJUD xodimlarni
+     * tahrira/o'chira oladi — ya'ni super-admin'dan boshqa hammani, jumladan
+     * boshqa anticor-admin'larni ham (eski hr/hr-admin/rahbariyat/xarid
+     * xodimlari anticor-admin'ga o'tkazilgan, ular ham boshqarilishi kerak).
+     * super-admin yozuviga faqat super-admin'ning o'zi tegadi.
      */
-    private const EDITABLE_TARGET_ROLES = [Roles::USER, Roles::ANTICOR];
+    private const EDITABLE_TARGET_ROLES = [Roles::USER, Roles::ANTICOR, Roles::ANTICOR_ADMIN];
 
     /**
      * Tizimda hozir kamida bitta super-admin bor-yo'qligini tekshiradi —
@@ -334,10 +333,9 @@ final class AdminController
     }
 
     /**
-     * anticor-admin (super-admin bo'lmagan) o'zidan yuqori yoki teng
-     * darajadagi xodimni (boshqa anticor-admin/super-admin) tahrirlay
-     * olmaydi — bu boshqaruv paneli orqali yuqori huquqli hisoblarni
-     * tasodifan yoki niyat bilan "egallab olish"dan himoya qiladi.
+     * anticor-admin (super-admin bo'lmagan) o'zidan yuqori darajadagi
+     * xodimni (super-admin) tahrirlay olmaydi — bu boshqaruv paneli orqali
+     * eng yuqori huquqli hisobni "egallab olish"dan himoya qiladi.
      * super-admin uchun cheklov yo'q.
      */
     private static function assertCanEditTarget(array $me, array $existing): void
@@ -378,7 +376,7 @@ final class AdminController
         return $rol;
     }
 
-    /** anticor-admin faqat past darajali xodimlarni o'chira oladi; super-adminni bu yerdan o'chirib bo'lmaydi. */
+    /** anticor-admin super-admin'dan boshqa xodimlarni o'chira oladi; super-adminni bu yerdan o'chirib bo'lmaydi. */
     private static function assertCanDeleteTarget(array $me, array $existing): void
     {
         if ($existing['rol'] === Roles::SUPER_ADMIN) {

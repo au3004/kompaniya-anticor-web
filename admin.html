@@ -2442,11 +2442,11 @@ function renderUsersTable(){
   const canDeleteEmp = currentUserForKpi && HR_MANAGE.includes(currentUserForKpi.rol);
   const canUnlock = currentUserForKpi && HR_MANAGE.includes(currentUserForKpi.rol);
   // Backend (AdminController::EDITABLE_TARGET_ROLES) bilan bir xil: super-admin
-  // bo'lmagan admin faqat "user"/"anticor" rolidagilarni tahrirlay/o'chira oladi.
+  // bo'lmagan admin super-admin'dan boshqa barcha xodimlarni tahrirlay/o'chira oladi.
   const viewerIsSuper = currentUserForKpi && currentUserForKpi.rol === 'super-admin';
   document.getElementById('empTbody').innerHTML = filteredUsers.map((u, i) => {
     const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
-    const rowEditable = viewerIsSuper || ['user', 'anticor'].includes(u.rol);
+    const rowEditable = viewerIsSuper || ['user', 'anticor', 'anticor-admin'].includes(u.rol);
     const lockedBadge = u.locked ? `<span class="badge no" style="margin-left:6px;" title="${dict[currentLang].lockedUntilLabel}: ${escapeHtml(u.lockedUntil||'')}">${dict[currentLang].lockedBadge}</span>` : '';
     const unlockBtn = (u.locked && canUnlock) ? `<button type="button" class="icon-btn" title="${dict[currentLang].unlockBtn}" onclick="unlockEmployeeRow('${escapeHtml(u.login)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button>` : '';
     const editBtn = (canEditEmp && rowEditable) ? `<button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>` : '';
@@ -2541,7 +2541,7 @@ async function deleteEmployeeRow(id){
     } else if(data.code === 'LAST_GL_ADMIN'){
       alert(dict[currentLang].lastGlAdminErr);
     } else {
-      alert(dict[currentLang].savedErr);
+      alert(dict[currentLang].savedErr + (data.message ? ': ' + data.message : ''));
     }
   } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
