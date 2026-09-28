@@ -389,7 +389,7 @@ body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); 
   </div>
 
   <div class="result-card" id="limitCard">
-    <div class="verdict" style="color:var(--coral);" data-i18n="limitTitle">Qayta topshirish mumkin emas</div>
+    <div class="verdict" id="limitTitle" style="color:var(--coral);">Qayta topshirish uchun ruxsat kerak</div>
     <div class="sub" id="limitMsg"></div>
     <div class="points-line" id="limitBest"></div>
     <div class="actions">
@@ -448,11 +448,14 @@ const dict = {
     passSub:"Natijangiz saqlandi", failSub:"Hujjatlarni qayta ko'rib chiqib, testni qayta urinib ko'ring", savingErr:"Natijani saqlashda xatolik",
     pointsLabel:"ball", wrongHeader:"Xato javob berilgan savollar:", inactiveMsg:"Test yakunlangan",
     certDownload:"Sertifikatni yuklab olish",
-    attemptsLeft:"Testni jami {max} marta topshirish mumkin, sizda {left} ta urinish qoldi. Sertifikat uchun eng yuqori natijangiz hisobga olinadi.",
-    attemptsLast:"Diqqat: bu sizning oxirgi urinishingiz — undan keyin testni qayta topshirib bo'lmaydi.",
-    limitTitle:"Qayta topshirish mumkin emas", limitMsg:"Siz testni {max} marta topshirib bo'lgansiz. Sertifikat uchun eng yuqori natijangiz hisobga olingan.",
-    bestResult:"Eng yuqori natijangiz: {p}%", attemptLine:"urinish {used}/{max}",
-    noAttemptsLeft:"Boshqa urinish qolmadi — testni qayta topshirib bo'lmaydi.", attemptsLeftShort:"Yana {left} ta urinishingiz bor.",
+    attemptsOnce:"Diqqat: testni faqat 1 marta topshirish mumkin. O'ta olmasangiz, qayta topshirish uchun Korrupsiyaga qarshi kurashish bo'limining ruxsati kerak bo'ladi.",
+    retakeGranted:"Sizga testni qayta topshirishga ruxsat berilgan.",
+    attemptsLeft:"Testni jami {max} marta topshirish mumkin, sizda {left} ta urinish qoldi.",
+    attemptsLast:"Diqqat: bu sizning oxirgi urinishingiz — o'ta olmasangiz, qayta topshirish uchun ruxsat kerak bo'ladi.",
+    limitTitle:"Qayta topshirish uchun ruxsat kerak", limitMsg:"Siz testni topshirgansiz, ammo o'tish balini to'play olmadingiz. Qayta topshirish uchun Korrupsiyaga qarshi kurashish bo'limi ruxsat berishi kerak — ruxsat berilganda sizga xabarnoma keladi.",
+    passedTitle:"Siz testdan muvaffaqiyatli o'tgansiz", passedMsg:"Test qayta topshirilmaydi.",
+    bestResult:"Natijangiz: {p}%", attemptLine:"urinish {used}/{max}",
+    noAttemptsLeft:"Qayta topshirish uchun Korrupsiyaga qarshi kurashish bo'limining ruxsati kerak — ruxsat berilganda sizga xabarnoma keladi.", attemptsLeftShort:"Yana {left} ta urinishingiz bor.",
     loading:"Yuklanmoqda...", notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q" },
   ru:{ brandName:"АО «Узтелеком»", backBtn:"Назад", eyebrow:"Проверьте свои знания", pageTitle:"Тест по темам противодействия коррупции",
     submitBtn:"Завершить тест", backHome:"Вернуться на главную", noQuestions:"Вопросы не найдены",
@@ -460,11 +463,14 @@ const dict = {
     passSub:"Результат сохранён", failSub:"Пересмотрите документы и попробуйте снова", savingErr:"Ошибка при сохранении результата",
     pointsLabel:"баллов", wrongHeader:"Вопросы с неверным ответом:", inactiveMsg:"Тест завершён",
     certDownload:"Скачать сертификат",
-    attemptsLeft:"Тест можно пройти всего {max} раза, у вас осталось попыток: {left}. Для сертификата учитывается ваш лучший результат.",
-    attemptsLast:"Внимание: это ваша последняя попытка — после неё пройти тест повторно будет нельзя.",
-    limitTitle:"Повторное прохождение невозможно", limitMsg:"Вы уже прошли тест {max} раза. Для сертификата учтён ваш лучший результат.",
-    bestResult:"Ваш лучший результат: {p}%", attemptLine:"попытка {used}/{max}",
-    noAttemptsLeft:"Попыток больше не осталось — пройти тест повторно нельзя.", attemptsLeftShort:"У вас есть ещё попыток: {left}.",
+    attemptsOnce:"Внимание: тест можно пройти только 1 раз. Если вы не сдадите его, для пересдачи потребуется разрешение отдела противодействия коррупции.",
+    retakeGranted:"Вам разрешено пересдать тест.",
+    attemptsLeft:"Тест можно пройти всего {max} раза, у вас осталось попыток: {left}.",
+    attemptsLast:"Внимание: это ваша последняя попытка — если не сдадите, для пересдачи потребуется разрешение.",
+    limitTitle:"Для пересдачи нужно разрешение", limitMsg:"Вы прошли тест, но не набрали проходной балл. Для пересдачи нужно разрешение отдела противодействия коррупции — когда оно будет дано, вы получите уведомление.",
+    passedTitle:"Вы успешно сдали тест", passedMsg:"Повторно тест не проходится.",
+    bestResult:"Ваш результат: {p}%", attemptLine:"попытка {used}/{max}",
+    noAttemptsLeft:"Для пересдачи нужно разрешение отдела противодействия коррупции — когда оно будет дано, вы получите уведомление.", attemptsLeftShort:"У вас есть ещё попыток: {left}.",
     loading:"Загрузка...", notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений" }
 };
 
@@ -513,8 +519,9 @@ async function loadQuestions(){
       return;
     }
     if(data.success && data.maxAttempts){
-      attemptInfo = { used: data.attemptsUsed, max: data.maxAttempts, best: data.bestPercent, certificate: data.certificate };
-      if(attemptInfo.used >= attemptInfo.max){ showLimitCard(); return; }
+      attemptInfo = { used: data.attemptsUsed, max: data.maxAttempts, best: data.bestPercent, certificate: data.certificate, passed: !!data.passed };
+      // Testdan o'tgan xodim qayta topshirmaydi; o'ta olmagan — faqat admin ruxsati bilan.
+      if(attemptInfo.passed || attemptInfo.used >= attemptInfo.max){ showLimitCard(); return; }
       renderAttemptNote();
     }
     allQuestions = data.success ? data.questions : [];
@@ -522,7 +529,8 @@ async function loadQuestions(){
   renderQuestions();
 }
 
-// Test cheklangan marta topshiriladi (backend: TestController::maxAttempts).
+// Test 1 marta topshiriladi; o'ta olmaganlarga admin qo'lda qayta topshirish
+// ruxsatini beradi (backend: TestController::maxAttempts / grantRetake).
 var attemptInfo = null; // var: applyLang() sahifa yuklanishida bundan oldin chaqirilishi mumkin
 const fmt = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k]);
 const certUrl = () => API_BASE_URL.replace('backend/public/index.php', 'backend/public/certificate-download.php');
@@ -531,10 +539,13 @@ function renderAttemptNote(){
   const note = document.getElementById('attemptsNote');
   if(!attemptInfo || attemptInfo.used >= attemptInfo.max || document.getElementById('resultCard').classList.contains('show')){ note.classList.remove('show'); return; }
   const left = attemptInfo.max - attemptInfo.used;
-  note.textContent = left === 1 && attemptInfo.max > 1
-    ? dict[currentLang].attemptsLast
-    : fmt(dict[currentLang].attemptsLeft, { max: attemptInfo.max, left });
-  note.classList.toggle('warn', left === 1 && attemptInfo.max > 1);
+  let text, warn = false;
+  if(attemptInfo.used > 0){ text = dict[currentLang].retakeGranted; }
+  else if(attemptInfo.max === 1){ text = dict[currentLang].attemptsOnce; warn = true; }
+  else if(left === 1){ text = dict[currentLang].attemptsLast; warn = true; }
+  else { text = fmt(dict[currentLang].attemptsLeft, { max: attemptInfo.max, left }); }
+  note.textContent = text;
+  note.classList.toggle('warn', warn);
   note.classList.add('show');
 }
 
@@ -550,7 +561,10 @@ function showLimitCard(){
 
 function renderLimitCard(){
   if(!attemptInfo) return;
-  document.getElementById('limitMsg').textContent = fmt(dict[currentLang].limitMsg, { max: attemptInfo.max });
+  const title = document.getElementById('limitTitle');
+  title.textContent = attemptInfo.passed ? dict[currentLang].passedTitle : dict[currentLang].limitTitle;
+  title.style.color = attemptInfo.passed ? 'var(--teal)' : 'var(--coral)';
+  document.getElementById('limitMsg').textContent = attemptInfo.passed ? dict[currentLang].passedMsg : dict[currentLang].limitMsg;
   document.getElementById('limitBest').textContent = attemptInfo.best !== null && attemptInfo.best !== undefined ? fmt(dict[currentLang].bestResult, { p: attemptInfo.best }) : '';
   const link = document.getElementById('limitCertLink');
   link.href = certUrl();
@@ -684,7 +698,7 @@ async function submitTest(){
 
   try{
     const data = await apiCall({ action:'submitTest', token, answers: answerList });
-    if(!data.success && data.code === 'ATTEMPTS_EXHAUSTED'){ loadQuestions(); return; }
+    if(!data.success && (data.code === 'ATTEMPTS_EXHAUSTED' || data.code === 'ALREADY_PASSED')){ loadQuestions(); return; }
     if(!data.success){ throw new Error(data.message || 'error'); }
     document.getElementById('attemptsNote').classList.remove('show');
 

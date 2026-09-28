@@ -89,6 +89,18 @@ CREATE TABLE test_attempts (
   INDEX idx_user (user_id)
 ) ENGINE=InnoDB;
 
+-- Qayta topshirishga ruxsatlar: xodim testni 1 marta topshiradi, o'ta
+-- olmaganiga admin qo'lda ruxsat beradi — har bir yozuv yana 1 ta urinish.
+CREATE TABLE test_retakes (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  user_id     INT NOT NULL,
+  granted_by  INT NULL,
+  granted_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (granted_by) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX idx_user (user_id)
+) ENGINE=InnoDB;
+
 -- ---------------------------------------------------------------------
 -- 4) TEST SAVOLLARI (avvalgi "Test" varag'i)
 -- ---------------------------------------------------------------------

@@ -88,9 +88,22 @@ final class ReportsController
         }
 
         $attemptsByUser = [];
-        foreach ($db->query('SELECT user_id, attempted_at, points, percent FROM test_attempts ORDER BY user_id ASC, attempted_at ASC') as $a) {
+        foreach ($db->query('SELECT user_id, attempted_at, points, percent, passed FROM test_attempts ORDER BY user_id ASC, attempted_at ASC, id ASC') as $a) {
             $attemptsByUser[(int) $a['user_id']][] = $a;
         }
+
+        // Qayta topshirishga berilgan ruxsatlar (kim, qachon) — Progress'da belgilanadi.
+        Util::ensureSchema($db, TestController::RETAKES_DDL);
+        $retakesByUser = [];
+        foreach ($db->query(
+            'SELECT r.user_id, r.granted_at, g.familiya, g.ism, g.otasining_ismi
+             FROM test_retakes r LEFT JOIN users g ON g.id = r.granted_by
+             ORDER BY r.user_id ASC, r.granted_at ASC, r.id ASC'
+        ) as $r) {
+            $retakesByUser[(int) $r['user_id']][] = date('d.m.Y G:i', strtotime((string) $r['granted_at']))
+                . ($r['familiya'] !== null ? ' - ' . Util::fullName($r) : '');
+        }
+        $status = static fn (array $a): string => (bool) $a['passed'] ? "o'tdi" : "o'tmadi";
 
         $rows = [];
         $rowNum = 0;
@@ -107,9 +120,9 @@ final class ReportsController
             ));
 
             $testSana = $attempts ? date('d.m.Y', strtotime($attempts[0]['attempted_at'])) : '';
-            $natija = $attempts ? "{$attempts[0]['points']} ball {$attempts[0]['percent']}%" : '';
+            $natija = $attempts ? "{$attempts[0]['points']} ball {$attempts[0]['percent']}% ({$status($attempts[0])})" : '';
             $qaytaTopshirish = implode("\n", array_map(
-                static fn ($a) => date('d.m.Y G:i', strtotime($a['attempted_at'])) . " - {$a['points']} ball {$a['percent']}%",
+                static fn ($a) => date('d.m.Y G:i', strtotime($a['attempted_at'])) . " - {$a['points']} ball {$a['percent']}% ({$status($a)})",
                 array_slice($attempts, 1)
             ));
 
@@ -122,6 +135,7 @@ final class ReportsController
                 'test' => $testSana,
                 'natija' => $natija,
                 'qaytaTopshirish' => $qaytaTopshirish,
+                'qaytaRuxsat' => implode("\n", $retakesByUser[$uid] ?? []),
             ];
         }
 
@@ -210,7 +224,7 @@ final class ReportsController
      * Jadval nomi har doim shu faylning o'zidagi qattiq belgilangan (whitelist)
      * qiymat, hech qachon foydalanuvchi kiritmasidan olinmaydi.
      */
-    private static function bulkDelete(array $input, string $table): void
+    private static function bulkDelete(array $input, string $table, ?callable $after = null): void
     {
         Auth::requireRole($input, Roles::ANTICOR_MANAGE);
 
@@ -226,13 +240,29 @@ final class ReportsController
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $stmt = $db->prepare("DELETE FROM {$table} WHERE id IN ({$placeholders})");
         $stmt->execute($ids);
+        $deleted = $stmt->rowCount();
+        if ($after) {
+            $after($db);
+        }
 
-        Response::success(['deleted' => $stmt->rowCount()]);
+        Response::success(['deleted' => $deleted]);
     }
 
     public static function deleteTestAttempts(array $input): void
     {
-        self::bulkDelete($input, 'test_attempts');
+        self::bulkDelete($input, 'test_attempts', static function (\PDO $db): void {
+            // Barcha natijalari o'chirilgan xodimning eski qayta topshirish
+            // ruxsatlari ham o'chadi — u yana 1 ta urinishdan boshlaydi.
+            try {
+                $db->exec(
+                    'DELETE r FROM test_retakes r
+                     LEFT JOIN test_attempts t ON t.user_id = r.user_id
+                     WHERE t.id IS NULL'
+                );
+            } catch (\Throwable $e) {
+                // test_retakes jadvali hali yaratilmagan bo'lishi mumkin.
+            }
+        });
     }
 
     public static function deleteDocReads(array $input): void

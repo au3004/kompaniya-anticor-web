@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Auth;
-use App\Config;
 use App\Database;
 use App\Filials;
 use App\PwnedPasswords;
@@ -485,6 +484,10 @@ final class AdminController
 
         // Admin bekor qilgan sertifikatlar statistikada ham ko'rinmasin.
         $revokedCertificates = CertificateController::revokedUserIds($db);
+        // Xodim testni 1 marta topshiradi; o'ta olmaganlarga admin qo'lda
+        // qayta topshirish ruxsatini beradi (har bir ruxsat — +1 urinish).
+        $baseAttempts = TestController::baseAttempts();
+        $retakeGrants = TestController::retakeGrantCounts($db);
 
         $employees = [];
         $docsDone = 0;
@@ -520,6 +523,10 @@ final class AdminController
                 'testPercent' => $testTaken ? (int) $attempt['percent'] : null,
                 'passed' => $testTaken ? (bool) $attempt['passed'] : false,
                 'testAttempts' => $attemptCount[$uid] ?? 0,
+                'maxAttempts' => $baseAttempts + ($retakeGrants[$uid] ?? 0),
+                // Ruxsat berilgan, lekin xodim hali qayta topshirmagan.
+                'retakePending' => $testTaken && !isset($everPassed[$uid])
+                    && ($attemptCount[$uid] ?? 0) < $baseAttempts + ($retakeGrants[$uid] ?? 0),
                 'hasCertificate' => isset($everPassed[$uid]) && !isset($revokedCertificates[$uid]),
             ];
         }
@@ -533,7 +540,7 @@ final class AdminController
                 'testsPassed' => $testsPassed,
                 'testsFailed' => $testsFailed,
                 'notStarted' => $total - $testsPassed - $testsFailed,
-                'maxAttempts' => max(1, Config::int('TEST_MAX_ATTEMPTS', 2)),
+                'maxAttempts' => $baseAttempts,
             ],
             'employees' => $employees,
         ]);

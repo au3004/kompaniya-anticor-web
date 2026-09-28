@@ -90,7 +90,11 @@ Normativ hujjatlar ikki yo'l bilan qo'shiladi:
 
 ## Sertifikat
 
-Testdan o'tish balini qo'lga kiritgan xodimga avtomatik PDF sertifikat yaratiladi: test natijasi sahifasidan va "Holatingizni tekshiring" kartasidan yuklab olinadi, admin esa Korrupsiyaga qarshi kurashish statistikasi jadvalidan istalgan xodimnikini ochadi. Har bir xodim testni **2 marta** topshira oladi (`.env`da `TEST_MAX_ATTEMPTS`), 3-urinishda ogohlantirish chiqadi; sertifikat va natija uchun eng yuqori ball hisoblanadi. Xodimga qayta imkoniyat berish kerak bo'lsa, admin Hisobotlar bo'limidan uning test urinishlarini o'chiradi.
+Testdan o'tish balini qo'lga kiritgan xodimga avtomatik PDF sertifikat yaratiladi: test natijasi sahifasidan va "Holatingizni tekshiring" kartasidan yuklab olinadi, admin esa Korrupsiyaga qarshi kurashish statistikasi jadvalidan istalgan xodimnikini ochadi. Har bir xodim testni **1 marta** topshiradi (`.env`da `TEST_MAX_ATTEMPTS`); testdan o'tgan xodim qayta topshirmaydi.
+
+- **O'ta olmaganlar** statistika jadvalida "O'tmagan" kartochkasi bosilganda alohida ko'rinadi. Har bir qatordagi tugma bilan admin (anticor-admin/super-admin) xodimga testni **qayta topshirishga ruxsat** beradi — xodimga avtomatik xabarnoma boradi, har bir ruxsat yana 1 ta urinish beradi. Ruxsatlar (kim, qachon) va qayta topshirilgan natijalar **Progress** hisobotida belgilanadi.
+- Qayta topshirib o'tgan xodim ham sertifikat oladi (sertifikatda o'tgan urinishning bali va sanasi).
+- Test natijalarini (Hisobotlar → Test natijalari) o'chirish ham sertifikatni olib qo'yadi; xodimning barcha natijalari o'chirilsa, ruxsatlari ham tozalanib, u yana 1 ta urinishdan boshlaydi.
 
 - **Sertifikatdagi ma'lumotlar:** raqam (`AK-<yil>-<urinish raqami>`), F.I.Sh, filial, bo'linma, to'plangan ball, sana va pastda ikki imzo: xodim filialining rahbari hamda komplaens departamenti direktori (QR-kod bilan).
 - **Imzo qo'yuvchilar** admin panelidagi **Sertifikat** bo'limida kiritiladi (har bir filial uchun lavozim va F.I.Sh, komplaens direktori). Shu yerda har bir filial bo'yicha namunani ko'rish mumkin. O'zgartirish saqlangach, xodimlarning sertifikatlari keyingi ochilishda avtomatik yangilanadi (F.I.Sh, filial yoki bo'linma o'zgarganda ham).

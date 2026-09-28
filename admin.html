@@ -235,6 +235,10 @@ body.embedded #hubView .back-btn{ display:none; }
 .stat-card.teal .num{ color:var(--teal); }
 .stat-card.coral .num{ color:var(--coral); }
 .stat-card.amber .num{ color:var(--amber); }
+.stat-card.clickable{ cursor:pointer; transition:box-shadow .2s ease, outline-color .2s ease; outline:2px solid transparent; outline-offset:-2px; }
+.stat-card.clickable:hover{ outline-color:var(--input-border); }
+.stat-card.clickable.active{ outline-color:var(--coral); }
+.stat-card .hint{ font-size:11px; color:var(--text-dim); margin-top:6px; }
 
 .search-row{ margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .search-row input{
@@ -1539,7 +1543,7 @@ const dict = {
     thId:"ID", thFish:"F.I.Sh", thPos:"Lavozim", thDept:"Bo'linma", thPhone:"Telefon", thDoc:"Hujjat sanasi", thTest:"Test natijasi",
     thLogin:"Login", thRol:"Rol", thAmal:"Amal",
     searchPh:"F.I.Sh bo'yicha qidirish...", noResults:"Hech narsa topilmadi",
-    loading:"Yuklanmoqda...", yes:"Ha", no:"Yo'q", notTaken:"Ishlamagan", certDownloadBtn:"Sertifikatni yuklab olish", testAttemptsHint:"Eng yuqori natija · ishlatilgan urinishlar", denied:"Sizda bu sahifaga kirish huquqi yo'q",
+    loading:"Yuklanmoqda...", yes:"Ha", no:"Yo'q", notTaken:"Ishlamagan", certDownloadBtn:"Sertifikatni yuklab olish", testAttemptsHint:"Natija · ishlatilgan / ruxsat etilgan urinishlar", failFilterHint:"Bosing — faqat testdan o'ta olmaganlarni ko'rsatish", failFilterOff:"Ro'yxatni ko'rish ›", failFilterOn:"✓ Faqat shular ko'rsatilmoqda", retakeGrantBtn:"Qayta topshirishga ruxsat berish", retakePendingBadge:"Ruxsat berilgan", retakePendingHint:"Qayta topshirishga ruxsat berilgan — xodim hali qayta topshirmagan", retakeConfirm:"{fish} ga testni qayta topshirishga ruxsat berilsinmi? Xodimga xabarnoma yuboriladi.", denied:"Sizda bu sahifaga kirish huquqi yo'q",
     notifTitle:"Xabarnomalar", notifEmpty:"Hozircha xabarnoma yo'q",
     testFormAdd:"Yangi savol qo'shish", testFormEdit:"Savolni tahrirlash", testListTitle:"Mavjud savollar",
     langUzTitle:"O'zbekcha", langRuTitle:"Русский",
@@ -1656,7 +1660,7 @@ const dict = {
     thId:"ID", thFish:"ФИО", thPos:"Должность", thDept:"Подразделение", thPhone:"Телефон", thDoc:"Дата ознакомления", thTest:"Результат теста",
     thLogin:"Логин", thRol:"Роль", thAmal:"Действие",
     searchPh:"Поиск по ФИО...", noResults:"Ничего не найдено",
-    loading:"Загрузка...", yes:"Да", no:"Нет", notTaken:"Не пройден", certDownloadBtn:"Скачать сертификат", testAttemptsHint:"Лучший результат · использовано попыток", denied:"У вас нет доступа к этой странице",
+    loading:"Загрузка...", yes:"Да", no:"Нет", notTaken:"Не пройден", certDownloadBtn:"Скачать сертификат", testAttemptsHint:"Результат · использовано / разрешено попыток", failFilterHint:"Нажмите — показать только не сдавших тест", failFilterOff:"Показать список ›", failFilterOn:"✓ Показаны только они", retakeGrantBtn:"Разрешить пересдачу", retakePendingBadge:"Разрешено", retakePendingHint:"Пересдача разрешена — сотрудник ещё не пересдал тест", retakeConfirm:"Разрешить сотруднику {fish} пересдать тест? Сотруднику будет отправлено уведомление.", denied:"У вас нет доступа к этой странице",
     notifTitle:"Уведомления", notifEmpty:"Пока нет уведомлений",
     testFormAdd:"Добавить новый вопрос", testFormEdit:"Редактировать вопрос", testListTitle:"Существующие вопросы",
     langUzTitle:"Узбекский", langRuTitle:"Русский",
@@ -1773,10 +1777,30 @@ function openSection(id){
   document.getElementById(id).style.display = 'block';
 }
 
+// "O'ta olmaganlar" kartochkasi bosilganda jadval faqat ularni ko'rsatadi (qayta bosilsa — hammasi).
+let statsFailedOnly = false;
+function toggleFailedFilter(){
+  statsFailedOnly = !statsFailedOnly;
+  renderCards();
+  onSearch();
+}
+
 function onSearch(){
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  filteredEmployees = !q ? statsData.employees : statsData.employees.filter(e => e.fish.toLowerCase().includes(q));
+  filteredEmployees = statsData.employees.filter(e =>
+    (!q || e.fish.toLowerCase().includes(q)) && (!statsFailedOnly || (e.testTaken && !e.passed)));
   renderTable();
+}
+
+/* O'ta olmagan xodimga testni qayta topshirishga ruxsat (+1 urinish, xodimga xabarnoma boradi). */
+async function grantRetake(userId){
+  const emp = statsData.employees.find(e => e.id === userId);
+  if(!emp || !confirm(dict[currentLang].retakeConfirm.replace('{fish}', emp.fish))) return;
+  try{
+    const data = await apiCall({ action:'grantTestRetake', token: currentUserForKpi.token, userId });
+    if(!data.success){ alert(dict[currentLang].savedErr + (data.message ? ': ' + data.message : '')); return; }
+    await loadStats(currentUserForKpi);
+  } catch(ex){ alert('Xatolik: ' + ex.message); }
 }
 
 function renderCards(){
@@ -1785,7 +1809,7 @@ function renderCards(){
     <div class="stat-card"><div class="num">${s.total}</div><div class="lbl">${dict[currentLang].totalLbl}</div></div>
     <div class="stat-card teal"><div class="num">${s.docsDone}</div><div class="lbl">${dict[currentLang].docsLbl}</div></div>
     <div class="stat-card teal"><div class="num">${s.testsPassed}</div><div class="lbl">${dict[currentLang].passLbl}</div></div>
-    <div class="stat-card coral"><div class="num">${s.testsFailed}</div><div class="lbl">${dict[currentLang].failLbl}</div></div>
+    <div class="stat-card coral clickable${statsFailedOnly ? ' active' : ''}" onclick="toggleFailedFilter()" title="${dict[currentLang].failFilterHint}"><div class="num">${s.testsFailed}</div><div class="lbl">${dict[currentLang].failLbl}</div><div class="hint">${statsFailedOnly ? dict[currentLang].failFilterOn : dict[currentLang].failFilterOff}</div></div>
     <div class="stat-card amber"><div class="num">${s.notStarted}</div><div class="lbl">${dict[currentLang].waitLbl}</div></div>
   `;
 }
@@ -1857,9 +1881,9 @@ async function exportProgressReport(){
   try{
     const data = await apiCall({ action:'getProgressReport', token: currentUserForKpi.token });
     if(!data.success) return alert(dict[currentLang].savedErr);
-    const rows = [['ID','F.I.Sh','Telefon',"Tanishgan sana","Qayta tanishgan",'Test','Natija',"Qayta topshirish"]];
+    const rows = [['ID','F.I.Sh','Telefon',"Tanishgan sana","Qayta tanishgan",'Test','Natija',"Qayta topshirishga ruxsat","Qayta topshirish"]];
     data.rows.forEach(r => {
-      rows.push([r.id, r.fish, r.telefon || '', r.tanishganSana, r.qaytaTanishgan, r.test, r.natija, r.qaytaTopshirish]);
+      rows.push([r.id, r.fish, r.telefon || '', r.tanishganSana, r.qaytaTanishgan, r.test, r.natija, r.qaytaRuxsat || '', r.qaytaTopshirish]);
     });
     downloadXlsx(`progress_${todayStamp()}.xlsx`, rows, 'Progress');
   } catch(ex){ alert('Xatolik: ' + ex.message); }
@@ -2294,15 +2318,23 @@ function renderTable(){
   document.getElementById('tbody').innerHTML = filteredEmployees.map((emp, i) => {
     const docBadge = emp.hujjatSana ? `<span class="badge ok">${escapeHtml(emp.hujjatSana)}</span>` : `<span class="badge no">${dict[currentLang].no}</span>`;
     let testBadge = `<span class="badge wait">${dict[currentLang].notTaken}</span>`;
-    // Xodim testni cheklangan marta topshiradi — eng yuqori natija va urinishlar soni ko'rsatiladi.
-    const maxAttempts = statsData && statsData.summary && statsData.summary.maxAttempts;
+    // Xodim testni 1 marta topshiradi (+ admin bergan qayta topshirish ruxsatlari) — urinishlar soni ko'rsatiladi.
+    const maxAttempts = emp.maxAttempts || (statsData && statsData.summary && statsData.summary.maxAttempts);
     const attemptsTxt = (maxAttempts && emp.testAttempts) ? ` · ${emp.testAttempts}/${maxAttempts}` : '';
     if(emp.testTaken) testBadge = `<span class="badge ${emp.passed?'ok':'no'}" title="${escapeHtml(dict[currentLang].testAttemptsHint)}">${emp.testPoints} — ${emp.testPercent}%${attemptsTxt}</span>`;
     if(emp.hasCertificate){
       const certUrl = `${API_BASE_URL.replace('backend/public/index.php','backend/public/certificate-download.php')}?userId=${encodeURIComponent(emp.id)}`;
       testBadge += `<a class="icon-btn" style="text-decoration:none; display:inline-flex; vertical-align:middle; margin-left:6px;" title="${dict[currentLang].certDownloadBtn}" href="${certUrl}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/></svg></a>`;
     }
-    return `<tr><td>${i + 1}</td><td>${escapeHtml(emp.fish)}</td><td>${escapeHtml(emp.lavozim)||'—'}</td><td>${escapeHtml(emp.bolinma)||'—'}</td><td>${escapeHtml(emp.telefon)||'—'}</td><td>${docBadge}</td><td>${testBadge}</td></tr>`;
+    if(emp.testTaken && !emp.passed){
+      if(emp.retakePending){
+        testBadge += ` <span class="badge wait" style="margin-left:6px;" title="${escapeHtml(dict[currentLang].retakePendingHint)}">${dict[currentLang].retakePendingBadge}</span>`;
+      } else if(currentUserForKpi && ANTICOR_MANAGE.includes(currentUserForKpi.rol)){
+        testBadge += `<button type="button" class="icon-btn" style="display:inline-flex; vertical-align:middle; margin-left:6px;" title="${dict[currentLang].retakeGrantBtn}" onclick="grantRetake(${emp.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>`;
+      }
+    }
+    // Test natijasi katagida bir nechta belgi (natija, sertifikat, ruxsat) bo'lishi mumkin — qirqilmasin, sig'masa keyingi qatorga o'tsin.
+    return `<tr><td>${i + 1}</td><td>${escapeHtml(emp.fish)}</td><td>${escapeHtml(emp.lavozim)||'—'}</td><td>${escapeHtml(emp.bolinma)||'—'}</td><td>${escapeHtml(emp.telefon)||'—'}</td><td>${docBadge}</td><td style="white-space:normal; overflow:visible;"><div style="display:flex; flex-wrap:wrap; align-items:center; row-gap:6px;">${testBadge}</div></td></tr>`;
   }).join('');
 }
 

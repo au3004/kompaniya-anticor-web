@@ -128,6 +128,7 @@ $routes = [
 
     'getTestQuestions' => [TestController::class, 'getQuestions'],
     'submitTest' => [TestController::class, 'submit'],
+    'grantTestRetake' => [TestController::class, 'grantRetake'],
     'setTestActive' => [TestController::class, 'setActive'],
     'getCertificateSettings' => [CertificateController::class, 'getSettings'],
     'saveCertificateSettings' => [CertificateController::class, 'saveSettings'],

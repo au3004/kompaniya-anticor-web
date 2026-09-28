@@ -10,6 +10,7 @@ use App\Database;
 use App\Logger;
 use App\RateLimit;
 use App\Response;
+use App\Util;
 use App\Validate;
 
 final class TestController
@@ -23,10 +24,65 @@ final class TestController
         return $value === false ? true : $value === 'true';
     }
 
-    /** Har bir xodim testni necha marta topshira oladi (sertifikat uchun eng yuqori natija hisoblanadi). */
-    private static function maxAttempts(): int
+    /**
+     * Qayta topshirishga berilgan ruxsatlar: har bir yozuv — o'ta olmagan
+     * xodimga admin tomonidan qo'lda berilgan bitta qo'shimcha urinish.
+     */
+    public const RETAKES_DDL = 'CREATE TABLE IF NOT EXISTS test_retakes (
+        id          INT AUTO_INCREMENT PRIMARY KEY,
+        user_id     INT NOT NULL,
+        granted_by  INT NULL,
+        granted_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (granted_by) REFERENCES users(id) ON DELETE SET NULL,
+        INDEX idx_user (user_id)
+    ) ENGINE=InnoDB';
+
+    /** Har bir xodimga beriladigan boshlang'ich urinishlar soni (standart — 1). */
+    public static function baseAttempts(): int
     {
-        return max(1, Config::int('TEST_MAX_ATTEMPTS', 2));
+        return max(1, Config::int('TEST_MAX_ATTEMPTS', 1));
+    }
+
+    /**
+     * Xodimga ruxsat etilgan jami urinishlar: boshlang'ich + qo'lda berilgan
+     * qayta topshirish ruxsatlari. Tranzaksiya ICHIDA chaqirilmasin — jadvalni
+     * yaratuvchi DDL MySQL'da tranzaksiyani yashirincha yakunlab qo'yadi
+     * (tranzaksiya ichida retakeGrants() ishlatiladi).
+     */
+    public static function maxAttempts(\PDO $db, int $userId): int
+    {
+        Util::ensureSchema($db, self::RETAKES_DDL);
+        return self::baseAttempts() + self::retakeGrants($db, $userId);
+    }
+
+    private static function retakeGrants(\PDO $db, int $userId): int
+    {
+        try {
+            $stmt = $db->prepare('SELECT COUNT(*) FROM test_retakes WHERE user_id = :uid');
+            $stmt->execute(['uid' => $userId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\Throwable $e) {
+            return 0; // jadval hali yaratilmagan
+        }
+    }
+
+    /** Barcha xodimlar bo'yicha qayta topshirish ruxsatlari soni — [user_id => n] (statistika uchun). */
+    public static function retakeGrantCounts(\PDO $db): array
+    {
+        Util::ensureSchema($db, self::RETAKES_DDL);
+        $counts = [];
+        foreach ($db->query('SELECT user_id, COUNT(*) AS n FROM test_retakes GROUP BY user_id') as $r) {
+            $counts[(int) $r['user_id']] = (int) $r['n'];
+        }
+        return $counts;
+    }
+
+    private static function hasPassedAttempt(\PDO $db, int $userId): bool
+    {
+        $stmt = $db->prepare('SELECT 1 FROM test_attempts WHERE user_id = :uid AND passed = 1 LIMIT 1');
+        $stmt->execute(['uid' => $userId]);
+        return (bool) $stmt->fetchColumn();
     }
 
     private static function attemptsUsed(\PDO $db, int $userId): int
@@ -72,7 +128,8 @@ final class TestController
         if ($viewer) {
             $userId = (int) $viewer['id'];
             $result['attemptsUsed'] = self::attemptsUsed($db, $userId);
-            $result['maxAttempts'] = self::maxAttempts();
+            $result['maxAttempts'] = self::maxAttempts($db, $userId);
+            $result['passed'] = self::hasPassedAttempt($db, $userId);
             $result['bestPercent'] = self::bestPercent($db, $userId);
             $result['certificate'] = CertificateController::hasCertificate($db, $userId);
         }
@@ -132,16 +189,22 @@ final class TestController
         // Urinishlar sonini tekshirish va yozish bitta tranzaksiyada, xodim
         // qatori qulflangan holda — bir vaqtda yuborilgan ikki so'rov cheklovni
         // aylanib o'tib, ortiqcha urinish yozib qo'ya olmasligi uchun.
-        $maxAttempts = self::maxAttempts();
+        // Testdan o'tgan xodim qayta topshirmaydi; o'ta olmagan xodim esa
+        // faqat admin qo'lda bergan ruxsat (test_retakes) bilan qayta topshiradi.
+        $maxAttempts = self::maxAttempts($db, (int) $user['id']);
         $db->beginTransaction();
         try {
             $lock = $db->prepare('SELECT id FROM users WHERE id = :id FOR UPDATE');
             $lock->execute(['id' => $user['id']]);
+            if (self::hasPassedAttempt($db, (int) $user['id'])) {
+                $db->rollBack();
+                Response::error("Siz testdan muvaffaqiyatli o'tgansiz", 'ALREADY_PASSED', 403);
+            }
             $used = self::attemptsUsed($db, (int) $user['id']);
             if ($used >= $maxAttempts) {
                 $db->rollBack();
                 Response::error(
-                    "Siz testni {$maxAttempts} marta topshirib bo'lgansiz — qayta topshirish mumkin emas",
+                    "Siz testni topshirib bo'lgansiz — qayta topshirish uchun Korrupsiyaga qarshi kurashish bo'limining ruxsati kerak",
                     'ATTEMPTS_EXHAUSTED',
                     403
                 );
@@ -181,12 +244,76 @@ final class TestController
             'maxPoints' => $totalQuestions,
             'percent' => $percent,
             'passed' => $passed,
-            // Oldingi urinishda o'tgan bo'lsa, bu safar o'tmasa ham sertifikat saqlanadi.
             'certificate' => CertificateController::hasCertificate($db, (int) $user['id']),
             'attemptsUsed' => $used + 1,
             'maxAttempts' => $maxAttempts,
             'wrongIds' => $wrongIds,
         ]);
+    }
+
+    /**
+     * O'ta olmagan xodimga testni qayta topshirishga ruxsat beradi (+1
+     * urinish) va unga xabarnoma yuboradi. Faqat barcha urinishlarini
+     * ishlatib bo'lgan va hali o'tmagan xodimga beriladi.
+     */
+    public static function grantRetake(array $input): void
+    {
+        $me = Auth::requireRole($input, Roles::ANTICOR_MANAGE);
+        $userId = (int) Validate::int($input, 'userId');
+
+        $db = Database::connection();
+        $stmt = $db->prepare('SELECT id, login FROM users WHERE id = :id AND rol != :superAdmin LIMIT 1');
+        $stmt->execute(['id' => $userId, 'superAdmin' => Roles::SUPER_ADMIN]);
+        $target = $stmt->fetch();
+        if (!$target) {
+            Response::error('Xodim topilmadi', 'NOT_FOUND', 404);
+        }
+
+        Util::ensureSchema($db, self::RETAKES_DDL); // tranzaksiyadan oldin (DDL uni yopib qo'yadi)
+        $db->beginTransaction();
+        try {
+            $lock = $db->prepare('SELECT id FROM users WHERE id = :id FOR UPDATE');
+            $lock->execute(['id' => $userId]);
+            $used = self::attemptsUsed($db, $userId);
+            if ($used === 0) {
+                $db->rollBack();
+                Response::error('Xodim hali testni topshirmagan', 'NOT_TAKEN', 409);
+            }
+            if (self::hasPassedAttempt($db, $userId)) {
+                $db->rollBack();
+                Response::error("Xodim testdan o'tgan — qayta topshirish kerak emas", 'ALREADY_PASSED', 409);
+            }
+            if ($used < self::baseAttempts() + self::retakeGrants($db, $userId)) {
+                $db->rollBack();
+                Response::error('Xodimda ishlatilmagan urinish bor — ruxsat allaqachon berilgan', 'RETAKE_PENDING', 409);
+            }
+            $ins = $db->prepare('INSERT INTO test_retakes (user_id, granted_by) VALUES (:uid, :by)');
+            $ins->execute(['uid' => $userId, 'by' => $me['id']]);
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
+
+        // Xabarnoma yuborilmasa ham ruxsat saqlanadi.
+        try {
+            $notify = $db->prepare(
+                "INSERT INTO notifications (sender_id, matn, target_type, target_value)
+                 VALUES (:sender, :matn, 'users', :login)"
+            );
+            $notify->execute([
+                'sender' => $me['id'],
+                'matn' => "Sizga «Korrupsiyaga qarshi kurashish» testini qayta topshirishga ruxsat berildi.\n"
+                    . "Вам разрешено повторно пройти тест «Противодействие коррупции».",
+                'login' => $target['login'],
+            ]);
+        } catch (\Throwable $e) {
+            Logger::error('grantRetake', $e->getMessage());
+        }
+
+        Response::success(['maxAttempts' => self::maxAttempts($db, $userId)]);
     }
 
     public static function setActive(array $input): void
