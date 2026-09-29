@@ -14,6 +14,13 @@ declare(strict_types=1);
  * ishga tushiradi va HTTP orqali API'ni sinaydi. Ishchi bazaga tegmaydi.
  */
 
+// Faqat buyruq qatoridan: skript baza yaratadi/o'chiradi va PHP serverini ishga
+// tushiradi — veb orqali (masalan .htaccess ishlamayotgan serverda) ochilsa, darhol to'xtaydi.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 $root = dirname(__DIR__, 2);
 require $root . '/backend/src/autoload.php';
 
@@ -305,6 +312,69 @@ foreach (['employee_edit', 'retake_grant', 'cert_revoke', 'test_settings', 'remi
 check('super-admin amallari yozilmaydi', !in_array('Bosh Admin', array_column($log, 'kim'), true));
 $edit = array_values(array_filter($log, static fn ($e) => $e['amal'] === 'employee_edit'))[0] ?? [];
 check("tahrirda o'zgargan maydonlar yozilgan", str_contains($edit['tafsilot'] ?? '', 'lavozim'));
+
+// ---------------------------------------------------------------------
+section('Xavfsizlik');
+// Huquqlar matritsasi: index.php'dagi har bir amal uchun metoddagi birinchi
+// Auth:: tekshiruvi aniqlanadi va anonim / oddiy xodim / anticor sifatida
+// chaqirilganda kutilgan rad javobi tekshiriladi.
+$routesSrc = (string) file_get_contents($root . '/backend/public/index.php');
+preg_match_all("/'(\w+)'\s*=>\s*\[(\w+)::class,\s*'(\w+)'\]/", $routesSrc, $routeMatches, PREG_SET_ORDER);
+$levelOf = ['NONE' => 0, 'optionalUser' => 0, 'requireUser' => 1, 'ANY_PANEL_ACCESS' => 2, 'ANTICOR_VIEW' => 2, 'NOTIFY_SEND' => 2];
+$sideEffects = ['logout', 'revokeOtherSessions', 'createBackup', 'totpDisable'];
+$anon = $c();
+$matrixErrors = [];
+$checkedCalls = 0;
+foreach ($routeMatches as [, $action, $class, $method]) {
+    if (in_array($action, $sideEffects, true)) {
+        continue;
+    }
+    $file = is_file("{$root}/backend/src/Controllers/{$class}.php") ? "{$root}/backend/src/Controllers/{$class}.php" : "{$root}/backend/src/{$class}.php";
+    if (!preg_match('/function ' . $method . '\(array \$input\)[^{]*\{(.*?)\n    \}/s', (string) file_get_contents($file), $body)) {
+        $matrixErrors[] = "{$action}: metod topilmadi";
+        continue;
+    }
+    if (str_contains($body[1], 'self::bulkDelete')) {
+        $required = 3;
+    } elseif (preg_match('/Auth::(requireUser|requireRole|optionalUser)\(\$input(?:,\s*Roles::(\w+))?/', $body[1], $a)) {
+        $required = $a[1] === 'requireRole' ? ($levelOf[$a[2]] ?? 3) : $levelOf[$a[1]];
+    } else {
+        $required = 0;
+    }
+    foreach ([[$anon, 0, 'anonim'], [$u3, 1, 'xodim'], [$viewer, 2, 'anticor']] as [$who, $lvl, $name]) {
+        if ($lvl >= $required) {
+            continue;
+        }
+        $checkedCalls++;
+        $code = $who->api($action)['code'] ?? '';
+        if (!in_array($code, ['SESSION_EXPIRED', 'FORBIDDEN'], true)) {
+            $matrixErrors[] = "{$action} ({$name}): {$code}";
+        }
+    }
+}
+check("huquqlar matritsasi: {$checkedCalls} ta ruxsatsiz chaqiruv rad etildi", !$matrixErrors, implode('; ', array_slice($matrixErrors, 0, 5)));
+check('test savollari login talab qiladi', ($anon->api('getTestQuestions')['code'] ?? '') === 'SESSION_EXPIRED');
+$r = $admin->api('addEmployee', ['login' => "x'),alert(1),('", 'parol' => 'Qw!9827349xyzA', 'familiya' => 'A', 'ism' => 'B', 'rol' => 'user']);
+check("xavfli belgili login rad etiladi (XSS)", ($r['code'] ?? '') === 'INVALID_LOGIN');
+$r = $admin->api('addEmployee', ['login' => 'yangi.xodim_1', 'parol' => 'Qw!9827349xyzA', 'familiya' => 'A', 'ism' => 'B', 'rol' => 'super-admin']);
+$newRol = $pdo->query("SELECT rol FROM `{$testDb}`.users WHERE login = 'yangi.xodim_1'")->fetchColumn();
+check("anticor-admin super-admin yarata olmaydi", ($r['success'] ?? false) && $newRol === 'user', (string) $newRol);
+[$status] = $anon->request('GET', '/backend/tests/run.php');
+check('test skripti veb orqali ishlamaydi', $status === 404, (string) $status);
+[$status] = $u3->request('GET', '/backend/public/certificate-preview.php');
+check("oddiy xodim sertifikat namunasini ocha olmaydi", $status === 403);
+[$status] = $u3->request('GET', '/backend/public/certificate-download.php?userId=' . $ids['u1']);
+check("xodim boshqa xodim sertifikatini ocha olmaydi", $status === 403);
+[$status, $html] = $anon->request('GET', '/backend/public/certificate-verify.php?t=namuna&s=%22%3E%3Cscript%3E');
+check("QR sahifasida XSS yo'q", !str_contains($html, '<script>'));
+// 2FA orqali kirishda ham profil to'liq (displayId) — avval "ID-00000" chiqardi.
+$secret = App\Totp::generateSecret();
+$pdo->prepare("UPDATE `{$testDb}`.users SET totp_secret = ?, totp_enabled = 1 WHERE login = 'u3'")->execute([$secret]);
+$t = $c();
+$step1 = $t->login('u3');
+$r = $t->api('verifyTotpLogin', ['pendingToken' => $step1['pendingToken'] ?? '', 'code' => App\Totp::generateCode($secret)]);
+check("2FA bilan kirish: displayId va filial bor", ($r['success'] ?? false) && ($r['displayId'] ?? null) === (int) $ids['u3'] - 1 && ($r['filial'] ?? '') === 'janubiy', json_encode($r));
+check('2FA: noto\'g\'ri kod rad etiladi', ($c()->api('verifyTotpLogin', ['pendingToken' => ($c()->login('u3')['pendingToken'] ?? ''), 'code' => '000000'])['success'] ?? true) === false);
 
 // ---------------------------------------------------------------------
 section('Migratsiyalar');

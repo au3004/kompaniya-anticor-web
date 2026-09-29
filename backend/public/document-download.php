@@ -54,7 +54,7 @@ if ($row && !empty($row['folder_file'])) {
 }
 $realPath = realpath($path);
 $realBase = realpath($dir);
-if (!$realPath || !$realBase || !str_starts_with($realPath, $realBase) || !is_file($realPath)) {
+if (!$realPath || !$realBase || !str_starts_with($realPath, $realBase . DIRECTORY_SEPARATOR) || !is_file($realPath)) {
     http_response_code(404);
     echo 'Topilmadi';
     exit;

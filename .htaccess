@@ -1,0 +1,31 @@
+# Loyiha ildizi (masalan htdocs/anticor/) — veb orqali faqat sahifalar (*.html),
+# assets/ va backend/public/ ochiq bo'lishi kerak. Qolganlari (git tarixi, sxema,
+# hujjatlar, mobil ilova manbalari) yopiladi. backend/ va Hujjatlar/ o'zlarining
+# .htaccess fayllari bilan alohida himoyalangan.
+
+# Papka tarkibini (fayllar ro'yxatini) ko'rsatmaslik; /anticor/ ochilganda — kirish sahifasi.
+Options -Indexes
+DirectoryIndex login.html
+
+# Yashirin fayl/papkalar (.git, .gitignore, .env va h.k.), README/CLAUDE (.md),
+# schema.sql va boshqa ichki fayllar — 404.
+<IfModule mod_alias.c>
+    RedirectMatch 404 "/\.(?!well-known)"
+    RedirectMatch 404 "(?i)\.(md|sql|log|bak|sh|ya?ml|lock|dist)$"
+    RedirectMatch 404 "/mobile(/|$)"
+</IfModule>
+
+# mod_alias bo'lmasa ham — xuddi shu fayllarni taqiqlash.
+<FilesMatch "(?i)(^\.|\.(md|sql|log|bak|sh|ya?ml|lock|dist)$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+</FilesMatch>
+
+# Xavfsizlik sarlavhalari: boshqa saytlar sahifalarni o'z <iframe>'iga joylay
+# olmasin (clickjacking), brauzer fayl turini "taxmin qilmasin".
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "same-origin"
+</IfModule>

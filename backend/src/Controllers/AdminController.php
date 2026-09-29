@@ -25,6 +25,11 @@ final class AdminController
         $me = Auth::requireRole($input, Roles::HR_MANAGE);
 
         $login = Validate::requiredStr($input, 'login', 100);
+        // Login faqat harf, raqam va . _ - @ belgilaridan: tirnoq, < > va h.k.
+        // HTML/JS kontekstiga tushib, saqlanadigan XSS'ga yo'l ochmasligi uchun.
+        if (!preg_match('/^[\p{L}\p{N}._@-]{3,100}$/u', $login)) {
+            Response::error("Login faqat harf, raqam va . _ - @ belgilaridan iborat bo'lishi kerak (3–100 belgi)", 'INVALID_LOGIN', 422);
+        }
         $parol = Validate::requiredStr($input, 'parol', 255);
         $familiya = Validate::requiredStr($input, 'familiya', 150);
         $ism = Validate::requiredStr($input, 'ism', 150);

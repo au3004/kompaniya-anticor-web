@@ -46,7 +46,7 @@ Mahalliy XAMPP sozlamalari haqiqiy serverda xavfli — ishga tushirishdan oldin 
    ```
 2. **HTTPS.** Domenga SSL sertifikat o'rnating va `.env`da `FORCE_HTTPS=true` qiling.
 3. **Manzil.** `.env`da `PUBLIC_BASE_URL` haqiqiy domenga o'zgartirilsin (sertifikatlardagi QR-kodlar ham shu manzilga olib boradi — o'zgargach sertifikatlar avtomatik yangilanadi); `ALLOWED_ORIGINS` bo'sh qolsin (`*` yozilmasin).
-4. **`.htaccess` ishlashi.** Apache'da `AllowOverride All` yoqilgan bo'lsin — `backend/` (kod va `.env`) va `Hujjatlar/` papkalarini veb orqali ochilishdan aynan shu fayllar himoya qiladi. Nginx ishlatilsa, xuddi shu taqiqlarni server sozlamasida qo'lda yozing.
+4. **`.htaccess` ishlashi.** Apache'da `AllowOverride All` yoqilgan bo'lsin — `backend/` (kod va `.env`), `Hujjatlar/` hamda loyiha ildizidagi ichki fayllarni (`.git` tarixi, `schema.sql`, `*.md`, `mobile/`) veb orqali ochilishdan aynan shu fayllar himoya qiladi; ildizdagi `.htaccess` qo'shimcha ravishda clickjacking'ga qarshi sarlavhalarni qo'yadi (`mod_headers`). Nginx ishlatilsa, xuddi shu taqiqlarni server sozlamasida qo'lda yozing. Tekshirish: brauzerda `https://<domen>/anticor/.git/config` va `.../schema.sql` ochilmasligi (404/403) kerak.
 5. **Yoziladigan papkalar.** PHP quyidagilarga yoza olishi kerak: `backend/documents`, `backend/hr_documents`, `backend/purchase_contracts`, `backend/certificates`, `backend/backups`, `backend/public/uploads/photos` (ixtiyoriy: `backend/fonts/unifont`).
 6. **Zaxira nusxa.** `MYSQLDUMP_PATH`ni tekshiring va `backend/scripts/backup.php`ni kunlik rejalashtiring (qarang: "Zaxira nusxa").
 7. **Test sozlamalari.** `.env`dagi `TEST_PASS_THRESHOLD`, `TEST_MAX_ATTEMPTS` hamda admin panelidagi muddatlar (Test savollari → Muddatlar) kerakligiga ishonch hosil qiling.
@@ -64,6 +64,7 @@ Mahalliy XAMPP sozlamalari haqiqiy serverda xavfli — ishga tushirishdan oldin 
 ## Xavfsizlik
 
 - Parollar bcrypt bilan xeshlanadi, hech qachon ochiq matnda saqlanmaydi yoki eksport qilinmaydi.
+- **Login formati**: faqat harf, raqam va `. _ - @` belgilari (3–100) — HTML/JS'ga tushib XSS'ga yo'l ochmasligi uchun.
 - **Parol siyosati**: kamida 8 belgi, katta harf, kichik harf, raqam va maxsus belgi talab qilinadi; ma'lumotlar sizib chiqishlarida uchragan parollar rad etiladi.
 - **Login bloklash**: mavjud bo'lmagan login bilan 3 marta, mavjud login uchun noto'g'ri parol bilan 5 marta xato urinishdan keyin `LOGIN_LOCK_MINUTES` (standart 15) daqiqaga bloklanadi. anticor-admin xodimlar ro'yxatidan istalgan vaqtda qo'lda blokdan chiqara oladi.
 - **Sessiya**: haqiqiy sessiya tokeni faqat HttpOnly + SameSite=Strict cookie orqali saqlanadi — JavaScript orqali umuman o'qib bo'lmaydi. `SESSION_IDLE_MINUTES` (standart 10) daqiqa harakatsizlikdan keyin yoki `SESSION_ABSOLUTE_TTL_HOURS` (standart 168 soat = 7 kun) o'tgach avtomatik tugaydi.

@@ -73,7 +73,7 @@ if (!$certificate) {
 $dir = CertificateController::certificatesDir();
 $realPath = realpath($dir . '/' . $certificate['file_name']);
 $realBase = realpath($dir);
-if (!$realPath || !$realBase || !str_starts_with($realPath, $realBase) || !is_file($realPath)) {
+if (!$realPath || !$realBase || !str_starts_with($realPath, $realBase . DIRECTORY_SEPARATOR) || !is_file($realPath)) {
     certificateFail(404, 'Topilmadi');
 }
 

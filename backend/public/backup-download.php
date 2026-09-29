@@ -39,7 +39,7 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}_\d{6}$/', $name)) {
 $dir = BackupController::backupDir() . '/' . $name;
 $realDir = realpath($dir);
 $realBase = realpath(BackupController::backupDir());
-if (!$realDir || !$realBase || !str_starts_with($realDir, $realBase) || !is_dir($realDir)) {
+if (!$realDir || !$realBase || !str_starts_with($realDir, $realBase . DIRECTORY_SEPARATOR) || !is_dir($realDir)) {
     http_response_code(404);
     echo 'Topilmadi';
     exit;

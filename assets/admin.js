@@ -1270,7 +1270,7 @@ function renderUsersTable(){
     const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
     const rowEditable = viewerIsSuper || ['user', 'anticor', 'anticor-admin'].includes(u.rol);
     const lockedBadge = u.locked ? `<span class="badge no" style="margin-left:6px;" title="${dict[currentLang].lockedUntilLabel}: ${escapeHtml(u.lockedUntil||'')}">${dict[currentLang].lockedBadge}</span>` : '';
-    const unlockBtn = (u.locked && canUnlock) ? `<button type="button" class="icon-btn" title="${dict[currentLang].unlockBtn}" onclick="unlockEmployeeRow('${escapeHtml(u.login)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button>` : '';
+    const unlockBtn = (u.locked && canUnlock) ? `<button type="button" class="icon-btn" title="${dict[currentLang].unlockBtn}" data-login="${escapeHtml(u.login)}" onclick="unlockEmployeeRow(this.dataset.login)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button>` : '';
     const editBtn = (canEditEmp && rowEditable) ? `<button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>` : '';
     const deleteBtn = (canDeleteEmp && rowEditable) ? `<button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>` : '';
     const actions = (unlockBtn || editBtn || deleteBtn) ? `<div class="row-actions">${unlockBtn}${editBtn}${deleteBtn}</div>` : '—';
@@ -2021,7 +2021,7 @@ function renderNotifUserList(){
   document.getElementById('notifUserList').innerHTML = list.map(u=>{
     const fish = [u.familiya,u.ism,u.otasi].filter(Boolean).join(' ');
     const checked = notifSelectedLogins.has(u.login) ? 'checked' : '';
-    return `<label class="notif-user-opt"><input type="checkbox" ${checked} onchange="toggleNotifUser('${u.login}', this.checked)"> ${escapeHtml(fish)}</label>`;
+    return `<label class="notif-user-opt"><input type="checkbox" ${checked} data-login="${escapeHtml(u.login)}" onchange="toggleNotifUser(this.dataset.login, this.checked)"> ${escapeHtml(fish)}</label>`;
   }).join('') || `<p style="color:var(--text-dim); font-size:12.5px; padding:6px;">${dict[currentLang].noResults}</p>`;
 }
 

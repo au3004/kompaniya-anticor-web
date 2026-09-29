@@ -125,8 +125,9 @@ final class TestController
 
     public static function getQuestions(array $input): void
     {
-        $viewer = Auth::optionalUser($input);
-        $isAdmin = $viewer && in_array($viewer['rol'], Roles::ANTICOR_VIEW, true);
+        // Savollar faqat tizimga kirgan xodimlarga (avval anonim so'rovga ham berilardi).
+        $viewer = Auth::requireUser($input);
+        $isAdmin = in_array($viewer['rol'], Roles::ANTICOR_VIEW, true);
 
         $db = Database::connection();
         $rows = $db->query('SELECT * FROM test_questions ORDER BY id ASC')->fetchAll();

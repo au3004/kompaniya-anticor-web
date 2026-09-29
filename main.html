@@ -1534,7 +1534,7 @@ function sidebarGoHome(){
 function sidebarShowSection(name){
   const sections = { home:'sectionHome', anticor:'sectionAnticor', hr:'sectionHR', admin:'sectionAdmin' };
   const navIds = { home:'navHome', anticor:'navAnticor', hr:'navHR', admin:'navAdmin' };
-  if(!sections[name]) name = 'home';
+  if(!Object.prototype.hasOwnProperty.call(sections, name)) name = 'home';
   Object.keys(sections).forEach(function(key){
     document.getElementById(sections[key]).style.display = (key === name) ? 'block' : 'none';
   });

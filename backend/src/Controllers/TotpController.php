@@ -168,20 +168,14 @@ final class TotpController
         return $row;
     }
 
+    /**
+     * Asosiy login bilan bir xil profil (displayId, filial va h.k.) — avval bu yerda
+     * alohida nusxa bo'lib, displayId yo'qligi sabab 2FA yoqilgan har bir xodim
+     * "ID-00000" (super-admin raqami) bilan ko'rinardi.
+     */
     private static function userProfileFields(array $row): array
     {
-        return [
-            'id' => (int) $row['user_id'],
-            'familiya' => $row['familiya'],
-            'ism' => $row['ism'],
-            'otasi' => $row['otasining_ismi'],
-            'tugilganSana' => $row['tugilgan_sana'] ?? null,
-            'lavozim' => $row['lavozim'],
-            'bolinma' => $row['bolinma'],
-            'telefon' => $row['telefon'],
-            'rasm' => Util::photoUrl($row['rasm_url']),
-            'rol' => $row['rol'],
-        ];
+        return AuthController::userProfileFields($row);
     }
 
     /**

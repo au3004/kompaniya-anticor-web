@@ -106,7 +106,8 @@ final class AuthController
         Response::success(['needsTotp' => true, 'pendingToken' => $pendingToken]);
     }
 
-    private static function userProfileFields(array $user): array
+    /** Kirishdan keyin frontendga beriladigan profil (TOTP yo'li ham shuni ishlatadi). */
+    public static function userProfileFields(array $user): array
     {
         return [
             'id' => (int) $user['id'],
