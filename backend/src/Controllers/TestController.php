@@ -230,7 +230,7 @@ final class TestController
             if ($used >= $maxAttempts) {
                 $db->rollBack();
                 Response::error(
-                    "Siz testni topshirib bo'lgansiz — qayta topshirish uchun Korrupsiyaga qarshi kurashish bo'limining ruxsati kerak",
+                    "Siz testni topshirib bo'lgansiz — qayta topshirish uchun Komplaens departamentining ruxsati kerak",
                     'ATTEMPTS_EXHAUSTED',
                     403
                 );
