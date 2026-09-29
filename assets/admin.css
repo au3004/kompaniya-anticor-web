@@ -256,10 +256,17 @@ body.embedded #hubView .back-btn{ display:none; }
 .table-wrap::-webkit-scrollbar{ height:8px; width:8px; }
 .table-wrap::-webkit-scrollbar-track{ background:transparent; }
 .table-wrap::-webkit-scrollbar-thumb{ background:var(--azure); border-radius:99px; }
-table{ width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; min-width:640px; }
+/* Ustun kengliklari mazmunga qarab avtomatik (table-layout:auto) taqsimlanadi:
+   qisqa ustunlar (ID, son, sana) tor, matnli ustunlar keng bo'ladi. Uzun matn
+   "..." bilan kesilmaydi — keyingi qatorga o'tadi. Juda tor ekranda jadval
+   gorizontal aylantiriladi (.table-wrap). */
+table{ width:100%; border-collapse:collapse; font-size:13px; table-layout:auto; min-width:640px; }
 thead th{ position:sticky; top:0; z-index:2; }
-th{ text-align:left; padding:13px 14px; background:var(--bg-deep); color:var(--text-dim); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.3px; overflow:hidden; text-overflow:ellipsis; }
-td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+th{ text-align:left; padding:12px 12px; background:var(--bg-deep); color:var(--text-dim); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.3px; vertical-align:bottom; white-space:normal; min-width:44px; }
+td{ padding:11px 12px; border-top:1px solid var(--card-border); vertical-align:middle; white-space:normal; overflow-wrap:break-word; }
+/* Qisqa qiymatlar (raqam, sana, telefon, belgilar) bo'linib ketmasin. */
+td.nowrap, th.nowrap{ white-space:nowrap; }
+td:first-child{ white-space:nowrap; }
 /* "ID" ustuni faqat ID'si bor jadvallarda (Korrupsiya statistikasi, Xodimlar) tor bo'lsin —
    KPI jadvalida birinchi ustun F.I.Sh, shuning uchun bu qoida u yerga tegmasligi kerak */
 #anticorView th:nth-child(1), #anticorView td:nth-child(1),

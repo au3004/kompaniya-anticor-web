@@ -1068,20 +1068,20 @@ function renderTable(){
     if(emp.hasCertificate){
       const certUrl = `${API_BASE_URL.replace('backend/public/index.php','backend/public/certificate-download.php')}?userId=${encodeURIComponent(emp.id)}`;
       const certTitle = dict[currentLang].certDownloadBtn + (emp.certValidUntil ? ' · ' + dict[currentLang].validUntilLbl.replace('{d}', formatBirthDate(emp.certValidUntil)) : '');
-      testBadge += `<a class="icon-btn" style="text-decoration:none; display:inline-flex; vertical-align:middle; margin-left:6px;" title="${escapeHtml(certTitle)}" href="${certUrl}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/></svg></a>`;
+      testBadge += `<a class="icon-btn" style="text-decoration:none; display:inline-flex; vertical-align:middle;" title="${escapeHtml(certTitle)}" href="${certUrl}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/></svg></a>`;
     }
     if(!emp.testTaken && emp.renewal){
       testBadge = `<span class="badge wait" title="${escapeHtml(dict[currentLang].renewalHint)}">${dict[currentLang].renewalBadge}</span>`;
     }
     if(emp.testTaken && !emp.passed){
       if(emp.retakePending){
-        testBadge += ` <span class="badge wait" style="margin-left:6px;" title="${escapeHtml(dict[currentLang].retakePendingHint)}">${dict[currentLang].retakePendingBadge}</span>`;
+        testBadge += `<span class="badge wait" title="${escapeHtml(dict[currentLang].retakePendingHint)}">${dict[currentLang].retakePendingBadge}</span>`;
       } else if(currentUserForKpi && ANTICOR_MANAGE.includes(currentUserForKpi.rol)){
-        testBadge += `<button type="button" class="icon-btn" style="display:inline-flex; vertical-align:middle; margin-left:6px;" title="${dict[currentLang].retakeGrantBtn}" onclick="grantRetake(${emp.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>`;
+        testBadge += `<button type="button" class="icon-btn" style="display:inline-flex; vertical-align:middle;" title="${dict[currentLang].retakeGrantBtn}" onclick="grantRetake(${emp.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>`;
       }
     }
     // Test natijasi katagida bir nechta belgi (natija, sertifikat, ruxsat) bo'lishi mumkin — qirqilmasin, sig'masa keyingi qatorga o'tsin.
-    return `<tr><td>${i + 1}</td><td>${escapeHtml(emp.fish)}</td><td>${escapeHtml(emp.lavozim)||'—'}</td><td>${escapeHtml(emp.bolinma)||'—'}</td><td>${escapeHtml(filialLabel(emp.filial))}</td><td>${escapeHtml(emp.telefon)||'—'}</td><td>${docBadge}</td><td style="white-space:normal; overflow:visible;"><div style="display:flex; flex-wrap:wrap; align-items:center; row-gap:6px;">${testBadge}</div></td></tr>`;
+    return `<tr><td>${i + 1}</td><td>${escapeHtml(emp.fish)}</td><td>${escapeHtml(emp.lavozim)||'—'}</td><td>${escapeHtml(emp.bolinma)||'—'}</td><td class="nowrap">${escapeHtml(filialLabel(emp.filial))}</td><td class="nowrap">${escapeHtml(emp.telefon)||'—'}</td><td class="nowrap">${docBadge}</td><td class="nowrap"><div style="display:flex; align-items:center; gap:6px;">${testBadge}</div></td></tr>`;
   }).join('');
 }
 
@@ -1274,7 +1274,7 @@ function renderUsersTable(){
     const editBtn = (canEditEmp && rowEditable) ? `<button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditEmployee(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>` : '';
     const deleteBtn = (canDeleteEmp && rowEditable) ? `<button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteEmployeeRow(${u.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>` : '';
     const actions = (unlockBtn || editBtn || deleteBtn) ? `<div class="row-actions">${unlockBtn}${editBtn}${deleteBtn}</div>` : '—';
-    return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}${lockedBadge}</td><td>${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(filialLabel(u.filial))}</td><td>${escapeHtml(u.telefon)||'—'}</td><td>${actions}</td></tr>`;
+    return `<tr><td>${u.displayId ?? (i+1)}</td><td>${escapeHtml(fish)}${lockedBadge}</td><td class="nowrap">${escapeHtml(formatBirthDate(u.tugilganSana))||'—'}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td class="nowrap">${escapeHtml(filialLabel(u.filial))}</td><td class="nowrap">${escapeHtml(u.telefon)||'—'}</td><td class="nowrap">${actions}</td></tr>`;
   }).join('');
 }
 
