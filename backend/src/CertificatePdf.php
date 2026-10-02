@@ -10,8 +10,8 @@ require_once __DIR__ . '/Vendor/tfpdf/ttfonts.php';
 require_once __DIR__ . '/Vendor/tfpdf/tfpdf.php';
 
 /**
- * Sertifikat dizayni (A4 albom) — "sertifikat_shablon.html" maketining PDF
- * nusxasi. Koordinatalar maketdan brauzerda o'lchab olingan (mm, yuqori-chap
+ * Sertifikat dizayni (A4 albom) — "sertifikat_shablon_tola_jonli.html" maketining
+ * PDF nusxasi. Koordinatalar maketdan brauzerda o'lchab olingan (mm, yuqori-chap
  * burchakdan). Dizayn almashtirilsa, faqat shu fayl (va
  * backend/certificate_assets/) o'zgaradi — ma'lumotlarni
  * CertificateController tayyorlab beradi.
@@ -22,19 +22,27 @@ require_once __DIR__ . '/Vendor/tfpdf/tfpdf.php';
 final class CertificatePdf extends \tFPDF
 {
     /** Dizayn o'zgarsa oshiriladi — mavjud sertifikatlar qayta yaratiladi. */
-    public const VERSION = 2;
+    public const VERSION = 3;
 
     private const BLUE = [0, 67, 145];      // #004391
-    private const INK = [22, 34, 58];       // #16223A
-    private const MUTED = [90, 106, 131];   // #5A6A83
-    private const TINT = [237, 242, 249];   // #EDF2F9
-    private const LINE = [201, 214, 232];   // #C9D6E8
+    private const ACCENT = [46, 134, 224];  // #2E86E0
+    private const INK = [20, 32, 58];       // #14203A
+    private const MUTED = [98, 113, 138];   // #62718A
+    private const RULE = [211, 221, 235];   // #D3DDEB
 
     private const PT = 25.4 / 72;           // 1pt mm'da
 
-    // Asosiy ustun: chap tasmadan keyin, ichki chekinishlar bilan.
-    private const X0 = 91.0;
+    // Asosiy ustun: chap tasma (76 mm) va ichki chekinishlardan (18 mm) keyin.
+    private const X0 = 94.0;
     private const X1 = 279.0;
+
+    // Sarlavha qatori (yuqorida) va imzolar (pastda) orasidagi qism — mazmun
+    // shu oraliqda vertikal markazlanadi (maketdagi .body).
+    private const BODY_TOP = 30.19;
+    private const BODY_BOTTOM = 162.74;
+
+    /** Kichik bosh harfli yorliqlar (.label) harf oralig'i, em. */
+    private const LABEL_TRACKING = 0.12;
 
     /** Og'irlik => [Poppins oilasi, fayl, zaxira (DejaVu) oilasi, fayl] */
     private const FONTS = [
@@ -69,116 +77,140 @@ final class CertificatePdf extends \tFPDF
     {
         $assets = dirname(__DIR__) . '/certificate_assets';
 
-        // Chap tasma (gradient + signal yoylari) va oq logotip.
-        $this->Image($assets . '/band.jpg', 0, 0, 74, 210);
-        $this->Image($assets . '/logo_white.png', 11, 188.35, 50);
-
-        // Fondagi juda och yoylar (maketda #004391, shaffofligi 3–4.5%).
-        foreach ([[28.5, 0.045], [49.4, 0.04], [70.3, 0.035], [91.2, 0.03]] as [$r, $alpha]) {
-            $this->SetDrawColor(...self::blend(self::BLUE, $alpha));
-            $this->SetLineWidth(6.65);
-            $this->circle(262, 185, $r);
-        }
+        // Chap tasma (gradient + tolalar naqshi), oq logotip va fondagi juda och
+        // to'lqinlar (6% shaffoflik oq fonga oldindan qo'shilgan).
+        $this->Image($assets . '/band.jpg', 0, 0, 76, 210);
+        $this->Image($assets . '/logo_white.png', 12, 186.65, 48);
+        $this->Image($assets . '/waves_bg.png', 178.66, 90, 110.34, 112);
 
         // Yuqori qator: qalqon belgisi + kurs nomi, o'ngda sertifikat raqami.
-        $this->shield(91, 15, 11);
-        $this->drawText(105.49, 18.79, "O‘quv kursi", 'light', 8.5, self::MUTED);
-        $this->drawText(105.49, 24.29, 'Korrupsiyaga qarshi kurashish', 'bold', 12.5, self::BLUE);
-        $this->drawText(self::X1, 18.30, 'Sertifikat raqami', 'light', 8.5, self::MUTED, 'R');
-        $this->drawText(self::X1, 23.57, $d['number'], 'medium', 10.5, self::INK, 'R');
+        $this->shield(self::X0, 16.34, 9.5);
+        $this->label(106.49, 19.05, "O‘quv kursi", 7.5);
+        $this->drawText(106.49, 24.74, 'Korrupsiyaga qarshi kurashish', 'bold', 11.5, self::BLUE);
+        $this->label(self::X1, 18.91, 'Sertifikat raqami', 7.5, 'R');
+        $this->drawText(self::X1, 24.60, $d['number'], 'medium', 11, self::INK, 'R', 0.03);
 
-        $this->drawText(self::X0, 50.98, 'Sertifikat', 'bold', 40, self::BLUE);
-        $this->drawText(self::X0, 63.17, 'Ushbu sertifikat', 'light', 10.5, self::MUTED);
+        // --- Mazmun bloklari: avval o'lchanadi, keyin markazlab chiziladi ---
+        $blocks = [];
 
-        // F.I.Sh: bir qatorga sig'maguncha 25pt → 16pt; baribir uzun bo'lsa — ikki qator.
+        $blocks[] = [16.93, function (float $y): void {
+            $this->drawText(self::X0, self::baseline($y, 16.93, 48), 'Sertifikat', 'bold', 48, self::BLUE, 'L', -0.015);
+        }];
+        $blocks[] = [7.0, null];
+        $blocks[] = [4.23, function (float $y): void {
+            $this->label(self::X0, $y + 2.91, 'Ushbu sertifikat', 7.5);
+        }];
+        $blocks[] = [1.5, null];
+
+        // F.I.Sh: bir qatorga sig'maguncha 28pt → 18pt; baribir uzun bo'lsa — bir necha qator.
         $width = self::X1 - self::X0;
-        $size = 25.0;
-        while ($size > 16 && $this->width($d['fish'], 'medium', $size) > $width) {
-            $size -= 0.5;
+        $size = 28.0;
+        while ($size > 18 && $this->width($d['fish'], 'medium', $size) > $width) {
+            $size -= 1;
         }
-        $lines = $this->wrap([[$d['fish'], 'medium', self::INK]], $size, $width);
-        $lineH = 1.15 * $size * self::PT;
-        $y = 66.65;
-        foreach ($lines as $line) {
-            $this->runs(self::X0, self::baseline($y, $lineH, $size), $line, $size);
-            $y += $lineH;
-        }
-        $y += 3.5;
-        $this->SetDrawColor(...self::BLUE);
-        $this->SetLineWidth(0.4);
-        $this->Line(self::X0, $y + 0.2, self::X1, $y + 0.2);
-        $y += 0.4 + 3.5;
+        $nameLines = $this->wrap([[$d['fish'], 'medium', self::INK]], $size, $width);
+        $nameLh = 1.18 * $size * self::PT;
+        $blocks[] = [count($nameLines) * $nameLh + 3 + 0.35, function (float $y) use ($nameLines, $nameLh, $size): void {
+            foreach ($nameLines as $line) {
+                $this->runs(self::X0, self::baseline($y, $nameLh, $size), $line, $size);
+                $y += $nameLh;
+            }
+            $this->gradientRule(self::X0, $y + 3, self::X1 - self::X0, 0.35);
+        }];
 
         // Filial / Bo'linma.
         $rows = [];
-        if (!empty($d['filial'])) {
-            $rows[] = ['Filial', $d['filial']];
-        }
-        if (!empty($d['bolinma'])) {
-            $rows[] = ["Bo‘linma", $d['bolinma']];
+        foreach ([['Filial', $d['filial'] ?? ''], ["Bo‘linma", $d['bolinma'] ?? '']] as [$label, $value]) {
+            if (trim((string) $value) !== '') {
+                $rows[] = [$label, $this->wrap([[(string) $value, 'medium', self::INK]], 9.5, self::X1 - self::X0 - 22)];
+            }
         }
         if ($rows) {
-            $labelW = 0.0;
-            foreach ($rows as [$label]) {
-                $labelW = max($labelW, $this->width($label, 'light', 9.5));
+            $rowLh = 1.4 * 9.5 * self::PT;
+            $orgH = 1.2 * (count($rows) - 1);
+            foreach ($rows as [, $lines]) {
+                $orgH += count($lines) * $rowLh;
             }
-            $valueX = self::X0 + $labelW + 4;
-            $rowH = 4.76;
-            foreach ($rows as $i => [$label, $value]) {
-                $valueLines = $this->wrap([[$value, 'medium', self::INK]], 9.5, self::X1 - $valueX);
-                $this->drawText(self::X0, self::baseline($y, $rowH, 9.5), $label, 'light', 9.5, self::MUTED);
-                foreach ($valueLines as $line) {
-                    $this->runs($valueX, self::baseline($y, $rowH, 9.5), $line, 9.5);
-                    $y += $rowH;
+            $blocks[] = [3.5, null];
+            $blocks[] = [$orgH, function (float $y) use ($rows, $rowLh): void {
+                foreach ($rows as [$label, $lines]) {
+                    $this->drawText(self::X0, self::baseline($y, $rowLh, 9.5), $label, 'light', 9.5, self::MUTED);
+                    foreach ($lines as $line) {
+                        $this->runs(self::X0 + 22, self::baseline($y, $rowLh, 9.5), $line, 9.5);
+                        $y += $rowLh;
+                    }
+                    $y += 1.2;
                 }
-                if ($i < count($rows) - 1) {
-                    $y += 1;
-                }
-            }
+            }];
         }
 
         // Asosiy matn.
-        $y += 5;
-        $paragraph = [
+        $paragraph = $this->wrap([
             ["«O‘zbektelekom» AK tomonidan tashkil etilgan ", 'regular', self::INK],
             ["«Korrupsiyaga qarshi kurashish»", 'bold', self::BLUE],
             [" o‘quv kursini muvaffaqiyatli tamomlagani va yakuniy testdan o‘tgani uchun berildi.", 'regular', self::INK],
-        ];
-        $lineH = 1.55 * 11 * self::PT;
-        foreach ($this->wrap($paragraph, 11, 185) as $line) {
-            $this->runs(self::X0, self::baseline($y, $lineH, 11), $line, 11);
-            $y += $lineH;
-        }
+        ], 11, 168);
+        $textLh = 1.6 * 11 * self::PT;
+        $blocks[] = [6.0, null];
+        $blocks[] = [count($paragraph) * $textLh, function (float $y) use ($paragraph, $textLh): void {
+            foreach ($paragraph as $line) {
+                $this->runs(self::X0, self::baseline($y, $textLh, 11), $line, 11);
+                $y += $textLh;
+            }
+        }];
 
-        // Ball va sana kartochkalari.
-        $y += 6;
-        $x = self::X0;
+        // Ball, sana (va amal qilish muddati) kartochkalari.
         $facts = [["To‘plangan ball", $d['ball']], ['Berilgan sana', $d['date']]];
         if (!empty($d['validUntil'])) {
-            $facts[] = ['Amal qiladi', $d['validUntil'] . ' gacha'];
+            $facts[] = ['Amal qilish muddati', $d['validUntil']];
         }
-        foreach ($facts as [$label, $value]) {
-            $boxW = max(40.0, max($this->width($label, 'light', 8), $this->width($value, 'bold', 15)) + 10);
-            $this->SetFillColor(...self::TINT);
-            $this->roundedRect($x, $y, $boxW, 17.11, 2);
-            $this->drawText($x + 5, $y + 6.10, $label, 'light', 8, self::MUTED);
-            $this->drawText($x + 5, $y + 12.52, $value, 'bold', 15, self::BLUE);
-            $x += $boxW + 4;
+        $blocks[] = [6.0, null];
+        $blocks[] = [17.47, function (float $y) use ($facts): void {
+            $x = self::X0;
+            foreach ($facts as [$label, $value]) {
+                $inner = max($this->labelWidth($label, 7), $this->width((string) $value, 'bold', 16));
+                $boxW = max(46.0, 1 + 4.5 + $inner + 4.5);
+                $this->factBox($x, $y, $boxW, 17.47);
+                $this->label($x + 5.5, $y + 5.64, $label, 7);
+                $this->drawText($x + 5.5, $y + 12.79, (string) $value, 'bold', 16, self::BLUE);
+                $x += $boxW + 4;
+            }
+        }];
+
+        $total = array_sum(array_column($blocks, 0));
+        $y = self::BODY_TOP + max(0.0, (self::BODY_BOTTOM - self::BODY_TOP - $total) / 2);
+        foreach ($blocks as [$h, $paint]) {
+            if ($paint !== null) {
+                $paint($y);
+            }
+            $y += $h;
         }
 
-        // Imzolar (sahifa pastiga mahkamlangan).
-        $this->SetDrawColor(...self::LINE);
+        // Imzolar (sahifa pastiga mahkamlangan): ikki ustun, oralig'i 12 mm.
+        $this->SetDrawColor(...self::RULE);
         $this->SetLineWidth(0.25);
-        $this->Line(self::X0, 170.87, self::X1, 170.87);
+        $this->Line(self::X0, 166.865, self::X1, 166.865);
+        $colW = (self::X1 - self::X0 - 12) / 2;
+        $textW = $colW - 22 - 4.5;
+        $labelLh = 1.45 * 7 * self::PT;
+        $nameLh = 1.3 * 10.5 * self::PT;
         foreach (array_values($d['signers']) as $i => $signer) {
-            $sx = self::X0 + $i * 99;
-            $this->qr($sx, 176, 21, $signer['qr']);
+            $sx = self::X0 + $i * ($colW + 12);
+            $this->qr($sx + 1, 173, 20, $signer['qr']);
+
+            $titleLines = $this->wrap([[self::upper((string) $signer['title']), 'regular', self::MUTED]], 7, $textW, self::LABEL_TRACKING);
             $name = trim((string) ($signer['name'] ?? ''));
-            if ($name !== '') {
-                $this->drawText($sx + 24.99, 185.10, $signer['title'], 'light', 8, self::MUTED);
-                $this->drawText($sx + 24.99, 189.86, $name, 'medium', 10, self::INK);
-            } else {
-                $this->drawText($sx + 24.99, 187.60, $signer['title'], 'light', 8, self::MUTED);
+            $nameLines = $name !== '' ? $this->wrap([[$name, 'medium', self::INK]], 10.5, $textW) : [];
+            $h = count($titleLines) * $labelLh + ($nameLines ? 1.2 + count($nameLines) * $nameLh : 0);
+            $ty = 172 + (22 - $h) / 2;
+            foreach ($titleLines as $line) {
+                $this->runs($sx + 26.5, self::baseline($ty, $labelLh, 7), $line, 7, self::LABEL_TRACKING);
+                $ty += $labelLh;
+            }
+            $ty += 1.2;
+            foreach ($nameLines as $line) {
+                $this->runs($sx + 26.5, self::baseline($ty, $nameLh, 10.5), $line, 10.5);
+                $ty += $nameLh;
             }
         }
     }
@@ -214,22 +246,46 @@ final class CertificatePdf extends \tFPDF
         }
     }
 
-    private function width(string $text, string $weight, float $size): float
+    /** $tracking — CSS letter-spacing (em): har bir belgidan keyin qo'shiladi. */
+    private function width(string $text, string $weight, float $size, float $tracking = 0.0): float
     {
         $text = self::normalize($text);
         $this->useFont($weight, $size, $text);
-        return $this->GetStringWidth($text);
+        return $this->GetStringWidth($text) + mb_strlen($text) * $tracking * $size * self::PT;
     }
 
-    private function drawText(float $x, float $baseline, string $text, string $weight, float $size, array $color, string $align = 'L'): void
+    private function drawText(float $x, float $baseline, string $text, string $weight, float $size, array $color, string $align = 'L', float $tracking = 0.0): void
     {
+        if ($align === 'R') {
+            $x -= $this->width($text, $weight, $size, $tracking);
+        }
         $text = self::normalize($text);
         $this->useFont($weight, $size, $text);
         $this->SetTextColor(...$color);
-        if ($align === 'R') {
-            $x -= $this->GetStringWidth($text);
+        if ($tracking != 0.0) {
+            // Tc — PDF belgilar oralig'i (pt), CSS letter-spacing kabi har bir belgiga.
+            $this->_out(sprintf('%.3F Tc', $tracking * $size));
         }
         $this->Text($x, $baseline, $text);
+        if ($tracking != 0.0) {
+            $this->_out('0 Tc');
+        }
+    }
+
+    private static function upper(string $s): string
+    {
+        return mb_strtoupper(self::normalize($s), 'UTF-8');
+    }
+
+    /** Maketdagi .label: kichik, bosh harflar, keng harf oralig'i, kulrang. */
+    private function label(float $x, float $baseline, string $text, float $size, string $align = 'L'): void
+    {
+        $this->drawText($x, $baseline, self::upper($text), 'regular', $size, self::MUTED, $align, self::LABEL_TRACKING);
+    }
+
+    private function labelWidth(string $text, float $size): float
+    {
+        return $this->width(self::upper($text), 'regular', $size, self::LABEL_TRACKING);
     }
 
     /**
@@ -237,7 +293,7 @@ final class CertificatePdf extends \tFPDF
      * bo'yicha $maxW kenglikdagi qatorlarga ajratadi.
      * @return array<int, array<int, array{0:string,1:string,2:array}>>
      */
-    private function wrap(array $runs, float $size, float $maxW): array
+    private function wrap(array $runs, float $size, float $maxW, float $tracking = 0.0): array
     {
         $words = [];
         foreach ($runs as [$text, $weight, $color]) {
@@ -251,8 +307,8 @@ final class CertificatePdf extends \tFPDF
         $line = [];
         $lineW = 0.0;
         foreach ($words as $word) {
-            $w = $this->width($word[0], $word[1], $size);
-            $trimmedW = $this->width(rtrim($word[0]), $word[1], $size);
+            $w = $this->width($word[0], $word[1], $size, $tracking);
+            $trimmedW = $this->width(rtrim($word[0]), $word[1], $size, $tracking);
             if ($line && $lineW + $trimmedW > $maxW) {
                 $lines[] = $line;
                 $line = [];
@@ -267,11 +323,11 @@ final class CertificatePdf extends \tFPDF
         return $lines;
     }
 
-    private function runs(float $x, float $baseline, array $line, float $size): void
+    private function runs(float $x, float $baseline, array $line, float $size, float $tracking = 0.0): void
     {
         foreach ($line as [$text, $weight, $color]) {
-            $this->drawText($x, $baseline, $text, $weight, $size, $color);
-            $x += $this->width($text, $weight, $size);
+            $this->drawText($x, $baseline, $text, $weight, $size, $color, 'L', $tracking);
+            $x += $this->width($text, $weight, $size, $tracking);
         }
     }
 
@@ -289,32 +345,80 @@ final class CertificatePdf extends \tFPDF
         return sprintf('%.3F %.3F', $x * $this->k, ($this->h - $y) * $this->k);
     }
 
-    /** Aylana (faqat chiziq) — 4 ta Bezier egri chizig'i bilan. */
-    private function circle(float $cx, float $cy, float $r): void
+    private static function mix(array $from, array $to, float $t): array
     {
-        $c = 0.5523 * $r;
-        $this->_out($this->pt($cx + $r, $cy) . ' m');
-        $this->_out($this->pt($cx + $r, $cy - $c) . ' ' . $this->pt($cx + $c, $cy - $r) . ' ' . $this->pt($cx, $cy - $r) . ' c');
-        $this->_out($this->pt($cx - $c, $cy - $r) . ' ' . $this->pt($cx - $r, $cy - $c) . ' ' . $this->pt($cx - $r, $cy) . ' c');
-        $this->_out($this->pt($cx - $r, $cy + $c) . ' ' . $this->pt($cx - $c, $cy + $r) . ' ' . $this->pt($cx, $cy + $r) . ' c');
-        $this->_out($this->pt($cx + $c, $cy + $r) . ' ' . $this->pt($cx + $r, $cy + $c) . ' ' . $this->pt($cx + $r, $cy) . ' c');
-        $this->_out('S');
+        return array_map(static fn (int $a, int $b): int => (int) round($a + ($b - $a) * $t), $from, $to);
     }
 
-    /** Burchaklari yumaloq to'ldirilgan to'rtburchak. */
-    private function roundedRect(float $x, float $y, float $w, float $h, float $r): void
+    /**
+     * F.I.Sh ostidagi chiziq: chapdan o'ngga #004391 → #2E86E0 (60%) → shaffof
+     * (oq fonda — oqqa). PDF'da gradient yo'q — ingichka bo'laklar bilan.
+     */
+    private function gradientRule(float $x, float $y, float $w, float $h): void
     {
-        $c = 0.5523 * $r;
-        $this->_out($this->pt($x + $r, $y) . ' m');
-        $this->_out($this->pt($x + $w - $r, $y) . ' l');
-        $this->_out($this->pt($x + $w - $r + $c, $y) . ' ' . $this->pt($x + $w, $y + $r - $c) . ' ' . $this->pt($x + $w, $y + $r) . ' c');
-        $this->_out($this->pt($x + $w, $y + $h - $r) . ' l');
-        $this->_out($this->pt($x + $w, $y + $h - $r + $c) . ' ' . $this->pt($x + $w - $r + $c, $y + $h) . ' ' . $this->pt($x + $w - $r, $y + $h) . ' c');
-        $this->_out($this->pt($x + $r, $y + $h) . ' l');
-        $this->_out($this->pt($x + $r - $c, $y + $h) . ' ' . $this->pt($x, $y + $h - $r + $c) . ' ' . $this->pt($x, $y + $h - $r) . ' c');
-        $this->_out($this->pt($x, $y + $r) . ' l');
-        $this->_out($this->pt($x, $y + $r - $c) . ' ' . $this->pt($x + $r - $c, $y) . ' ' . $this->pt($x + $r, $y) . ' c');
-        $this->_out('f');
+        $steps = (int) ceil($w / 0.5);
+        $seg = $w / $steps;
+        for ($i = 0; $i < $steps; $i++) {
+            $t = ($i + 0.5) / $steps;
+            $rgb = $t <= 0.6
+                ? self::mix(self::BLUE, self::ACCENT, $t / 0.6)
+                : self::blend(self::ACCENT, 1 - ($t - 0.6) / 0.4);
+            $this->SetFillColor(...$rgb);
+            $this->Rect($x + $i * $seg, $y, $seg + 0.02, $h, 'F');
+        }
+    }
+
+    /**
+     * Ball/sana kartochkasi: 120° gradient fon (#E6EFFB → #F4F8FD), o'ng
+     * burchaklari yumaloq (1.6 mm), chapda 1 mm #2E86E0 chiziq.
+     */
+    private function factBox(float $x, float $y, float $w, float $h): void
+    {
+        $from = [230, 239, 251];
+        $to = [244, 248, 253];
+        $this->_out('q');
+        $this->roundedPath($x, $y, $w, $h, 0, 1.6);
+        $this->_out('W n');
+        // CSS gradient chizig'i: yo'nalish (sin120°, −cos120°), uzunligi |w·sin|+|h·cos|.
+        [$dx, $dy] = [sin(deg2rad(120)), -cos(deg2rad(120))];
+        $len = abs($w * $dx) + abs($h * $dy);
+        [$cx, $cy] = [$x + $w / 2, $y + $h / 2];
+        $steps = 48;
+        $reach = $w + $h;
+        for ($i = 0; $i < $steps; $i++) {
+            $o0 = ($i / $steps - 0.5) * $len - ($i === 0 ? $reach : 0);
+            $o1 = (($i + 1) / $steps - 0.5) * $len + ($i === $steps - 1 ? $reach : 0.05);
+            $this->SetFillColor(...self::mix($from, $to, ($i + 0.5) / $steps));
+            $corner = fn (float $o, float $n): string => $this->pt($cx + $dx * $o - $dy * $n, $cy + $dy * $o + $dx * $n);
+            $this->_out($corner($o0, -$reach) . ' m ' . $corner($o1, -$reach) . ' l ' . $corner($o1, $reach) . ' l ' . $corner($o0, $reach) . ' l h f');
+        }
+        $this->_out('Q');
+        $this->SetFillColor(...self::ACCENT);
+        $this->Rect($x, $y, 1, $h, 'F');
+    }
+
+    /** To'rtburchak yo'li: chap burchaklar radiusi $rl, o'ng burchaklar — $rr (yo'l chiziladi, bo'yalmaydi). */
+    private function roundedPath(float $x, float $y, float $w, float $h, float $rl, float $rr): void
+    {
+        $k = 0.5523;
+        $this->_out($this->pt($x + $rl, $y) . ' m');
+        $this->_out($this->pt($x + $w - $rr, $y) . ' l');
+        if ($rr > 0) {
+            $this->_out($this->pt($x + $w - $rr + $k * $rr, $y) . ' ' . $this->pt($x + $w, $y + $rr - $k * $rr) . ' ' . $this->pt($x + $w, $y + $rr) . ' c');
+        }
+        $this->_out($this->pt($x + $w, $y + $h - $rr) . ' l');
+        if ($rr > 0) {
+            $this->_out($this->pt($x + $w, $y + $h - $rr + $k * $rr) . ' ' . $this->pt($x + $w - $rr + $k * $rr, $y + $h) . ' ' . $this->pt($x + $w - $rr, $y + $h) . ' c');
+        }
+        $this->_out($this->pt($x + $rl, $y + $h) . ' l');
+        if ($rl > 0) {
+            $this->_out($this->pt($x + $rl - $k * $rl, $y + $h) . ' ' . $this->pt($x, $y + $h - $rl + $k * $rl) . ' ' . $this->pt($x, $y + $h - $rl) . ' c');
+        }
+        $this->_out($this->pt($x, $y + $rl) . ' l');
+        if ($rl > 0) {
+            $this->_out($this->pt($x, $y + $rl - $k * $rl) . ' ' . $this->pt($x + $rl - $k * $rl, $y) . ' ' . $this->pt($x + $rl, $y) . ' c');
+        }
+        $this->_out('h');
     }
 
     /** Maketdagi qalqon + belgi (viewBox 44×44). */
