@@ -1,0 +1,55 @@
+<?php
+declare(strict_types=1);
+
+namespace App;
+
+use PDO;
+use PDOException;
+
+final class Database
+{
+    private static ?PDO $pdo = null;
+
+    public static function connection(): PDO
+    {
+        if (self::$pdo instanceof PDO) {
+            return self::$pdo;
+        }
+
+        $host = Config::get('DB_HOST', 'localhost');
+        $port = Config::get('DB_PORT', '3306');
+        $name = Config::get('DB_NAME', 'kompaniya_anticor');
+        $user = Config::get('DB_USER', 'root');
+        $pass = Config::get('DB_PASS', '');
+        $charset = Config::get('DB_CHARSET', 'utf8mb4');
+
+        $dsn = "mysql:host={$host};port={$port};dbname={$name};charset={$charset}";
+
+        try {
+            self::$pdo = new PDO($dsn, $user, $pass, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
+            // MySQL'ning o'z ichki soati (NOW(), CURRENT_TIMESTAMP) PHP bilan bir xil
+            // vaqt zonasida bo'lishi shart — aks holda ular yozgan/solishtirgan
+            // vaqtlar mos kelmay, hali amal qilishi kerak bo'lgan yozuvlar (masalan
+            // sessiyalar) muddati o'tgan deb noto'g'ri o'chirilib ketadi. Aniq
+            // sonli siljish (+05:00) ishlatiladi — bu MySQL'ning alohida vaqt
+            // zonasi jadvallari o'rnatilishini talab qilmaydi.
+            self::$pdo->exec("SET time_zone = '+05:00'");
+            // Eski rol tizimlaridan (user/admin/gl-admin, keyin hr/xarid va h.k.)
+            // hozirgi 4 ta rolga bir martalik ko'chirish. Bazada faqat bir marta
+            // bajariladi (schema_migrations) — keyingi so'rovlarda bitta arzon
+            // SELECT bilan o'tkazib yuboriladi.
+            Util::runOnce(self::$pdo, 'roles-v4', static function (PDO $db): void {
+                Util::ensureRoleMigration($db);
+                Util::ensureRoleCleanup($db);
+            });
+        } catch (PDOException $e) {
+            Response::error('Bazaga ulanishda xatolik', 'DB_ERROR', 500);
+        }
+
+        return self::$pdo;
+    }
+}

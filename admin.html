@@ -5,194 +5,84 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>O'zbektelekom AK — Statistika</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
-:root{
-  --navy-950:#071B33; --navy-900:#0B2545; --azure:#00A3E0; --teal:#00D9C0; --amber:#FFB020; --coral:#FF6B6B; --white:#FFFFFF;
-  --bg:#0B2545; --bg-deep:#071B33; --card:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.14);
-  --text:#F3F7FB; --text-dim:#A9BBD1; --input-bg:rgba(255,255,255,0.07); --input-border:rgba(255,255,255,0.18);
-}
-[data-theme="light"]{
-  --bg:#EAF3FA; --bg-deep:#DCEAF5; --card:rgba(255,255,255,0.8); --card-border:rgba(11,37,69,0.10);
-  --text:#0B2545; --text-dim:#4E6A88; --input-bg:rgba(11,37,69,0.04); --input-border:rgba(11,37,69,0.15);
-}
-*{box-sizing:border-box; margin:0; padding:0;}
-body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .5s ease, color .5s ease; }
-canvas#net{ position:fixed; inset:0; width:100%; height:100%; z-index:0;
-  background:radial-gradient(ellipse at 70% 10%, var(--bg-deep), var(--bg) 70%); }
-.topbar{ position:fixed; top:0; left:0; right:0; z-index:30; display:flex; justify-content:space-between; align-items:center; padding:18px 32px; backdrop-filter:blur(14px); border-bottom:1px solid var(--card-border); background:var(--bg); }
-.brand-link{ text-decoration:none; cursor:pointer; color:inherit; }
-.brand{ display:flex; align-items:center; gap:10px; font-family:'Unbounded', sans-serif; font-weight:700; font-size:14px; color:var(--text); }
-.brand-logo{ height:22px; width:auto; display:block; }
-.home-icon-btn{ width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); text-decoration:none; transition:border-color .2s ease, color .2s ease; }
-.home-icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
-.controls{ display:flex; align-items:center; gap:12px; }
-.lang-toggle{ display:flex; background:var(--card); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
-.lang-toggle button{ border:none; background:transparent; cursor:pointer; font-weight:600; font-size:12px; color:var(--text-dim); padding:6px 12px; border-radius:999px; }
-.lang-toggle button.active{ background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; }
-.theme-toggle{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
-.theme-toggle svg{ width:17px; height:17px; }
-
-.main{ max-width:1300px; margin:0 auto; padding:110px 24px 80px; position:relative; z-index:5; }
-.page-head{ margin-bottom:26px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
-.page-head .eyebrow{ font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--azure); }
-.page-head h1{ font-family:'Unbounded', sans-serif; font-size:clamp(20px,4vw,28px); margin-top:8px; }
-
-.back-btn{
-  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--card-border);
-  color:var(--text); font-size:13px; font-weight:600; padding:9px 16px; border-radius:11px; cursor:pointer;
-  text-decoration:none; transition:border-color .2s ease; white-space:nowrap; flex-shrink:0;
-}
-.back-btn:hover{ border-color:var(--azure); }
-
-/* Hub cards */
-.hub-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px; margin-top:10px; }
-.hub-card{
-  background:var(--card); border:1px solid var(--card-border); border-radius:20px; padding:28px;
-  cursor:pointer; transition:transform .2s ease, border-color .2s ease; text-align:left;
-}
-.hub-card:hover{ transform:translateY(-3px); border-color:var(--azure); }
-.hub-card .icon{ width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, var(--azure), var(--teal)); display:flex; align-items:center; justify-content:center; color:#00263F; margin-bottom:16px; }
-.hub-card h3{ font-family:'Unbounded', sans-serif; font-size:16px; margin-bottom:6px; }
-.hub-card p{ font-size:13px; color:var(--text-dim); }
-.hub-card.soon{ opacity:.55; cursor:default; }
-.hub-card.soon:hover{ transform:none; border-color:var(--card-border); }
-.soon-tag{ display:inline-block; font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--amber); background:rgba(255,176,32,0.12); padding:3px 9px; border-radius:999px; margin-top:10px; }
-
-.cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:14px; margin-bottom:20px; }
-.stat-card{ background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:20px; }
-.stat-card .num{ font-family:'Unbounded', sans-serif; font-size:28px; font-weight:800; }
-.stat-card .lbl{ font-size:12.5px; color:var(--text-dim); margin-top:4px; }
-.stat-card.teal .num{ color:var(--teal); }
-.stat-card.coral .num{ color:var(--coral); }
-.stat-card.amber .num{ color:var(--amber); }
-
-.search-row{ margin-bottom:16px; }
-.search-row input{
-  width:100%; max-width:340px; padding:11px 14px; background:var(--input-bg); border:1px solid var(--input-border);
-  border-radius:11px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none;
-}
-.search-row input:focus{ border-color:var(--azure); }
-
-/* Skroll qilinadigan ro'yxat oynasi (pager tugmalari o'rniga) */
-.table-wrap{
-  background:var(--card); border:1px solid var(--card-border); border-radius:16px;
-  max-height:640px; overflow-y:auto; overflow-x:auto; -webkit-overflow-scrolling:touch;
-  scrollbar-width:thin; scrollbar-color:var(--azure) transparent;
-}
-.table-wrap::-webkit-scrollbar{ height:8px; width:8px; }
-.table-wrap::-webkit-scrollbar-track{ background:transparent; }
-.table-wrap::-webkit-scrollbar-thumb{ background:var(--azure); border-radius:99px; }
-table{ width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; min-width:640px; }
-thead th{ position:sticky; top:0; z-index:2; }
-th{ text-align:left; padding:13px 14px; background:var(--bg-deep); color:var(--text-dim); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.3px; overflow:hidden; text-overflow:ellipsis; }
-td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-/* "ID" ustuni faqat ID'si bor jadvallarda (Korrupsiya statistikasi, Xodimlar) tor bo'lsin —
-   KPI jadvalida birinchi ustun F.I.Sh, shuning uchun bu qoida u yerga tegmasligi kerak */
-#anticorView th:nth-child(1), #anticorView td:nth-child(1),
-#employeesView th:nth-child(1), #employeesView td:nth-child(1){ width:48px; }
-#testsView th:nth-child(1), #testsView td:nth-child(1),
-#docsView th:nth-child(1), #docsView td:nth-child(1){ width:48px; }
-.badge{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; }
-.badge.ok{ background:rgba(0,217,192,0.15); color:var(--teal); }
-.badge.no{ background:rgba(255,107,107,0.15); color:var(--coral); }
-.badge.wait{ background:rgba(255,176,32,0.15); color:var(--amber); }
-.loading-row{ padding:30px; text-align:center; color:var(--text-dim); }
-.denied{ text-align:center; padding:100px 20px; color:var(--text-dim); }
-
-.form-card{ background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:26px; max-width:520px; }
-.field{ margin-bottom:14px; }
-.field label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; }
-.field input, .field select, .field textarea{ width:100%; padding:11px 13px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font-size:13.5px; font-family:'Inter'; outline:none; }
-.field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--azure); }
-.field textarea{ resize:vertical; }
-.field-hint{ font-size:11.5px; color:var(--text-dim); margin-top:5px; }
-.field-group-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--azure); margin-bottom:10px; padding-top:6px; border-top:1px solid var(--card-border); }
-.field-group-title:first-child{ border-top:none; padding-top:0; }
-.submit-btn{ padding:12px 24px; border:none; border-radius:11px; cursor:pointer; background:linear-gradient(135deg, var(--azure), var(--teal)); color:#00263F; font-weight:700; font-size:13.5px; }
-.row-actions{ display:flex; gap:6px; }
-.icon-btn{ width:30px; height:30px; border-radius:9px; border:1px solid var(--card-border); background:var(--card); color:var(--text-dim); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s ease, color .2s ease; }
-.icon-btn:hover{ border-color:var(--azure); color:var(--azure); }
-.icon-btn.danger:hover{ border-color:var(--coral); color:var(--coral); }
-.toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:14px 18px; margin-bottom:22px; }
-.toggle-row .ttitle{ font-size:13.5px; font-weight:700; }
-.toggle-row .tsub{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
-.switch{ position:relative; width:44px; height:24px; flex:none; }
-.switch input{ opacity:0; width:0; height:0; position:absolute; }
-.switch .slider{ position:absolute; inset:0; background:var(--input-border); border-radius:999px; cursor:pointer; transition:background .2s ease; }
-.switch .slider::before{ content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .2s ease; }
-.switch input:checked + .slider{ background:linear-gradient(135deg, var(--azure), var(--teal)); }
-.switch input:checked + .slider::before{ transform:translateX(20px); }
-.result-q{ background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:18px 20px; margin-bottom:14px; }
-.result-q .rq-text{ font-size:14px; font-weight:600; margin-bottom:14px; }
-.result-opt-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:12.5px; }
-.result-opt-row .ro-label{ width:110px; flex:none; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.result-opt-row .ro-bar-wrap{ flex:1; height:8px; background:var(--input-bg); border-radius:99px; overflow:hidden; }
-.result-opt-row .ro-bar{ height:100%; background:linear-gradient(90deg, var(--azure), var(--teal)); border-radius:99px; }
-.result-opt-row .ro-count{ width:34px; flex:none; text-align:right; font-weight:700; }
-.result-q .rq-total{ font-size:11px; color:var(--text-dim); margin-top:4px; }
-.rq-avg-row{ display:flex; align-items:center; gap:12px; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--card-border); }
-.rq-avg-num{ font-family:'Unbounded',sans-serif; font-size:26px; font-weight:800; color:var(--amber); }
-.rq-avg-stars{ display:flex; gap:2px; color:var(--amber); }
-.ro-bar.star-bar{ background:linear-gradient(90deg, var(--amber), #FFD97A); }
-.ro-pct{ color:var(--text-dim); font-weight:500; }
-.text-answers{ display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; }
-.text-answer-item{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; padding:10px 13px; font-size:12.5px; line-height:1.5; white-space:pre-wrap; }
-.survey-summary-row{ display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
-.survey-summary-row .stat-card{ flex:1; min-width:140px; }
-.chart-row{ display:flex; align-items:center; gap:20px; margin-bottom:16px; flex-wrap:wrap; }
-.donut{ width:104px; height:104px; border-radius:50%; flex:none; position:relative; }
-.donut-hole{ position:absolute; inset:16px; background:var(--bg-deep); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-dim); font-weight:700; text-align:center; line-height:1.3; }
-.donut-legend{ display:flex; flex-direction:column; gap:7px; font-size:12px; flex:1; min-width:160px; }
-.donut-legend .leg-row{ display:flex; align-items:center; gap:7px; }
-.donut-legend .leg-dot{ width:9px; height:9px; border-radius:50%; flex:none; }
-.donut-legend .leg-label{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
-.donut-legend .leg-pct{ font-weight:700; color:var(--text-dim); }
-.gauge{ width:96px; height:96px; border-radius:50%; flex:none; position:relative; }
-.gauge-hole{ position:absolute; inset:14px; background:var(--bg-deep); border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.gauge-hole .g-num{ font-family:'Unbounded',sans-serif; font-size:18px; font-weight:800; color:var(--amber); line-height:1; }
-.gauge-hole .g-sub{ font-size:9px; color:var(--text-dim); margin-top:2px; }
-.section-divider{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; font-weight:700; margin:16px 0 10px; }
-.msg{ margin-top:12px; font-size:13px; display:none; padding:9px 14px; border-radius:9px; }
-.msg.ok{ display:block; background:rgba(0,217,192,0.12); color:var(--teal); }
-.msg.err{ display:block; background:rgba(255,176,32,0.12); color:var(--amber); }
-
-.notif-user-opt{ display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:8px; font-size:13px; cursor:pointer; }
-.notif-user-opt:hover{ background:var(--card); }
-.notif-hist-item{ background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:16px; cursor:pointer; }
-.notif-hist-item .h-meta{ display:flex; justify-content:space-between; font-size:11.5px; color:var(--text-dim); margin-bottom:6px; }
-.notif-hist-item .h-text{ font-size:13.5px; margin-bottom:8px; white-space:pre-wrap; }
-.notif-hist-item .h-stat{ font-size:12px; color:var(--teal); font-weight:600; }
-.notif-readers{ display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--card-border); font-size:12px; color:var(--text-dim); }
-.notif-readers.show{ display:block; }
-.notif-readers div{ padding:3px 0; }
-
-@media (max-width:700px){
-  td, th{ white-space:nowrap; }
-  .table-wrap{ max-height:70vh; }
-}
-@media (max-width:520px){
-  .topbar{ padding:14px 16px; }
-  .brand span{ font-size:12.5px; }
-  .main{ padding:96px 14px 60px; }
-  .controls{ gap:8px; }
-}
-</style>
+<!-- Hisobotlarni haqiqiy Excel (.xlsx) fayl sifatida yuklab olish uchun (CSV'dagi
+     vergul/nuqta-vergul ajratkich muammosisiz — ustunlar har doim to'g'ri ajraladi). -->
+<script src="assets/xlsx-lite.js?v=20260928"></script>
+<link rel="stylesheet" href="assets/admin.css?v=20260929">
 </head>
-<body data-theme="dark">
-
-<canvas id="net"></canvas>
+<body data-theme="light">
+<script>
+// main.html'ning chap sidebar paneli ichida <iframe> orqali ochilganmi —
+// shunga qarab o'zining topbar'ini yashiradi (embedded rejim).
+if(window.self !== window.top){ document.body.classList.add('embedded'); }
+</script>
 
 <div class="topbar">
   <div style="display:flex; align-items:center; gap:10px; min-width:0;">
     <a href="main.html" class="brand-link"><div class="brand"><img class="brand-logo" data-light="assets/uztelecom_logo.png" data-dark="assets/uztelecom_logo_white.png" alt="O'zbektelekom AK"></div></a>
   </div>
   <div class="controls">
-    <div class="lang-toggle">
-      <button id="lang-uz" class="active" onclick="setLang('uz')">UZ</button>
-      <button id="lang-ru" onclick="setLang('ru')">RU</button>
+    <div class="lang-picker" id="langPicker">
+      <button class="lang-picker-btn" onclick="toggleLangMenu()" aria-label="Til" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+        <span id="langPickerCode">UZ</span>
+      </button>
+      <div class="lang-menu" id="langMenu">
+        <button id="lang-uz" class="lang-row active" onclick="setLang('uz')">
+          <span class="lang-row-text"><span class="lang-row-name">O'zbekcha</span><span class="lang-row-sub">Uzbek</span></span>
+          <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
+        <button id="lang-ru" class="lang-row" onclick="setLang('ru')">
+          <span class="lang-row-text"><span class="lang-row-name">Русский</span><span class="lang-row-sub">Russian</span></span>
+          <span class="lang-row-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
+      </div>
     </div>
-    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"></button>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Tema">
+      <span class="tt-track">
+        <span class="tt-glow"></span>
+        <span class="tt-label tt-label-left">Kun</span>
+        <span class="tt-label tt-label-right">Tun</span>
+      </span>
+      <span class="tt-thumb">
+        <span class="tt-icon tt-sun"></span>
+        <span class="tt-icon tt-moon"></span>
+      </span>
+    </button>
+    <a class="home-icon-btn" href="main.html?openHelp=1" title="Yordam">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
+    </a>
+    <button class="home-icon-btn" id="notifBtn" onclick="openNotifPanel()" title="Xabarnomalar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notifBadge" style="display:none; position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px; border-radius:9px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:10px; font-weight:700; line-height:13px; text-align:center;"></span>
+    </button>
+  </div>
+</div>
+
+<!-- Manfaatlar to'qnashuvi: deklaratsiyani ko'rish modali -->
+<div class="modal-overlay" id="declarationViewModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-head">
+      <h3 id="declModalViewTitle">Deklaratsiya</h3>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <button type="button" class="icon-btn" title="Yuklab olish (imzolangan variant, QR-kod bilan)" onclick="downloadDeclarationRecord()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button>
+        <button class="modal-close" onclick="closeModal('declarationViewModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+    </div>
+    <div id="declModalViewBody"></div>
+  </div>
+</div>
+
+<!-- Xabarnomalar modal -->
+<div class="modal-overlay" id="notifModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h3 data-i18n="notifTitle">Xabarnomalar</h3>
+      <button class="modal-close" onclick="closeModal('notifModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div id="notifList" style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+      <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
+    </div>
   </div>
 </div>
 
@@ -216,12 +106,22 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <h3 data-i18n="hubAnticor">Korrupsiyaga qarshi kurashish</h3>
         <p data-i18n="hubAnticorDesc">Hujjat va test statistikasi</p>
       </button>
-      <button class="hub-card" id="employeesCard" onclick="openSection('employeesView'); if(usersData){ filteredUsers=usersData; renderUsersTable(); }" style="display:none;">
+      <button class="hub-card" id="employeesCard" onclick="openEmployeesEntry()" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <h3 data-i18n="hubEmployees">Xodimlar</h3>
-        <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
+        <h3 data-i18n="hubEmployeesMain">Xodimlar</h3>
+        <p data-i18n="hubEmployeesMainDesc">Xodimlar ro'yxati va yangi xodim qo'shish</p>
       </button>
-      <button class="hub-card" id="testsCard" onclick="openSection('testsView'); loadTests();" style="display:none;">
+      <button class="hub-card" id="hrDocsCard" onclick="openSection('hrDocsView'); loadHrDocuments();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg></div>
+        <h3 data-i18n="hubHrDocs">Yuborilgan hujjatlar</h3>
+        <p data-i18n="hubHrDocsDesc">Xodimlar Inson resurslariga yuborgan hujjatlar</p>
+      </button>
+      <button class="hub-card" id="conflictCard" onclick="openSection('conflictView'); loadDeclarations();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></div>
+        <h3 data-i18n="hubConflict">Manfaatlar to'qnashuvi</h3>
+        <p data-i18n="hubConflictDesc">Manfaatlar to'qnashuvi bo'yicha deklaratsiyalar</p>
+      </button>
+      <button class="hub-card" id="testsCard" onclick="openSection('testsView'); loadTests(); loadTestSettings();" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         <h3 data-i18n="hubTests">Test savollari</h3>
         <p data-i18n="hubTestsDesc">Test savollarini qo'shish, tahrirlash, o'chirish</p>
@@ -230,6 +130,11 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
         <h3 data-i18n="hubDocs">Hujjat qo'shish</h3>
         <p data-i18n="hubDocsDesc">Normativ hujjatlarni qo'shish, tahrirlash, o'chirish</p>
+      </button>
+      <button class="hub-card" id="certCard" onclick="openSection('certView'); loadCertSettings();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/></svg></div>
+        <h3 data-i18n="hubCert">Sertifikat</h3>
+        <p data-i18n="hubCertDesc">Sertifikatdagi imzo qo'yuvchilar va namuna</p>
       </button>
       <button class="hub-card" id="surveyCard" onclick="openSurveyEntry()" style="display:none;">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></div>
@@ -240,6 +145,32 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
         <h3 data-i18n="hubNotif">Xabarnoma yuborish</h3>
         <p data-i18n="hubNotifDesc">Xodimlarga xabarnoma yuborish va hisobot</p>
+      </button>
+      <button class="hub-card" id="supportCard" onclick="openSection('supportView'); loadSupportRequests();" style="display:none;">
+        <span id="supportBadge" style="display:none; position:absolute; top:16px; right:16px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--coral); border:1.5px solid var(--bg); color:#fff; font-size:11px; font-weight:700; line-height:17px; text-align:center;"></span>
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg></div>
+        <h3 data-i18n="hubSupport">Yordam so'rovlari</h3>
+        <p data-i18n="hubSupportDesc">Xodimlardan kelgan murojaatlar</p>
+      </button>
+      <button class="hub-card" id="purchasesCard" onclick="openPurchasesEntry()" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+        <h3 data-i18n="hubPurchasesMain">Xaridlar</h3>
+        <p data-i18n="hubPurchasesMainDesc">Xaridlar reyestri va reyestrga kiritish</p>
+      </button>
+      <button class="hub-card" id="reportsCard" onclick="openSection('reportsView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg></div>
+        <h3 data-i18n="hubReports">Hisobotlar</h3>
+        <p data-i18n="hubReportsDesc">Barcha ma'lumotlarni Excel fayl sifatida yuklab olish</p>
+      </button>
+      <button class="hub-card" id="backupCard" onclick="openSection('backupView'); loadBackups();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+        <h3 data-i18n="hubBackup">Zaxira nusxa</h3>
+        <p data-i18n="hubBackupDesc">Baza va rasmlarning zaxira nusxasini olish va yuklab olish</p>
+      </button>
+      <button class="hub-card" id="errorLogCard" onclick="openSection('errorLogView'); showLogTab('audit');" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+        <h3 data-i18n="hubErrorLog">Tizim jurnali</h3>
+        <p data-i18n="hubErrorLogDesc">Admin amallari va server xatoliklari</p>
       </button>
     </div>
     <div class="denied" id="noAccessMsg" style="display:none;" data-i18n="denied">Sizda bu sahifaga kirish huquqi yo'q</div>
@@ -261,9 +192,41 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
     <div class="cards" id="cards">
       <div class="stat-card"><div class="num">—</div><div class="lbl" data-i18n="totalLbl">Jami xodimlar</div></div>
     </div>
+    <p class="tsub" id="deadlineInfo" style="display:none; margin:-4px 0 14px;"></p>
 
     <div class="search-row">
-      <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()">
+      <div class="row-left">
+        <input type="text" id="searchInput" placeholder="F.I.Sh bo'yicha qidirish..." data-i18n-ph="searchPh" oninput="onSearch()">
+        <select id="statsFilial" class="row-select" onchange="setStatsFilial(this.value)"></select>
+      </div>
+      <div class="row-right">
+        <button type="button" class="submit-btn secondary" id="reminderBtn" style="width:auto; margin:0; padding:10px 18px; display:none;" onclick="toggleReminderPanel()"><span data-i18n="reminderBtn">Eslatma yuborish</span></button>
+        <button type="button" class="submit-btn secondary" id="filialSummaryBtn" style="width:auto; margin:0; padding:10px 18px;" onclick="toggleFilialSummary()"><span data-i18n="filialSummaryBtn">Filiallar kesimida</span></button>
+        <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="exportComplianceReport()"><span data-i18n="complianceReportBtn">Bajarilmaganlar hisoboti</span></button>
+      </div>
+    </div>
+
+    <!-- Bir tugma bilan eslatma: testni topshirmagan / hujjat bilan tanishmaganlarga (tanlangan filial bo'yicha) -->
+    <div class="form-card" id="reminderPanel" style="display:none; max-width:none; margin-bottom:16px;">
+      <h3 style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:6px;" data-i18n="reminderTitle">Eslatma yuborish</h3>
+      <p class="tsub" id="reminderScope" style="margin-bottom:12px;"></p>
+      <label style="display:flex; gap:8px; align-items:center; margin-bottom:8px; cursor:pointer;"><input type="checkbox" id="remTest" checked onchange="previewReminders()"> <span data-i18n="reminderTest">Testni topshirmaganlarga</span> <b id="remTestCount">—</b></label>
+      <label style="display:flex; gap:8px; align-items:center; margin-bottom:14px; cursor:pointer;"><input type="checkbox" id="remDoc" onchange="previewReminders()"> <span data-i18n="reminderDoc">Hujjat bilan tanishmaganlarga</span> <b id="remDocCount">—</b></label>
+      <button type="button" class="submit-btn" id="remSendBtn" style="width:auto; margin:0; padding:10px 18px;" onclick="sendReminders()"><span data-i18n="reminderSend">Yuborish</span></button>
+      <div class="msg" id="remMsg"></div>
+    </div>
+
+    <!-- Filiallar kesimidagi jamlanma: qator bosilsa — shu filial bo'yicha filtr -->
+    <div class="table-wrap filial-summary" id="filialSummary" style="display:none; margin-bottom:16px;">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thFilial">Filial</th><th data-i18n="totalLbl">Jami xodimlar</th><th data-i18n="docsLbl">Hujjat bilan tanishgan</th>
+            <th data-i18n="passLbl">Testdan o'tgan</th><th data-i18n="failLbl">O'tmagan</th><th data-i18n="waitLbl">Boshlamagan</th><th data-i18n="colBajarilish">Bajarilish</th>
+          </tr>
+        </thead>
+        <tbody id="filialSummaryTbody"></tbody>
+      </table>
     </div>
 
     <div class="table-wrap">
@@ -271,22 +234,49 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <thead>
           <tr>
             <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th><th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th>
-            <th data-i18n="thPhone">Telefon</th><th data-i18n="thDoc">Hujjat sanasi</th><th data-i18n="thTest">Test natijasi</th>
+            <th data-i18n="thFilial">Filial</th><th data-i18n="thPhone">Telefon</th><th data-i18n="thDoc">Hujjat sanasi</th><th data-i18n="thTest">Test natijasi</th>
           </tr>
         </thead>
-        <tbody id="tbody"><tr><td colspan="7" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        <tbody id="tbody"><tr><td colspan="8" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
     </div>
   </div>
 
-  <!-- Xodimlar ro'yxati (gl-admin) -->
+  <!-- Xodimlar: ichki hub (ro'yxat / yangi qo'shish) -->
+  <div id="employeesHubView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubEmployeesMain">Xodimlar</div>
+        <h1 data-i18n="hubEmployeesMain">Xodimlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="hub-grid">
+      <button class="hub-card" onclick="openSection('employeesView'); if(usersData){ filteredUsers=usersData; renderUsersTable(); }">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3 data-i18n="hubEmployees">Xodimlar ro'yxati</h3>
+        <p data-i18n="hubEmployeesDesc">Xodimlar bo'yicha umumiy ma'lumot</p>
+      </button>
+      <button class="hub-card" id="addEmployeeSubCard" onclick="cancelEmployeeEdit(); populateRoleSelect(); populateFilialSelect(); openSection('addEmployeeView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
+        <h3 data-i18n="hubAddEmployee">Yangi xodim qo'shish</h3>
+        <p data-i18n="hubAddEmployeeDesc">Tizimga yangi xodim yoki administrator qo'shish</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- Xodimlar ro'yxati -->
   <div id="employeesView" style="display:none;">
     <div class="page-head">
       <div>
-        <div class="eyebrow" data-i18n="hubEmployees">Xodimlar</div>
-        <h1 data-i18n="hubEmployees">Xodimlar</h1>
+        <div class="eyebrow" data-i18n="hubEmployees">Xodimlar ro'yxati</div>
+        <h1 data-i18n="hubEmployees">Xodimlar ro'yxati</h1>
       </div>
-      <button class="back-btn" onclick="openSection('hubView')">
+      <button class="back-btn" onclick="openSection('employeesHubView')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
         <span data-i18n="backBtn">Ortga</span>
       </button>
@@ -301,10 +291,190 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <thead>
           <tr>
             <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
-            <th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th><th data-i18n="thPhone">Telefon</th>
+            <th data-i18n="thTugilganSana">Tug'ilgan sana</th>
+            <th data-i18n="thPos">Lavozim</th><th data-i18n="thDept">Bo'linma</th><th data-i18n="thFilial">Filial</th><th data-i18n="thPhone">Telefon</th>
+            <th style="width:90px;" data-i18n="thAmal">Amal</th>
           </tr>
         </thead>
-        <tbody id="empTbody"><tr><td colspan="5" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        <tbody id="empTbody"><tr><td colspan="8" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Yangi xodim qo'shish / tahrirlash (faqat gl-admin) -->
+  <div id="addEmployeeView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" id="empFormEyebrow" data-i18n="hubAddEmployee">Yangi xodim qo'shish</div>
+        <h1 id="empFormTitle" data-i18n="hubAddEmployee">Yangi xodim qo'shish</h1>
+      </div>
+      <button class="back-btn" onclick="backFromEmployeeForm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="form-card" style="max-width:640px;">
+      <form onsubmit="return submitEmployeeForm(event)">
+        <div class="field">
+          <label data-i18n="empLoginLabel">Login</label>
+          <input type="text" id="eLogin" required autocomplete="off" oninput="checkLoginTaken()" onblur="checkLoginTaken()">
+          <div class="field-warning" id="eLoginWarning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg><span id="eLoginWarningText" data-i18n="loginTakenErr">Ushbu login band, iltimos qayta kiriting</span></div>
+        </div>
+        <div class="field"><label id="eParolLabel" data-i18n="empPassLabel">Parol</label><input type="password" id="eParol" required autocomplete="new-password" minlength="8"><div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="passwordPolicyHint">Kamida 8 belgi: katta harf, kichik harf, raqam va maxsus belgi (masalan !@#$%)</div><div class="field-hint" id="eParolHint" style="display:none; font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="empPassEditHint">Bo'sh qoldirsangiz, parol o'zgarmaydi</div></div>
+        <div class="field"><label data-i18n="empFamiliyaLabel">Familiya</label><input type="text" id="eFamiliya" required></div>
+        <div class="field"><label data-i18n="empIsmLabel">Ism</label><input type="text" id="eIsm" required></div>
+        <div class="field"><label data-i18n="empOtasiLabel">Otasining ismi</label><input type="text" id="eOtasi"></div>
+        <div class="field"><label data-i18n="empTugilganSanaLabel">Tug'ilgan sana</label><input type="date" id="eTugilganSana"></div>
+        <div class="field"><label data-i18n="empLavozimLabel">Lavozim (O'zbek)</label><input type="text" id="eLavozim"></div>
+        <div class="field"><label data-i18n="empLavozimRuLabel">Lavozim (Rus)</label><input type="text" id="eLavozimRu"></div>
+        <div class="field"><label data-i18n="empBolinmaLabel">Bo'linma (O'zbek)</label><input type="text" id="eBolinma"></div>
+        <div class="field"><label data-i18n="empBolinmaRuLabel">Bo'linma (Rus)</label><input type="text" id="eBolinmaRu"></div>
+        <div class="field">
+          <label data-i18n="empFilialLabel">Filial</label>
+          <select id="eFilial"></select>
+        </div>
+        <div class="field"><label data-i18n="thPhone">Telefon</label><input type="text" id="eTelefon"></div>
+        <div class="field">
+          <label data-i18n="thRol">Rol</label>
+          <select id="eRol"></select>
+        </div>
+        <button class="submit-btn" type="submit" id="empSubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <button type="button" class="back-btn" id="empCancelBtn" onclick="cancelEmployeeEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
+        <div class="msg" id="empFormMsg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Xaridlar: ichki hub (reyestr / reyestrga kiritish) -->
+  <div id="purchasesHubView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubPurchasesMain">Xaridlar</div>
+        <h1 data-i18n="hubPurchasesMain">Xaridlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="hub-grid">
+      <button class="hub-card" id="purchasesRegistryCard" onclick="openSection('purchasesRegistryView'); loadPurchases();" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg></div>
+        <h3 data-i18n="hubPurchasesRegistry">Xaridlar reyestri</h3>
+        <p data-i18n="hubPurchasesRegistryDesc">Barcha kiritilgan xaridlar ro'yxati</p>
+      </button>
+      <button class="hub-card" id="purchaseEntrySubCard" onclick="cancelPurchaseForm(); openSection('purchaseEntryView')" style="display:none;">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 5v14M5 12h14"/></svg></div>
+        <h3 data-i18n="hubPurchaseEntry">Reyestrga kiritish</h3>
+        <p data-i18n="hubPurchaseEntryDesc">Yangi xarid (shartnoma) yozuvini kiritish</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- Reyestrga kiritish (faqat anticor-admin/super-admin) -->
+  <div id="purchaseEntryView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubPurchaseEntry">Reyestrga kiritish</div>
+        <h1 data-i18n="hubPurchaseEntry">Reyestrga kiritish</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('purchasesHubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="form-card" style="max-width:640px;">
+      <form onsubmit="return submitPurchaseForm(event)">
+        <div class="field"><label data-i18n="pShartnomaSanaLabel">Shartnoma sanasi</label><input type="date" id="pShartnomaSana" required></div>
+        <div class="field"><label data-i18n="pShartnomaRaqamiLabel">Shartnoma raqami</label><input type="text" id="pShartnomaRaqami" required></div>
+        <div class="field"><label data-i18n="pKontragentLabel">Kontragent</label><input type="text" id="pKontragent" required></div>
+        <div class="field"><label data-i18n="pShartnomaPredmetiLabel">Shartnoma predmeti</label><textarea id="pShartnomaPredmeti" rows="3" required></textarea></div>
+        <div class="field"><label data-i18n="pShartnomaSummasiLabel">Shartnoma summasi</label><input type="number" id="pShartnomaSummasi" min="0.01" step="0.01" required></div>
+        <div class="field"><label data-i18n="pXaridTuriLabel">Xarid turi</label><input type="text" id="pXaridTuri" required></div>
+        <div class="field"><label data-i18n="pIzohLabel">Izoh</label><textarea id="pIzoh" rows="3"></textarea></div>
+        <div class="field">
+          <label data-i18n="pFileLabel">Shartnoma fayli (PDF)</label>
+          <label class="file-btn" for="pFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            <span id="pFileBtnText" data-i18n="docFileChoose">PDF fayl tanlash</span>
+          </label>
+          <input type="file" id="pFile" accept="application/pdf,.pdf" style="display:none;" onchange="onPurchaseFileChange(event)">
+          <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="docFileHint">Faqat PDF, maksimal 25MB</div>
+        </div>
+        <button class="submit-btn" type="submit" id="purchaseSubmitBtn" data-i18n="saveBtn">Saqlash</button>
+        <div class="msg" id="purchaseFormMsg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Xaridlar reyestri (anticor-admin/super-admin) -->
+  <div id="purchasesRegistryView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubPurchasesRegistry">Xaridlar reyestri</div>
+        <h1 data-i18n="hubPurchasesRegistry">Xaridlar reyestri</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('purchasesHubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="purchaseSearchInput" placeholder="Shartnoma raqami yoki kontragent bo'yicha qidirish..." data-i18n-ph="purchaseSearchPh" oninput="onPurchaseSearch()">
+      <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="exportPurchasesReport()"><span data-i18n="purchaseExportBtn">Excel'ga yuklab olish</span></button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:52px;" data-i18n="thTartibRaqam">T/r</th>
+            <th style="width:11%;" data-i18n="pShartnomaSanaLabel">Shartnoma sanasi</th>
+            <th style="width:13%;" data-i18n="pShartnomaRaqamiLabel">Shartnoma raqami</th>
+            <th style="width:15%;" data-i18n="pKontragentLabel">Kontragent</th>
+            <th style="width:23%;" data-i18n="pShartnomaPredmetiLabel">Shartnoma predmeti</th>
+            <th style="width:13%;" data-i18n="pShartnomaSummasiLabel">Shartnoma summasi</th>
+            <th style="width:11%;" data-i18n="pXaridTuriLabel">Xarid turi</th>
+            <th style="width:14%;" data-i18n="pIzohLabel">Izoh</th>
+            <th style="width:64px;" data-i18n="thFile">Fayl</th>
+          </tr>
+        </thead>
+        <tbody id="purchasesTbody"><tr><td colspan="9" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Manfaatlar to'qnashuvi (yuborilgan deklaratsiyalar) -->
+  <div id="conflictView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubConflict">Manfaatlar to'qnashuvi</div>
+        <h1 data-i18n="hubConflict">Manfaatlar to'qnashuvi</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:52px;">T/r</th>
+            <th style="width:20%;">F.I.Sh.</th>
+            <th style="width:16%;">Lavozim</th>
+            <th style="width:16%;">Bo'linma</th>
+            <th style="width:12%;">Tel raqam</th>
+            <th style="width:17%;">Manfaatlar to'qnashuvi</th>
+            <th style="width:80px;">Fayl</th>
+          </tr>
+        </thead>
+        <tbody id="declarationsTbody"><tr><td colspan="7" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -327,8 +497,25 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="ttitle" data-i18n="testActiveLabel">Test holati</div>
         <div class="tsub" id="testActiveSub">—</div>
       </div>
-      <label class="switch"><input type="checkbox" id="testActiveToggle" onchange="onTestActiveToggle()"><span class="slider"></span></label>
+      <span class="switch"><input type="checkbox" id="testActiveToggle" onchange="onTestActiveToggle()"><label for="testActiveToggle"></label></span>
     </div>
+
+    <!-- Muddatlar: topshirishning oxirgi muddati va sertifikat amal qilish muddati (istalgan paytda o'zgartiriladi) -->
+    <form class="form-card" style="max-width:640px; margin-bottom:18px;" onsubmit="return saveTestSettings(event)">
+      <h3 style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:16px;" data-i18n="testSettingsTitle">Muddatlar</h3>
+      <div class="field">
+        <label data-i18n="testDeadlineLabel">Testni topshirishning oxirgi muddati</label>
+        <input type="date" id="tsDeadline">
+        <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="testDeadlineHint">Bo'sh qoldirilsa — muddat belgilanmaydi. Muddat xodimlarga test sahifasida va eslatmalarda ko'rsatiladi.</div>
+      </div>
+      <div class="field">
+        <label data-i18n="certValidityLabel">Sertifikat amal qilish muddati (oy)</label>
+        <input type="number" id="tsValidity" min="0" max="120" step="1">
+        <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="certValidityHint">Masalan 12 — yillik qayta attestatsiya: muddati tugagan xodim testni qaytadan topshiradi (yana 1 ta urinish). 0 — sertifikat muddatsiz.</div>
+      </div>
+      <button class="submit-btn" type="submit" id="tsSaveBtn" data-i18n="saveBtn">Saqlash</button>
+      <div class="msg" id="tsMsg"></div>
+    </form>
 
     <div class="form-card" style="max-width:640px;">
       <h3 id="testFormTitle" style="font-family:'Unbounded',sans-serif; font-size:14px; margin-bottom:16px;" data-i18n="testFormAdd">Yangi savol qo'shish</h3>
@@ -392,7 +579,16 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       <form onsubmit="return submitDocForm(event)">
         <div class="field"><label data-i18n="docNameUz">Hujjat nomi (O'zbek)</label><input type="text" id="dUz" required></div>
         <div class="field"><label data-i18n="docNameRu">Hujjat nomi (Rus)</label><input type="text" id="dRu"></div>
-        <div class="field"><label data-i18n="docUrl">Havola (URL)</label><input type="text" id="dUrl" required placeholder="https://..."></div>
+        <div class="field">
+          <label data-i18n="docFileLabel">PDF fayl</label>
+          <label class="file-btn" for="dFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            <span id="docFileBtnText" data-i18n="docFileChoose">PDF fayl tanlash</span>
+          </label>
+          <input type="file" id="dFile" accept="application/pdf,.pdf" style="display:none;" onchange="onDocFileChange(event)">
+          <div class="field-hint" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;" data-i18n="docFileHint">Faqat PDF, maksimal 25MB</div>
+          <div class="field-hint" id="docFileCurrent" style="font-size:11.5px; color:var(--text-dim); margin-top:4px; display:none;"></div>
+        </div>
         <button class="submit-btn" type="submit" id="docSubmitBtn" data-i18n="saveBtn">Saqlash</button>
         <button type="button" class="back-btn" id="docCancelBtn" onclick="cancelDocEdit()" style="display:none; margin-left:8px;" data-i18n="cancelBtn">Bekor qilish</button>
         <div class="msg" id="docFormMsg"></div>
@@ -426,7 +622,7 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
         <div class="ttitle" data-i18n="surveyActiveLabel">So'rovnoma holati</div>
         <div class="tsub" id="surveyActiveSub">—</div>
       </div>
-      <label class="switch"><input type="checkbox" id="surveyActiveToggle" onchange="onSurveyActiveToggle()"><span class="slider"></span></label>
+      <span class="switch"><input type="checkbox" id="surveyActiveToggle" onchange="onSurveyActiveToggle()"><label for="surveyActiveToggle"></label></span>
     </div>
 
     <div class="hub-grid">
@@ -565,870 +761,310 @@ td{ padding:12px 14px; border-top:1px solid var(--card-border); overflow:hidden;
       <p style="color:var(--text-dim); font-size:13px;" data-i18n="loading">Yuklanmoqda...</p>
     </div>
   </div>
+
+  <!-- Yordam so'rovlari (gl-admin + admin) -->
+  <!-- Xodimlar Inson resurslari bo'limi orqali yuborgan hujjatlar -->
+  <div id="hrDocsView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubHrDocs">Yuborilgan hujjatlar</div>
+        <h1 data-i18n="hubHrDocs">Yuborilgan hujjatlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thFish">F.I.Sh</th>
+            <th data-i18n="thPhone">Telefon</th>
+            <th data-i18n="posLabel">Lavozim</th>
+            <th data-i18n="deptLabel">Bo'linma</th>
+            <th data-i18n="thSana">Sana</th>
+            <th style="width:90px;" data-i18n="thAmal">Amal</th>
+          </tr>
+        </thead>
+        <tbody id="hrDocsTbody"><tr><td colspan="6" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="supportView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubSupport">Yordam so'rovlari</div>
+        <h1 data-i18n="hubSupport">Yordam so'rovlari</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div id="supportBulkBar" style="display:none; justify-content:flex-end; margin-bottom:10px;">
+      <button type="button" class="submit-btn" id="supportDeleteBtn" style="width:auto; margin:0; padding:10px 18px; background:#dc2626;" onclick="deleteSelectedSupport()" disabled>
+        <span data-i18n="deleteSelectedBtn">Tanlanganlarni o'chirish</span> (<span id="supportSelectedCount">0</span>)
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th id="supportSelectAllTh" style="width:32px; display:none;"><input type="checkbox" id="supportSelectAll" onchange="toggleAllSupport()"></th>
+            <th data-i18n="thId">ID</th><th data-i18n="thFish">F.I.Sh</th>
+            <th data-i18n="thPhone">Telefon</th><th data-i18n="thMurojaat">Murojaat</th>
+            <th data-i18n="thSana">Sana</th>
+            <th style="width:90px;" data-i18n="thAmal">Amal</th>
+          </tr>
+        </thead>
+        <tbody id="supportTbody"><tr><td colspan="6" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Yordam so'rovi tafsiloti + izohlar tarixi -->
+  <div id="supportDetailView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubSupport">Yordam so'rovlari</div>
+        <h1 data-i18n="supportDetailTitle">Murojaat tafsiloti</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('supportView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div id="supportDetailBox"></div>
+  </div>
+
+  <!-- Hisobotlar (faqat gl-admin) -->
+  <div id="reportsView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubReports">Hisobotlar</div>
+        <h1 data-i18n="hubReports">Hisobotlar</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;" id="reportsList">
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repUsersTitle">Xodimlar (Users)</div><div class="tsub" data-i18n="repUsersDesc">To'liq xodimlar ro'yxati, rol, aloqa ma'lumotlari</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportUsersReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repProgressTitle">Progress</div><div class="tsub" data-i18n="repProgressDesc">Hujjat bilan tanishish va test topshirish tarixi</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportProgressReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repSupportTitle">Support</div><div class="tsub" data-i18n="repSupportDesc">Xodimlardan kelgan murojaatlar va izohlar</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSupportReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repTestAttemptsTitle">Test natijalari</div><div class="tsub" data-i18n="repTestAttemptsDesc">Xodimlar topshirgan test natijalari — sinov/namoyish yozuvlarini o'chirish mumkin</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('testAttempts')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportTestAttemptsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repCertTitle">Sertifikatlar</div><div class="tsub" data-i18n="repCertDesc">Sertifikat olgan xodimlar — ko'rish va bekor qilish (o'chirish)</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('certificates')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportCertificatesReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repDocReadsTitle">Hujjat bilan tanishish</div><div class="tsub" data-i18n="repDocReadsDesc">Xodimlar hujjatni o'qidim deb belgilagan yozuvlar — sinov/namoyish yozuvlarini o'chirish mumkin</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('docReads')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportDocReadsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repTestsTitle">Test savollari</div><div class="tsub" data-i18n="repTestsDesc">Barcha test savollari va to'g'ri javoblar</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportTestQuestionsXlsx()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repNotifTitle">Xabarnomalar</div><div class="tsub" data-i18n="repNotifDesc">Yuborilgan barcha xabarnomalar</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('notifications')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repNotifReadsTitle">Xabarnoma o'qilganlik</div><div class="tsub" data-i18n="repNotifReadsDesc">Kim, qachon o'qigani</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('notificationReads')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportNotificationReadsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repSurveyQTitle">So'rovnoma savollari</div><div class="tsub" data-i18n="repSurveyQDesc">Anonim so'rovnoma savollari</div></div>
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSurveyQuestionsReport()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <div><div class="ttitle" data-i18n="repSurveyATitle">So'rovnoma javoblari</div><div class="tsub" data-i18n="repSurveyADesc">Anonim javoblar (foydalanuvchi bilan bog'lanmagan)</div></div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="submit-btn secondary" style="width:auto; margin:0; padding:10px 18px;" onclick="openDataDeleteView('surveySubmissions')"><span data-i18n="viewBtn">Ko'rish / O'chirish</span></button>
+          <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportSurveyAnswersWide()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistik yozuvlarni ko'rish va tanlab o'chirish (test natijalari, hujjat
+       tanishish, so'rovnoma javoblari, xabarnomalar) — faqat gl-admin -->
+  <div id="dataDeleteView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubReports">Hisobotlar</div>
+        <h1 id="ddvTitle">...</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('reportsView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <p class="tsub" id="ddvNote" style="display:none; margin-bottom:12px;"></p>
+    <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+      <button type="button" class="submit-btn" id="ddvDeleteBtn" style="width:auto; margin:0; padding:10px 18px; background:#dc2626;" onclick="ddvDeleteSelected()" disabled>
+        <span data-i18n="deleteSelectedBtn">Tanlanganlarni o'chirish</span> (<span id="ddvSelectedCount">0</span>)
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="ddvHeadRow"></tr></thead>
+        <tbody id="ddvTbody"><tr><td class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sertifikat: imzo qo'yuvchilar (filial rahbarlari, komplaens direktori) va namuna -->
+  <div id="certView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubCert">Sertifikat</div>
+        <h1 data-i18n="certSettingsTitle">Sertifikat sozlamalari</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <p class="tsub" style="margin-bottom:14px;" data-i18n="certSettingsDesc">Sertifikat pastidagi imzo qismida xodimning filiali rahbari va komplaens departamenti direktori chiqadi. QR-kod sertifikat haqiqiyligini tekshirish sahifasiga olib boradi. O'zgartirishlar saqlangach, xodimlarning sertifikatlari keyingi ochilishda avtomatik yangilanadi.</p>
+    <form class="form-card" style="max-width:none;" onsubmit="return saveCertSettings(event)">
+      <div class="table-wrap" style="margin-bottom:0;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="thFilial">Filial</th>
+              <th data-i18n="certColTitle">Lavozim (sertifikatda)</th>
+              <th data-i18n="certColName">F.I.Sh (masalan: Aliyev A.A.)</th>
+              <th style="width:110px;" data-i18n="certColPreview">Namuna</th>
+            </tr>
+          </thead>
+          <tbody id="certSettingsTbody"><tr><td colspan="4" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        </table>
+      </div>
+      <button class="submit-btn" type="submit" id="certSaveBtn" style="margin-top:16px;" data-i18n="saveBtn">Saqlash</button>
+      <div class="msg" id="certFormMsg"></div>
+    </form>
+  </div>
+
+  <!-- Zaxira nusxa (faqat gl-admin) -->
+  <div id="backupView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubBackup">Zaxira nusxa</div>
+        <h1 data-i18n="hubBackup">Zaxira nusxa</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <p class="tsub" style="margin-bottom:14px;" data-i18n="backupDesc">Baza (MySQL) va profil rasmlarining to'liq nusxasi. Kunlik avtomatik zaxira uchun backend/scripts/backup.php faylini Task Scheduler/cron orqali sozlang (backend/README.md).</p>
+    <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
+      <button type="button" class="submit-btn" id="backupCreateBtn" onclick="createBackupNow()" style="width:auto; margin:0; padding:10px 18px;">
+        <span data-i18n="backupCreateBtn">Hozir zaxira nusxa olish</span>
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="backupColName">Sana / vaqt</th>
+            <th data-i18n="backupColSize">Hajmi</th>
+            <th style="width:120px;" data-i18n="thAmal">Amal</th>
+          </tr>
+        </thead>
+        <tbody id="backupTbody"><tr><td colspan="3" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tizim jurnali / xatoliklar tarixi (faqat gl-admin) -->
+  <div id="errorLogView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" data-i18n="hubErrorLog">Tizim jurnali</div>
+        <h1 data-i18n="hubErrorLog">Tizim jurnali</h1>
+      </div>
+      <button class="back-btn" onclick="openSection('hubView')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="backBtn">Ortga</span>
+      </button>
+    </div>
+    <div class="seg" role="tablist">
+      <button type="button" id="logTabAudit" class="active" onclick="showLogTab('audit')" data-i18n="auditTab">Amallar jurnali</button>
+      <button type="button" id="logTabErrors" onclick="showLogTab('errors')" data-i18n="errorsTab">Server xatoliklari</button>
+    </div>
+
+    <!-- Admin amallari jurnali: kim, qachon, nimani o'zgartirgan -->
+    <div id="auditPane">
+      <p class="tsub" style="margin-bottom:14px;" data-i18n="auditDesc">Admin amallari: xodim qo'shish/tahrirlash/o'chirish, natijalarni o'chirish, sertifikatlar, sozlamalar va h.k. (so'nggi 2000 ta).</p>
+      <div class="search-row">
+        <input type="text" id="auditSearch" placeholder="Qidirish..." data-i18n-ph="auditSearchPh" oninput="renderAuditLog()">
+        <button type="button" class="submit-btn" style="width:auto; margin:0; padding:10px 18px;" onclick="exportAuditLog()"><span data-i18n="downloadBtn">Hisobotni yuklab olish</span></button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:140px;" data-i18n="thSana">Sana</th>
+              <th style="width:200px;" data-i18n="auditColWho">Kim</th>
+              <th style="width:220px;" data-i18n="errorLogColAction">Amal</th>
+              <th data-i18n="auditColDetails">Tafsilot</th>
+            </tr>
+          </thead>
+          <tbody id="auditTbody"><tr><td colspan="4" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="errorsPane" style="display:none;">
+      <p class="tsub" style="margin-bottom:14px;" data-i18n="errorLogDesc">So'nggi 200 ta server xatoligi (eng yangisi birinchi). 90 kundan eski yozuvlar avtomatik o'chiriladi.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:150px;" data-i18n="thSana">Sana</th>
+              <th style="width:150px;" data-i18n="errorLogColAction">Amal</th>
+              <th data-i18n="errorLogColMessage">Xabar</th>
+            </tr>
+          </thead>
+          <tbody id="errorLogTbody"><tr><td colspan="3" class="loading-row" data-i18n="loading">Yuklanmoqda...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUJBVVjrU6HlH6uk57A_LQQWEg2r-uCFiZnjZuRlvfC9N147OBPHcw0ctBrUwEF3Kt/exec";
-const APP_SECRET = "kmp-#anticor2-#2026";
-
-// Ba'zan Apps Script POST so'rovni notekis qayta yo'naltirib (redirect), JSON o'rniga
-// HTML/matn qaytarib yuborishi mumkin — shu holatda avtomatik qayta urinadi.
-async function apiCall(payload){
-  const body = JSON.stringify(payload);
-  let lastErr;
-  for(let attempt=0; attempt<3; attempt++){
-    try{
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
-      const text = await res.text();
-      try{
-        const parsed = JSON.parse(text);
-        if(parsed && parsed.success === false && parsed.code === 'SESSION_EXPIRED'){
-          try{ sessionStorage.removeItem('km_user'); }catch(e){}
-          window.location.href = 'login.html';
-        }
-        return parsed;
-      }
-      catch(parseErr){
-        lastErr = new Error("Serverdan noto'g'ri javob keldi");
-        if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
-        throw lastErr;
-      }
-    }catch(networkErr){
-      lastErr = networkErr;
-      if(attempt < 2){ await new Promise(r=>setTimeout(r, 500)); continue; }
-      throw lastErr;
-    }
-  }
-}
-
-let currentLang = localStorage.getItem('km_lang') || 'uz';
-const dict = {
-  uz:{ brandName:"\"O'zbektelekom\" AK", eyebrow:"Admin", pageTitle:"Statistika",
-    hubAnticor:"Korrupsiyaga qarshi kurashish", hubAnticorDesc:"Hujjat va test statistikasi",
-    hubEmployees:"Xodimlar", hubEmployeesDesc:"Xodimlar bo'yicha umumiy ma'lumot",
-    hubTests:"Test savollari", hubTestsDesc:"Test savollarini qo'shish, tahrirlash, o'chirish",
-    hubDocs:"Hujjat qo'shish", hubDocsDesc:"Normativ hujjatlarni qo'shish, tahrirlash, o'chirish",
-    soonTag:"Tez orada", backBtn:"Ortga", cancelBtn:"Bekor qilish",
-    hubNotif:"Xabarnoma yuborish", hubNotifDesc:"Xodimlarga xabarnoma yuborish va hisobot",
-    notifTargetTypeLabel:"Qamrov", notifTargetUsers:"Foydalanuvchilar", notifTargetDept:"Bo'linma",
-    notifUsersLabel:"Xodimlarni tanlang", notifDeptLabel:"Bo'linmani tanlang",
-    notifTextLabel:"Xabar matni", notifTextPh:"Xabarnoma matnini kiriting", notifSendBtn:"Yuborish",
-    notifNoTarget:"Kamida bitta qabul qiluvchi tanlang", notifHistoryTitle:"Yuborilgan xabarnomalar",
-    notifNoHistory:"Hozircha xabarnoma yuborilmagan", notifReadStat:"O'qigan", notifNoReaders:"Hali hech kim o'qimagan",
-    saveBtn:"Saqlash", savedOk:"Saqlandi ✓", savedErr:"Xatolik yuz berdi, qayta urinib ko'ring",
-    totalLbl:"Jami xodimlar", docsLbl:"Hujjat bilan tanishgan", passLbl:"Testdan o'tgan", failLbl:"O'tmagan", waitLbl:"Boshlamagan",
-    thId:"ID", thFish:"F.I.Sh", thPos:"Lavozim", thDept:"Bo'linma", thPhone:"Telefon", thDoc:"Hujjat sanasi", thTest:"Test natijasi",
-    thLogin:"Login", thRol:"Rol", thAmal:"Amal",
-    searchPh:"F.I.Sh bo'yicha qidirish...", noResults:"Hech narsa topilmadi",
-    loading:"Yuklanmoqda...", yes:"Ha", no:"Yo'q", notTaken:"Ishlamagan", denied:"Sizda bu sahifaga kirish huquqi yo'q",
-    testFormAdd:"Yangi savol qo'shish", testFormEdit:"Savolni tahrirlash", testListTitle:"Mavjud savollar",
-    langUzTitle:"O'zbekcha", langRuTitle:"Русский",
-    qSavol:"Savol", qVariantA:"Variant A", qVariantB:"Variant B", qVariantC:"Variant C", qVariantD:"Variant D",
-    qCorrect:"To'g'ri javob", qCorrectPh:"Variantni tanlang",
-    qSavolRu:"Вопрос", qVariantARu:"Ответ А", qVariantBRu:"Ответ Б", qVariantCRu:"Ответ В", qVariantDRu:"Ответ Г", qCorrectRu:"Правильный ответ",
-    docFormAdd:"Yangi hujjat qo'shish", docFormEdit:"Hujjatni tahrirlash", docListTitle:"Mavjud hujjatlar",
-    docNameUz:"Hujjat nomi (O'zbek)", docNameRu:"Hujjat nomi (Rus)", docUrl:"Havola (URL)",
-    confirmDeleteTest:"Ushbu savolni o'chirmoqchimisiz?", confirmDeleteDoc:"Ushbu hujjatni o'chirmoqchimisiz?",
-    deletedOk:"O'chirildi ✓", editBtn:"Tahrirlash", deleteBtn:"O'chirish",
-    hubSurvey:"Anonim so'rovnoma", hubSurveyDesc:"So'rovnoma savollari, natijalari va faollik holati",
-    hubSurveyQuestions:"So'rovnoma savollari", hubSurveyQuestionsDesc:"Savol qo'shish, tahrirlash, o'chirish",
-    hubSurveyResults:"So'rovnoma natijalari", hubSurveyResultsDesc:"Anonim umumiy statistika",
-    surveyFormAdd:"Yangi savol qo'shish", surveyFormEdit:"Savolni tahrirlash", surveyListTitle:"Mavjud savollar",
-    confirmDeleteSurvey:"Ushbu savolni o'chirmoqchimisiz?",
-    testActiveLabel:"Test holati", surveyActiveLabel:"So'rovnoma holati", activeOn:"Faol — xodimlar ko'ra oladi", activeOff:"Faol emas — 'yakunlangan' ko'rinadi",
-    resultsEmpty:"Hozircha javoblar yo'q", totalResponsesLbl:"ta javob",
-    qTuri:"Savol turi", qTuriTanlov:"Tanlov (A, B, C, D)", qTuriYulduz:"Yulduzcha bilan baholash", qTuriMatn:"Erkin javob (matn)", qStars:"Yulduzlar soni",
-    totalSubmissionsLbl:"Jami ishtirokchilar", totalQuestionsLbl:"Savollar soni", byQuestionLbl:"Javoblar taqsimoti", avgScoreLbl:"O'rtacha ball" },
-  ru:{ brandName:"АО «Узтелеком»", eyebrow:"Админ", pageTitle:"Статистика",
-    hubAnticor:"Противодействие коррупции", hubAnticorDesc:"Статистика по документам и тестам",
-    hubEmployees:"Сотрудники", hubEmployeesDesc:"Общая информация по сотрудникам",
-    hubTests:"Тестовые вопросы", hubTestsDesc:"Добавление, редактирование, удаление вопросов",
-    hubDocs:"Добавить документ", hubDocsDesc:"Добавление, редактирование, удаление документов",
-    soonTag:"Скоро", backBtn:"Назад", cancelBtn:"Отмена",
-    hubNotif:"Отправить уведомление", hubNotifDesc:"Отправка уведомлений сотрудникам и отчёт",
-    notifTargetTypeLabel:"Охват", notifTargetUsers:"Пользователи", notifTargetDept:"Подразделение",
-    notifUsersLabel:"Выберите сотрудников", notifDeptLabel:"Выберите подразделение",
-    notifTextLabel:"Текст уведомления", notifTextPh:"Введите текст уведомления", notifSendBtn:"Отправить",
-    notifNoTarget:"Выберите хотя бы одного получателя", notifHistoryTitle:"Отправленные уведомления",
-    notifNoHistory:"Уведомления ещё не отправлялись", notifReadStat:"Прочитали", notifNoReaders:"Пока никто не прочитал",
-    saveBtn:"Сохранить", savedOk:"Сохранено ✓", savedErr:"Произошла ошибка, попробуйте снова",
-    totalLbl:"Всего сотрудников", docsLbl:"Ознакомились с документами", passLbl:"Прошли тест", failLbl:"Не прошли", waitLbl:"Не начали",
-    thId:"ID", thFish:"ФИО", thPos:"Должность", thDept:"Подразделение", thPhone:"Телефон", thDoc:"Дата ознакомления", thTest:"Результат теста",
-    thLogin:"Логин", thRol:"Роль", thAmal:"Действие",
-    searchPh:"Поиск по ФИО...", noResults:"Ничего не найдено",
-    loading:"Загрузка...", yes:"Да", no:"Нет", notTaken:"Не пройден", denied:"У вас нет доступа к этой странице",
-    testFormAdd:"Добавить новый вопрос", testFormEdit:"Редактировать вопрос", testListTitle:"Существующие вопросы",
-    langUzTitle:"Узбекский", langRuTitle:"Русский",
-    qSavol:"Вопрос", qVariantA:"Вариант A", qVariantB:"Вариант B", qVariantC:"Вариант C", qVariantD:"Вариант D",
-    qCorrect:"Правильный ответ", qCorrectPh:"Выберите вариант",
-    qSavolRu:"Вопрос", qVariantARu:"Ответ А", qVariantBRu:"Ответ Б", qVariantCRu:"Ответ В", qVariantDRu:"Ответ Г", qCorrectRu:"Правильный ответ",
-    docFormAdd:"Добавить новый документ", docFormEdit:"Редактировать документ", docListTitle:"Существующие документы",
-    docNameUz:"Название документа (узб.)", docNameRu:"Название документа (рус.)", docUrl:"Ссылка (URL)",
-    confirmDeleteTest:"Удалить этот вопрос?", confirmDeleteDoc:"Удалить этот документ?",
-    deletedOk:"Удалено ✓", editBtn:"Редактировать", deleteBtn:"Удалить",
-    hubSurvey:"Анонимный опрос", hubSurveyDesc:"Вопросы опроса, результаты и статус активности",
-    hubSurveyQuestions:"Вопросы опроса", hubSurveyQuestionsDesc:"Добавление, редактирование, удаление вопросов",
-    hubSurveyResults:"Результаты опроса", hubSurveyResultsDesc:"Анонимная общая статистика",
-    surveyFormAdd:"Добавить новый вопрос", surveyFormEdit:"Редактировать вопрос", surveyListTitle:"Существующие вопросы",
-    confirmDeleteSurvey:"Удалить этот вопрос?",
-    testActiveLabel:"Статус теста", surveyActiveLabel:"Статус опроса", activeOn:"Активен — сотрудники видят", activeOff:"Не активен — показывается 'завершён'",
-    resultsEmpty:"Пока нет ответов", totalResponsesLbl:"ответ(ов)",
-    qTuri:"Тип вопроса", qTuriTanlov:"Выбор (A, B, C, D)", qTuriYulduz:"Оценка звёздами", qTuriMatn:"Свободный ответ (текст)", qStars:"Количество звёзд",
-    totalSubmissionsLbl:"Всего участников", totalQuestionsLbl:"Количество вопросов", byQuestionLbl:"Распределение ответов", avgScoreLbl:"Средний балл" }
-};
-function applyLang(){
-  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(dict[currentLang][k]) el.textContent=dict[currentLang][k]; });
-  document.getElementById('lang-uz').classList.toggle('active', currentLang==='uz');
-  document.getElementById('lang-ru').classList.toggle('active', currentLang==='ru');
-}
-function setLang(l){ currentLang=l; localStorage.setItem('km_lang', l); applyLang(); renderAll(); }
-applyLang();
-
-const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
-const moonIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg>`;
-let theme = localStorage.getItem('km_theme') || 'dark';
-function applyTheme(){ document.body.setAttribute('data-theme', theme); document.getElementById('themeBtn').innerHTML = theme==='dark'?sunIcon:moonIcon; document.querySelectorAll('.brand-logo').forEach(function(im){ im.src = theme==='dark' ? im.dataset.dark : im.dataset.light; }); }
-function toggleTheme(){ theme = theme==='dark'?'light':'dark'; localStorage.setItem('km_theme', theme); applyTheme(); }
-applyTheme();
-
-function getCurrentUser(){
-  try{ return JSON.parse(sessionStorage.getItem('km_user')); }catch(e){ return null; }
-}
-
-let statsData = null;
-let filteredEmployees = [];
-let usersData = null;
-let filteredUsers = [];
-let currentUserForKpi = null;
-let testsData = null;
-let editingTestId = null;
-let docsData = null;
-let editingDocId = null;
-let surveyData = null;
-let editingSurveyId = null;
-
-function openSection(id){
-  document.querySelectorAll('#mainContent > div').forEach(d => d.style.display = 'none');
-  document.getElementById(id).style.display = 'block';
-}
-
-function onSearch(){
-  const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  filteredEmployees = !q ? statsData.employees : statsData.employees.filter(e => e.fish.toLowerCase().includes(q));
-  renderTable();
-}
-
-function renderCards(){
-  const s = statsData.summary;
-  document.getElementById('cards').innerHTML = `
-    <div class="stat-card"><div class="num">${s.total}</div><div class="lbl">${dict[currentLang].totalLbl}</div></div>
-    <div class="stat-card teal"><div class="num">${s.docsDone}</div><div class="lbl">${dict[currentLang].docsLbl}</div></div>
-    <div class="stat-card teal"><div class="num">${s.testsPassed}</div><div class="lbl">${dict[currentLang].passLbl}</div></div>
-    <div class="stat-card coral"><div class="num">${s.testsFailed}</div><div class="lbl">${dict[currentLang].failLbl}</div></div>
-    <div class="stat-card amber"><div class="num">${s.notStarted}</div><div class="lbl">${dict[currentLang].waitLbl}</div></div>
-  `;
-}
-
-// Sheets'dan kelgan matnni HTML sifatida joylashtirishdan oldin xavfsizlashtiradi (XSS himoyasi)
-function escapeHtml(s){
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function renderTable(){
-  if(filteredEmployees.length === 0){
-    document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
-    return;
-  }
-  document.getElementById('tbody').innerHTML = filteredEmployees.map((emp, i) => {
-    const docBadge = emp.hujjatSana ? `<span class="badge ok">${escapeHtml(emp.hujjatSana)}</span>` : `<span class="badge no">${dict[currentLang].no}</span>`;
-    let testBadge = `<span class="badge wait">${dict[currentLang].notTaken}</span>`;
-    if(emp.testTaken) testBadge = `<span class="badge ${emp.passed?'ok':'no'}">${emp.testPoints} — ${emp.testPercent}%</span>`;
-    return `<tr><td>${i + 1}</td><td>${escapeHtml(emp.fish)}</td><td>${escapeHtml(emp.lavozim)||'—'}</td><td>${escapeHtml(emp.bolinma)||'—'}</td><td>${escapeHtml(emp.telefon)||'—'}</td><td>${docBadge}</td><td>${testBadge}</td></tr>`;
-  }).join('');
-}
-
-function renderAll(){
-  if(!statsData) return;
-  renderCards();
-  onSearch();
-  if(usersData) onEmpSearch();
-}
-
-/* ---------- Xodimlar (gl-admin) ---------- */
-function onEmpSearch(){
-  const q = document.getElementById('empSearchInput').value.trim().toLowerCase();
-  filteredUsers = !q ? usersData : usersData.filter(u => (u.familiya+' '+u.ism+' '+(u.otasi||'')).toLowerCase().includes(q) || u.login.toLowerCase().includes(q));
-  renderUsersTable();
-}
-
-function renderUsersTable(){
-  if(filteredUsers.length === 0){
-    document.getElementById('empTbody').innerHTML = `<tr><td colspan="5" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
-    return;
-  }
-  document.getElementById('empTbody').innerHTML = filteredUsers.map((u, i) => {
-    const fish = [u.familiya, u.ism, u.otasi].filter(Boolean).join(' ');
-    return `<tr><td>${u.id ?? (i+1)}</td><td>${escapeHtml(fish)}</td><td>${escapeHtml(u.lavozim)||'—'}</td><td>${escapeHtml(u.bolinma)||'—'}</td><td>${escapeHtml(u.telefon)||'—'}</td></tr>`;
-  }).join('');
-}
-
-async function loadUsersList(user){
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getUsersList', token: user.token });
-    if(data.success){
-      usersData = data.users;
-      if(document.getElementById('employeesView').style.display !== 'none') { filteredUsers = usersData; renderUsersTable(); }
-    }
-  } catch(ex){}
-}
-
-async function loadStats(user){
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getStats', token: user.token });
-    if(!data.success) return;
-    statsData = data;
-    renderAll();
-  } catch(ex){
-    document.getElementById('tbody').innerHTML = `<tr><td colspan="7" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
-  }
-}
-
-/* ---------- Test savollari (CRUD) ---------- */
-function refreshCorrectSelects(){
-  const uzOpts = [document.getElementById('tA').value, document.getElementById('tB').value, document.getElementById('tC').value, document.getElementById('tD').value];
-  const ruOpts = [document.getElementById('tARu').value, document.getElementById('tBRu').value, document.getElementById('tCRu').value, document.getElementById('tDRu').value];
-  const selUz = document.getElementById('tCorrect'), selRu = document.getElementById('tCorrectRu');
-  const prevUz = selUz.value, prevRu = selRu.value;
-  const phUz = dict[currentLang].qCorrectPh, phRu = dict[currentLang].qCorrectPh;
-  selUz.innerHTML = `<option value="">${phUz}</option>` + uzOpts.filter(Boolean).map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
-  selRu.innerHTML = `<option value="">${phRu}</option>` + ruOpts.filter(Boolean).map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
-  if(uzOpts.includes(prevUz)) selUz.value = prevUz;
-  if(ruOpts.includes(prevRu)) selRu.value = prevRu;
-}
-
-async function loadTests(){
-  document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getTestQuestions', token: currentUserForKpi.token });
-    if(data.success){
-      testsData = data.questions; renderTestsTable();
-      document.getElementById('testActiveToggle').checked = data.active;
-      document.getElementById('testActiveSub').textContent = data.active ? dict[currentLang].activeOn : dict[currentLang].activeOff;
-    }
-  } catch(ex){
-    document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
-  }
-}
-
-async function onTestActiveToggle(){
-  const cb = document.getElementById('testActiveToggle');
-  const desired = cb.checked;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'setTestActive', token: currentUserForKpi.token, active: desired });
-    if(data.success){
-      document.getElementById('testActiveSub').textContent = desired ? dict[currentLang].activeOn : dict[currentLang].activeOff;
-    } else {
-      cb.checked = !desired;
-      alert(dict[currentLang].savedErr);
-    }
-  } catch(ex){
-    cb.checked = !desired;
-    alert('Xatolik: ' + ex.message);
-  }
-}
-
-function renderTestsTable(){
-  if(!testsData || testsData.length === 0){
-    document.getElementById('testsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
-    return;
-  }
-  document.getElementById('testsTbody').innerHTML = testsData.map(q => `
-    <tr>
-      <td>${escapeHtml(q.id)}</td>
-      <td style="white-space:normal;">${escapeHtml(q.uz.savol)}</td>
-      <td><div class="row-actions">
-        <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditTest('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteTestRow('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
-      </div></td>
-    </tr>`).join('');
-}
-
-function startEditTest(id){
-  const q = testsData.find(t => String(t.id) === String(id));
-  if(!q) return;
-  editingTestId = id;
-  document.getElementById('tSavol').value = q.uz.savol || '';
-  document.getElementById('tA').value = q.uz.a || '';
-  document.getElementById('tB').value = q.uz.b || '';
-  document.getElementById('tC').value = q.uz.c || '';
-  document.getElementById('tD').value = q.uz.d || '';
-  document.getElementById('tSavolRu').value = q.ru.savol || '';
-  document.getElementById('tARu').value = q.ru.a || '';
-  document.getElementById('tBRu').value = q.ru.b || '';
-  document.getElementById('tCRu').value = q.ru.c || '';
-  document.getElementById('tDRu').value = q.ru.d || '';
-  refreshCorrectSelects();
-  document.getElementById('testFormTitle').textContent = dict[currentLang].testFormEdit;
-  document.getElementById('testSubmitBtn').textContent = dict[currentLang].saveBtn;
-  document.getElementById('testCancelBtn').style.display = 'inline-flex';
-  document.getElementById('testsView').scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
-function cancelTestEdit(){
-  editingTestId = null;
-  document.getElementById('testFormTitle').textContent = dict[currentLang].testFormAdd;
-  document.getElementById('testCancelBtn').style.display = 'none';
-  document.querySelector('#testsView form').reset();
-  refreshCorrectSelects();
-}
-
-async function submitTestForm(e){
-  e.preventDefault();
-  const msg = document.getElementById('testFormMsg'); msg.className = 'msg';
-  const payload = {
-    secret: APP_SECRET, token: currentUserForKpi.token,
-    action: editingTestId ? 'editTestQuestion' : 'addTestQuestion',
-    savol: document.getElementById('tSavol').value, a: document.getElementById('tA').value, b: document.getElementById('tB').value,
-    c: document.getElementById('tC').value, d: document.getElementById('tD').value, correct: document.getElementById('tCorrect').value,
-    savolRu: document.getElementById('tSavolRu').value, aRu: document.getElementById('tARu').value, bRu: document.getElementById('tBRu').value,
-    cRu: document.getElementById('tCRu').value, dRu: document.getElementById('tDRu').value, correctRu: document.getElementById('tCorrectRu').value
-  };
-  if(editingTestId) payload.id = editingTestId;
-  const btn = document.getElementById('testSubmitBtn'); btn.disabled = true;
-  try{
-    const data = await apiCall(payload);
-    btn.disabled = false;
-    if(data.success){
-      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
-      cancelTestEdit();
-      loadTests();
-    } else {
-      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
-    }
-  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
-  return false;
-}
-
-async function deleteTestRow(id){
-  if(!confirm(dict[currentLang].confirmDeleteTest)) return;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'deleteTestQuestion', token: currentUserForKpi.token, id });
-    if(data.success) loadTests();
-  } catch(ex){ alert('Xatolik: ' + ex.message); }
-}
-
-/* ---------- Hujjatlar (CRUD) ---------- */
-async function loadDocs(){
-  document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getDocuments', token: currentUserForKpi.token });
-    if(data.success){ docsData = data.docs; renderDocsTable(); }
-  } catch(ex){
-    document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
-  }
-}
-
-function renderDocsTable(){
-  if(!docsData || docsData.length === 0){
-    document.getElementById('docsTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
-    return;
-  }
-  document.getElementById('docsTbody').innerHTML = docsData.map(d => `
-    <tr>
-      <td>${escapeHtml(d.id)}</td>
-      <td style="white-space:normal;">${escapeHtml(d.uz)}</td>
-      <td><div class="row-actions">
-        <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditDoc('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteDocRow('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
-      </div></td>
-    </tr>`).join('');
-}
-
-function startEditDoc(id){
-  const d = docsData.find(x => String(x.id) === String(id));
-  if(!d) return;
-  editingDocId = id;
-  document.getElementById('dUz').value = d.uz || '';
-  document.getElementById('dRu').value = d.ru || '';
-  document.getElementById('dUrl').value = d.url || '';
-  document.getElementById('docFormTitle').textContent = dict[currentLang].docFormEdit;
-  document.getElementById('docCancelBtn').style.display = 'inline-flex';
-  document.getElementById('docsView').scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
-function cancelDocEdit(){
-  editingDocId = null;
-  document.getElementById('docFormTitle').textContent = dict[currentLang].docFormAdd;
-  document.getElementById('docCancelBtn').style.display = 'none';
-  document.querySelector('#docsView form').reset();
-}
-
-async function submitDocForm(e){
-  e.preventDefault();
-  const msg = document.getElementById('docFormMsg'); msg.className = 'msg';
-  const payload = {
-    secret: APP_SECRET, token: currentUserForKpi.token,
-    action: editingDocId ? 'editDocument' : 'addDocument',
-    uz: document.getElementById('dUz').value, ru: document.getElementById('dRu').value, url: document.getElementById('dUrl').value
-  };
-  if(editingDocId) payload.id = editingDocId;
-  const btn = document.getElementById('docSubmitBtn'); btn.disabled = true;
-  try{
-    const data = await apiCall(payload);
-    btn.disabled = false;
-    if(data.success){
-      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
-      cancelDocEdit();
-      loadDocs();
-    } else {
-      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
-    }
-  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
-  return false;
-}
-
-async function deleteDocRow(id){
-  if(!confirm(dict[currentLang].confirmDeleteDoc)) return;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'deleteDocument', token: currentUserForKpi.token, id });
-    if(data.success) loadDocs();
-  } catch(ex){ alert('Xatolik: ' + ex.message); }
-}
-
-/* ---------- Anonim so'rovnoma ---------- */
-function openSurveyEntry(){
-  if(currentUserForKpi.rol === 'gl-admin'){
-    openSection('surveyHubView');
-    loadSurveyStatusOnly();
-  } else {
-    openSection('surveyResultsView');
-    loadSurveyResults();
-  }
-}
-
-function backFromSurveyResults(){
-  if(currentUserForKpi.rol === 'gl-admin') openSection('surveyHubView');
-  else openSection('hubView');
-}
-
-async function loadSurveyStatusOnly(){
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyQuestions', token: currentUserForKpi.token });
-    if(data.success){
-      surveyData = data.questions;
-      document.getElementById('surveyActiveToggle').checked = data.active;
-      document.getElementById('surveyActiveSub').textContent = data.active ? dict[currentLang].activeOn : dict[currentLang].activeOff;
-    }
-  } catch(ex){}
-}
-
-async function onSurveyActiveToggle(){
-  const cb = document.getElementById('surveyActiveToggle');
-  const desired = cb.checked;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'setSurveyActive', token: currentUserForKpi.token, active: desired });
-    if(data.success){
-      document.getElementById('surveyActiveSub').textContent = desired ? dict[currentLang].activeOn : dict[currentLang].activeOff;
-    } else {
-      cb.checked = !desired;
-      alert(dict[currentLang].savedErr);
-    }
-  } catch(ex){
-    cb.checked = !desired;
-    alert('Xatolik: ' + ex.message);
-  }
-}
-
-async function loadSurveyQuestions(){
-  document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="3" class="loading-row">${dict[currentLang].loading}</td></tr>`;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyQuestions', token: currentUserForKpi.token });
-    if(data.success){
-      surveyData = data.questions; renderSurveyTable();
-      document.getElementById('surveyActiveToggle').checked = data.active;
-      document.getElementById('surveyActiveSub').textContent = data.active ? dict[currentLang].activeOn : dict[currentLang].activeOff;
-    }
-  } catch(ex){
-    document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="3" class="loading-row">Xatolik: ${ex.message}</td></tr>`;
-  }
-}
-
-function onSurveyTypeChange(){
-  const turi = document.getElementById('sTuri').value;
-  const isStars = turi === 'yulduz';
-  const isChoice = turi === 'tanlov';
-  document.getElementById('sStarsField').style.display = isStars ? 'block' : 'none';
-  document.getElementById('sOptionsUz').style.display = isChoice ? 'block' : 'none';
-  document.getElementById('sOptionsRu').style.display = isChoice ? 'block' : 'none';
-  document.getElementById('sA').required = isChoice;
-  document.getElementById('sB').required = isChoice;
-}
-
-function surveyTypeIcon(turi){
-  if(turi === 'yulduz') return '⭐';
-  if(turi === 'matn') return '✎';
-  return '☰';
-}
-function surveyTypeLabel(turi){
-  if(turi === 'yulduz') return dict[currentLang].qTuriYulduz;
-  if(turi === 'matn') return dict[currentLang].qTuriMatn;
-  return dict[currentLang].qTuriTanlov;
-}
-
-function renderSurveyTable(){
-  if(!surveyData || surveyData.length === 0){
-    document.getElementById('surveyTbody').innerHTML = `<tr><td colspan="4" class="loading-row">${dict[currentLang].noResults}</td></tr>`;
-    return;
-  }
-  document.getElementById('surveyTbody').innerHTML = surveyData.map(q => `
-    <tr>
-      <td>${escapeHtml(q.id)}</td>
-      <td title="${surveyTypeLabel(q.turi)}">${surveyTypeIcon(q.turi)}</td>
-      <td style="white-space:normal;">${escapeHtml(q.uz.savol)}</td>
-      <td><div class="row-actions">
-        <button type="button" class="icon-btn" title="${dict[currentLang].editBtn}" onclick="startEditSurvey('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-        <button type="button" class="icon-btn danger" title="${dict[currentLang].deleteBtn}" onclick="deleteSurveyRow('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
-      </div></td>
-    </tr>`).join('');
-}
-
-function startEditSurvey(id){
-  const q = surveyData.find(t => String(t.id) === String(id));
-  if(!q) return;
-  editingSurveyId = id;
-  document.getElementById('sTuri').value = q.turi || 'tanlov';
-  document.getElementById('sStars').value = String(q.stars || 5);
-  onSurveyTypeChange();
-  document.getElementById('sSavol').value = q.uz.savol || '';
-  document.getElementById('sA').value = q.uz.a || '';
-  document.getElementById('sB').value = q.uz.b || '';
-  document.getElementById('sC').value = q.uz.c || '';
-  document.getElementById('sD').value = q.uz.d || '';
-  document.getElementById('sSavolRu').value = q.ru.savol || '';
-  document.getElementById('sARu').value = q.ru.a || '';
-  document.getElementById('sBRu').value = q.ru.b || '';
-  document.getElementById('sCRu').value = q.ru.c || '';
-  document.getElementById('sDRu').value = q.ru.d || '';
-  document.getElementById('surveyFormTitle').textContent = dict[currentLang].surveyFormEdit;
-  document.getElementById('surveyCancelBtn').style.display = 'inline-flex';
-  document.getElementById('surveyQuestionsView').scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
-function cancelSurveyEdit(){
-  editingSurveyId = null;
-  document.getElementById('surveyFormTitle').textContent = dict[currentLang].surveyFormAdd;
-  document.getElementById('surveyCancelBtn').style.display = 'none';
-  document.querySelector('#surveyQuestionsView form').reset();
-  onSurveyTypeChange();
-}
-
-async function submitSurveyForm(e){
-  e.preventDefault();
-  const msg = document.getElementById('surveyFormMsg'); msg.className = 'msg';
-  const payload = {
-    secret: APP_SECRET, token: currentUserForKpi.token,
-    action: editingSurveyId ? 'editSurveyQuestion' : 'addSurveyQuestion',
-    turi: document.getElementById('sTuri').value, stars: document.getElementById('sStars').value,
-    savol: document.getElementById('sSavol').value, a: document.getElementById('sA').value, b: document.getElementById('sB').value,
-    c: document.getElementById('sC').value, d: document.getElementById('sD').value,
-    savolRu: document.getElementById('sSavolRu').value, aRu: document.getElementById('sARu').value, bRu: document.getElementById('sBRu').value,
-    cRu: document.getElementById('sCRu').value, dRu: document.getElementById('sDRu').value
-  };
-  if(editingSurveyId) payload.id = editingSurveyId;
-  const btn = document.getElementById('surveySubmitBtn'); btn.disabled = true;
-  try{
-    const data = await apiCall(payload);
-    btn.disabled = false;
-    if(data.success){
-      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
-      cancelSurveyEdit();
-      loadSurveyQuestions();
-    } else {
-      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
-    }
-  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
-  return false;
-}
-
-async function deleteSurveyRow(id){
-  if(!confirm(dict[currentLang].confirmDeleteSurvey)) return;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'deleteSurveyQuestion', token: currentUserForKpi.token, id });
-    if(data.success) loadSurveyQuestions();
-  } catch(ex){ alert('Xatolik: ' + ex.message); }
-}
-
-function starsSvg(filled){
-  return `<svg viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"/></svg>`;
-}
-
-const CHART_COLORS = ['#00A3E0', '#00D9C0', '#FFB020', '#FF6B6B'];
-
-// CSS conic-gradient asosida oddiy "donut" doiraviy diagramma quradi — tashqi
-// kutubxonasiz, faqat bitta div orqali.
-function buildDonutGradient(segments){
-  let acc = 0;
-  const stops = segments.map((s, i) => {
-    const start = acc; acc += s.pct;
-    return `${CHART_COLORS[i % CHART_COLORS.length]} ${start}% ${acc}%`;
-  }).join(', ');
-  return acc > 0 ? `conic-gradient(${stops})` : 'conic-gradient(var(--input-border) 0% 100%)';
-}
-
-function renderChoiceChart(q){
-  const opts = q.options.filter(o => o.text);
-  const total = q.total || 0;
-  const segments = opts.map(o => ({ pct: total ? Math.round(o.count / total * 100) : 0 }));
-  const gradient = buildDonutGradient(segments);
-  return `<div class="chart-row">
-    <div class="donut" style="background:${gradient}"><div class="donut-hole">${total}<br>${dict[currentLang].totalResponsesLbl}</div></div>
-    <div class="donut-legend">
-      ${opts.map((o, i) => `
-        <div class="leg-row">
-          <span class="leg-dot" style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></span>
-          <span class="leg-label" title="${escapeHtml(o.text)}">${escapeHtml(o.text)}</span>
-          <span class="leg-pct">${total ? Math.round(o.count/total*100) : 0}%</span>
-        </div>`).join('')}
-    </div>
-  </div>`;
-}
-
-function renderRatingGauge(q){
-  const pct = q.stars ? Math.round((q.average / q.stars) * 100) : 0;
-  return `<div class="chart-row">
-    <div class="gauge" style="background:conic-gradient(var(--amber) 0% ${pct}%, var(--input-bg) ${pct}% 100%)">
-      <div class="gauge-hole"><div class="g-num">${q.average || 0}</div><div class="g-sub">/ ${q.stars} ⭐</div></div>
-    </div>
-    <div class="donut-legend">
-      <div class="leg-row"><span class="leg-label">${dict[currentLang].totalResponsesLbl}</span><span class="leg-pct">${q.total}</span></div>
-      <div class="leg-row"><span class="leg-label">${dict[currentLang].avgScoreLbl}</span><span class="leg-pct">${pct}%</span></div>
-    </div>
-  </div>`;
-}
-
-async function loadSurveyResults(){
-  const box = document.getElementById('surveyResultsBox');
-  box.innerHTML = `<p class="loading-row">${dict[currentLang].loading}</p>`;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getSurveyResults', token: currentUserForKpi.token });
-    if(!data.success){ box.innerHTML = `<p class="loading-row">Xatolik</p>`; return; }
-    if(!data.report || data.report.length === 0){ box.innerHTML = `<p class="loading-row">${dict[currentLang].noResults}</p>`; return; }
-
-    const summaryHtml = `<div class="survey-summary-row">
-      <div class="stat-card"><div class="num">${data.totalSubmissions || 0}</div><div class="lbl">${dict[currentLang].totalSubmissionsLbl}</div></div>
-      <div class="stat-card teal"><div class="num">${data.report.length}</div><div class="lbl">${dict[currentLang].totalQuestionsLbl}</div></div>
-    </div>`;
-
-    const questionsHtml = data.report.map(q => {
-      if(q.turi === 'yulduz'){
-        const maxCount = Math.max(1, ...q.ratingCounts.map(r => r.count));
-        const fullStars = Math.round(q.average);
-        return `<div class="result-q">
-          <div class="rq-text">${escapeHtml(q.savol)}</div>
-          <div class="rq-avg-row">
-            <div class="rq-avg-num">${q.average || 0}</div>
-            <div class="rq-avg-stars">${Array.from({length:q.stars}).map((_,i)=>starsSvg(i<fullStars)).join('')}</div>
-          </div>
-          ${q.total > 0 ? renderRatingGauge(q) : ''}
-          <div class="section-divider">${dict[currentLang].byQuestionLbl}</div>
-          ${q.ratingCounts.map(r => `
-            <div class="result-opt-row">
-              <div class="ro-label">${r.value} ⭐</div>
-              <div class="ro-bar-wrap"><div class="ro-bar star-bar" style="width:${Math.round(r.count/maxCount*100)}%"></div></div>
-              <div class="ro-count">${r.count}</div>
-            </div>`).join('')}
-          <div class="rq-total">${q.total} ${dict[currentLang].totalResponsesLbl}</div>
-        </div>`;
-      }
-      if(q.turi === 'matn'){
-        return `<div class="result-q">
-          <div class="rq-text">${escapeHtml(q.savol)}</div>
-          ${q.responses.length === 0
-            ? `<p style="color:var(--text-dim); font-size:12.5px;">${dict[currentLang].resultsEmpty}</p>`
-            : `<div class="text-answers">${q.responses.map(t => `<div class="text-answer-item">${escapeHtml(t)}</div>`).join('')}</div>`}
-          <div class="rq-total">${q.total} ${dict[currentLang].totalResponsesLbl}</div>
-        </div>`;
-      }
-      const maxCount = Math.max(1, ...q.options.map(o => o.count));
-      return `<div class="result-q">
-        <div class="rq-text">${escapeHtml(q.savol)}</div>
-        ${q.total > 0 ? renderChoiceChart(q) : ''}
-        <div class="section-divider">${dict[currentLang].byQuestionLbl}</div>
-        ${q.options.filter(o => o.text).map(o => `
-          <div class="result-opt-row">
-            <div class="ro-label" title="${escapeHtml(o.text)}">${escapeHtml(o.text)}</div>
-            <div class="ro-bar-wrap"><div class="ro-bar" style="width:${Math.round(o.count/maxCount*100)}%"></div></div>
-            <div class="ro-count">${o.count} <span class="ro-pct">(${q.total ? Math.round(o.count/q.total*100) : 0}%)</span></div>
-          </div>`).join('')}
-        <div class="rq-total">${q.total} ${dict[currentLang].totalResponsesLbl}</div>
-      </div>`;
-    }).join('');
-
-    box.innerHTML = summaryHtml + questionsHtml;
-  } catch(ex){
-    box.innerHTML = `<p class="loading-row">Xatolik: ${ex.message}</p>`;
-  }
-}
-
-/* ---------- Xabarnoma yuborish ---------- */
-let notifSelectedLogins = new Set();
-let notifHistoryLoaded = false;
-
-function onNotifTargetTypeChange(){
-  const type = document.getElementById('notifTargetType').value;
-  document.getElementById('notifUsersField').style.display = type === 'users' ? 'block' : 'none';
-  document.getElementById('notifDeptField').style.display = type === 'department' ? 'block' : 'none';
-  if(type === 'department' && document.getElementById('notifDeptSelect').options.length === 0){
-    const depts = [...new Set((usersData||[]).filter(u=>u.rol==='user').map(u=>u.bolinma).filter(Boolean))];
-    document.getElementById('notifDeptSelect').innerHTML = depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
-  }
-}
-
-function renderNotifUserList(){
-  const q = document.getElementById('notifUserSearch').value.trim().toLowerCase();
-  const list = (usersData||[]).filter(u=>u.rol==='user').filter(u=>{
-    const fish = [u.familiya,u.ism,u.otasi].filter(Boolean).join(' ').toLowerCase();
-    return !q || fish.includes(q);
-  });
-  document.getElementById('notifUserList').innerHTML = list.map(u=>{
-    const fish = [u.familiya,u.ism,u.otasi].filter(Boolean).join(' ');
-    const checked = notifSelectedLogins.has(u.login) ? 'checked' : '';
-    return `<label class="notif-user-opt"><input type="checkbox" ${checked} onchange="toggleNotifUser('${u.login}', this.checked)"> ${escapeHtml(fish)}</label>`;
-  }).join('') || `<p style="color:var(--text-dim); font-size:12.5px; padding:6px;">${dict[currentLang].noResults}</p>`;
-}
-
-function toggleNotifUser(login, checked){
-  if(checked) notifSelectedLogins.add(login); else notifSelectedLogins.delete(login);
-}
-
-async function submitNotification(e){
-  e.preventDefault();
-  const msg = document.getElementById('notifSendMsg'); msg.className = 'msg';
-  const type = document.getElementById('notifTargetType').value;
-  const text = document.getElementById('notifText').value.trim();
-  const payload = { secret: APP_SECRET, action:'sendNotification', token: currentUserForKpi.token, targetType: type, text };
-  if(type === 'department'){
-    payload.department = document.getElementById('notifDeptSelect').value;
-    if(!payload.department){ msg.textContent = dict[currentLang].notifNoTarget; msg.classList.add('err'); return false; }
-  } else {
-    payload.targetLogins = Array.from(notifSelectedLogins);
-    if(payload.targetLogins.length === 0){ msg.textContent = dict[currentLang].notifNoTarget; msg.classList.add('err'); return false; }
-  }
-  const btn = e.target.querySelector('.submit-btn'); btn.disabled = true;
-  try{
-    const data = await apiCall(payload);
-    btn.disabled = false;
-    if(data.success){
-      msg.textContent = dict[currentLang].savedOk; msg.classList.add('ok');
-      e.target.reset();
-      notifSelectedLogins.clear();
-      renderNotifUserList();
-      notifHistoryLoaded = false;
-      loadNotifHistory();
-    } else {
-      msg.textContent = dict[currentLang].savedErr; msg.classList.add('err');
-    }
-  } catch(ex){ btn.disabled = false; msg.textContent = 'Xatolik: ' + ex.message; msg.classList.add('err'); }
-  return false;
-}
-
-async function loadNotifHistory(){
-  if(notifHistoryLoaded) return;
-  notifHistoryLoaded = true;
-  try{
-    const data = await apiCall({ secret: APP_SECRET, action:'getNotificationReport', token: currentUserForKpi.token });
-    if(data.success) renderNotifHistory(data.report);
-  } catch(ex){
-    document.getElementById('notifHistoryList').innerHTML = `<p style="color:var(--coral); font-size:13px;">Xatolik: ${ex.message}</p>`;
-  }
-}
-
-function renderNotifHistory(report){
-  const box = document.getElementById('notifHistoryList');
-  if(!report || report.length === 0){
-    box.innerHTML = `<p style="color:var(--text-dim); font-size:13px;">${dict[currentLang].notifNoHistory}</p>`;
-    return;
-  }
-  box.innerHTML = report.map((n, i) => {
-    const targetLabel = n.targetType === 'department' ? (dict[currentLang].notifTargetDept + ': ' + escapeHtml(n.targetValue)) : (dict[currentLang].notifTargetUsers + ' (' + n.totalTarget + ')');
-    const readers = n.readers.map(r => `<div>${escapeHtml(r.fish)} — ${escapeHtml(r.sana)}</div>`).join('') || `<div>${dict[currentLang].notifNoReaders}</div>`;
-    return `<div class="notif-hist-item" onclick="document.getElementById('nh-${i}').classList.toggle('show')">
-      <div class="h-meta"><span>${escapeHtml(n.senderFish)} • ${targetLabel}</span><span>${escapeHtml(n.sana)}</span></div>
-      <div class="h-text">${escapeHtml(n.text)}</div>
-      <div class="h-stat">${dict[currentLang].notifReadStat}: ${n.readCount}/${n.totalTarget}</div>
-      <div class="notif-readers" id="nh-${i}">${readers}</div>
-    </div>`;
-  }).join('');
-}
-
-function init(){
-  const user = getCurrentUser();
-  if(!user || !user.token){ window.location.href = 'login.html'; return; }
-  const rol = user.rol;
-
-  const canAnticor = rol === 'gl-admin';
-  const canEmployees = rol === 'gl-admin' || rol === 'admin';
-  const canManage = rol === 'gl-admin'; // Test savollari, Hujjat qo'shish — faqat gl-admin
-  const canSurvey = rol === 'gl-admin' || rol === 'admin'; // Anonim so'rovnoma (ichki huquqlar rolga qarab farqlanadi)
-  const canNotifSend = rol === 'gl-admin' || rol === 'admin';
-
-  if(!canAnticor && !canEmployees && !canManage && !canSurvey && !canNotifSend){
-    document.querySelector('.hub-grid').style.display = 'none';
-    document.getElementById('noAccessMsg').style.display = 'block';
-    return;
-  }
-
-  document.getElementById('anticorCard').style.display = canAnticor ? 'block' : 'none';
-  document.getElementById('employeesCard').style.display = canEmployees ? 'block' : 'none';
-  document.getElementById('testsCard').style.display = canManage ? 'block' : 'none';
-  document.getElementById('docsCard').style.display = canManage ? 'block' : 'none';
-  document.getElementById('surveyCard').style.display = canSurvey ? 'block' : 'none';
-  document.getElementById('notifSendCard').style.display = canNotifSend ? 'block' : 'none';
-
-  if(canAnticor) loadStats(user);
-  if(canEmployees) loadUsersList(user);
-  currentUserForKpi = user;
-}
-init();
-
-/* ---------- Fon animatsiyasi (tarmoq) ---------- */
-const canvas = document.getElementById('net'); const ctx = canvas.getContext('2d');
-let W,H,nodes;
-function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
-window.addEventListener('resize', resize); resize();
-function initNodes(){
-  const count = Math.min(70, Math.floor((W*H)/22000));
-  nodes = Array.from({length:count}, ()=>({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*0.35, vy:(Math.random()-0.5)*0.35, r:Math.random()*1.6+0.6 }));
-}
-initNodes(); window.addEventListener('resize', initNodes);
-function isLight(){ return document.body.getAttribute('data-theme')==='light'; }
-function draw(){
-  ctx.clearRect(0,0,W,H);
-  const lineColor = isLight() ? 'rgba(11,37,69,' : 'rgba(0,217,192,';
-  const dotColor = isLight() ? 'rgba(0,163,224,0.55)' : 'rgba(0,217,192,0.75)';
-  for(let i=0;i<nodes.length;i++){
-    const n=nodes[i]; n.x+=n.vx; n.y+=n.vy;
-    if(n.x<0||n.x>W) n.vx*=-1; if(n.y<0||n.y>H) n.vy*=-1;
-    for(let j=i+1;j<nodes.length;j++){
-      const m=nodes[j]; const dx=n.x-m.x, dy=n.y-m.y; const dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<130){ ctx.strokeStyle=lineColor+(0.12*(1-dist/130))+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(n.x,n.y); ctx.lineTo(m.x,m.y); ctx.stroke(); }
-    }
-  }
-  for(const n of nodes){ ctx.fillStyle=dotColor; ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill(); }
-  requestAnimationFrame(draw);
-}
-draw();
-
-// XAVFSIZLIK: brauzer "Ortga" tugmasi orqali keshdagi (bfcache) sahifani qaytarganda
-// (masalan, Chiqish qilingandan keyin) sessiyani qayta tekshiradi — agar sessiya
-// endi mavjud bo'lmasa (chiqilgan bo'lsa), darhol login sahifasiga qaytaradi.
-window.addEventListener('pageshow', function(event){
-  if (event.persisted) {
-    let u;
-    try{ u = JSON.parse(sessionStorage.getItem('km_user')); }catch(e){}
-    if (!u || !u.token) { window.location.href = 'login.html'; }
-  }
-});
-</script>
+<script src="assets/admin.js?v=20260929-2"></script>
 </body>
 </html>
